@@ -8,6 +8,25 @@
 
 #define LM35_ADC_TO_TEMP(adc)		((adc*3300)/4096)
 
+// default calibration values (assuming perfect parts and resistor values)
+#define CAL_DEF_CURSENS_OFFSET_LOW	0
+#define CAL_DEF_CURSENS_SCALE_LOW	5.000 // TODO adjust to shunt
+
+#define CAL_DEF_CURSENS_OFFSET_HIGH	0
+#define CAL_DEF_CURSENS_SCALE_HIGH	50.00 // TODO adjust to shunt
+
+#define CAL_DEF_VOLSENS_OFFSET_LOW	0
+#define CAL_DEF_VOLSENS_SCALE_LOW	3.4375
+
+#define CAL_DEF_VOLSENS_OFFSET_HIGH	0
+#define CAL_DEF_VOLSENS_SCALE_HIGH	34.375
+
+#define CAL_DEF_CURSET_OFFSET_LOW	0
+#define CAL_DEF_CURSET_SCALE_LOW	0.2
+
+#define CAL_DEF_CURSET_OFFSET_HIGH	0
+#define CAL_DEF_CURSET_SCALE_HIGH	0.02
+
 struct {
 	int16_t currentSenseOffsetLowRange;
 	float currentSenseScaleLowRange;
@@ -33,14 +52,21 @@ struct {
 /*
  * Transfers the calibration values from the end of the FLASH
  * (see linker script, section '.config') into the RAM
+ * @return 0 on success, 1 on failure
  */
-void cal_readFromFlash(void);
+uint8_t cal_readFromFlash(void);
 
 /*
  * Writes the calibration values from the RAM into the end
  * of the FLASH. Use sparsely to preserve FLASH
  */
 void cal_writeToFlash(void);
+
+/*
+ * Sets the calibration values to the default values.
+ * Should be used in case of missing calibration data.
+ */
+void cal_setDefaultCalibration(void);
 
 /*
  * Starts and executes the calibration process. Stand-alone function,

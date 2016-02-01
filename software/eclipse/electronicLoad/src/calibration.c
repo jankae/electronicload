@@ -5,6 +5,8 @@
  * NEVER exceed 1kB
  */
 __attribute__ ((section(".config")))
+uint32_t calFlashValid;
+__attribute__ ((section(".config")))
 struct {
 	int16_t currentSenseOffsetLowRange;
 	float currentSenseScaleLowRange;
@@ -28,19 +30,25 @@ struct {
 /*
  * Transfers the calibration values from the end of the FLASH
  * (see linker script, section '.config') into the RAM
+ * @return 0 on success, 1 on failure
  */
-void cal_readFromFlash(void) {
-	// copy memory section from FLASH into RAM
-	// (depends on both sections being identically)
-	uint8_t i;
-	uint32_t *from = (uint32_t*) &calibrationFlash;
-	uint32_t *to = (uint32_t*) &calibration;
-	uint8_t bytes = sizeof(calibrationFlash);
-	for (i = 0; i < bytes; i++) {
-		*to = *from;
-		to++;
-		from++;
+uint8_t cal_readFromFlash(void) {
+	// check whether there is any calibration data in FLASH
+	if (calFlashValid == 0x01) {
+		// copy memory section from FLASH into RAM
+		// (depends on both sections being identically)
+		uint8_t i;
+		uint32_t *from = (uint32_t*) &calibrationFlash;
+		uint32_t *to = (uint32_t*) &calibration;
+		uint8_t bytes = sizeof(calibrationFlash);
+		for (i = 0; i < bytes; i++) {
+			*to = *from;
+			to++;
+			from++;
+		}
+		return 0;
 	}
+	return 1;
 }
 
 /*
@@ -62,7 +70,33 @@ void cal_writeToFlash(void) {
 		to += 4;
 		from += 4;
 	}
+	// set valid data indicator
+	FLASH_ProgramWord((uint32_t) &calFlashValid, 0x01);
 	FLASH_Lock();
+}
+
+/*
+ * Sets the calibration values to the default values.
+ * Should be used in case of missing calibration data.
+ */
+void cal_setDefaultCalibration(void) {
+	calibration.currentSenseOffsetLowRange = CAL_DEF_CURSENS_OFFSET_LOW;
+	calibration.currentSenseScaleLowRange = CAL_DEF_CURSENS_SCALE_LOW;
+
+	calibration.currentSenseOffsetHighRange = CAL_DEF_CURSENS_OFFSET_HIGH;
+	calibration.currentSenseScaleHighRange = CAL_DEF_CURSENS_SCALE_HIGH;
+
+	calibration.voltageSenseOffsetLowRange = CAL_DEF_VOLSENS_OFFSET_LOW;
+	calibration.voltageSenseScaleLowRange = CAL_DEF_VOLSENS_SCALE_LOW;
+
+	calibration.voltageSenseOffsetHighRange = CAL_DEF_VOLSENS_OFFSET_HIGH;
+	calibration.voltageSenseScaleHighRange = CAL_DEF_VOLSENS_SCALE_HIGH;
+
+	calibration.currentSetOffsetLowRange = CAL_DEF_CURSET_OFFSET_LOW;
+	calibration.currentSetScaleLowRange = CAL_DEF_CURSET_SCALE_LOW;
+
+	calibration.currentSetOffsetHighRange = CAL_DEF_CURSET_OFFSET_HIGH;
+	calibration.currentSetScaleHighRange = CAL_DEF_CURSET_SCALE_HIGH;
 }
 
 /*
