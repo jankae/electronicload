@@ -1,7 +1,7 @@
 /**
-  * @file	frontPanel.c
-  * @author	Jan Kaeberich
-  * @brief	Frontpanel hardware abstraction layer source file.
+  * \file	frontPanel.c
+  * \author	Jan Kaeberich
+  * \brief	Frontpanel hardware abstraction layer source file.
   * 		This file contains all function connected to the#
   * 		frontpanel user inputs
   */

@@ -1,8 +1,8 @@
 /**
-  * @file	frontPanel.h
-  * @author	Jan Kaeberich
-  * @brief	Frontpanel hardware abstraction layer header file.
-  * 		This file contains all function connected to the#
+  * \file	frontPanel.h
+  * \author	Jan Kaeberich
+  * \brief	Frontpanel hardware abstraction layer header file.
+  * 		This file contains all function connected to the
   * 		frontpanel user inputs
   */
 
@@ -11,6 +11,10 @@
 
 #include <stdint.h>
 
+/**
+ * \defgroup Button_MaskBits Frontpanel Button Codes
+ * \{
+ */
 #define HAL_BUTTON_0		0x00000001
 #define HAL_BUTTON_1		0x00000002
 #define HAL_BUTTON_2		0x00000004
@@ -30,6 +34,7 @@
 #define HAL_BUTTON_MENU		0x00010000
 #define HAL_BUTTON_ENTER	0x00020000
 #define HAL_BUTTON_ENCODER	0x00040000
+/** \} */
 
 struct {
 	uint32_t buttonState;
@@ -57,7 +62,7 @@ void hal_frontPanelUpdate(void);
 /**
  * \brief Returns the pattern of pressed buttons
  *
- * \return bitmask representing pressed buttons
+ * \return Or'ed combination of \ref Button_MaskBits
  */
 uint32_t hal_getButton(void);
 

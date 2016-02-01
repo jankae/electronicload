@@ -1,5 +1,20 @@
+/**
+ * \file 	currentSink.c
+ * \author 	Jan Kaeberich
+ * \brief	Analog board hardware abstraction layer source file.
+ * 			This file handles all communication with the analog
+ * 			power sink board.
+ */
 #include "currentSink.h"
 
+/**
+ * \brief Initialises the current sink hardware
+ *
+ * Initialises GPIOs used for communication with the
+ * analog board. Configures ADC and DMA to continuously
+ * sample and store all four channels. Sets ranges to
+ * default values (all low).
+ */
 void hal_currentSinkInit(void) {
 	GPIO_InitTypeDef gpio;
 
@@ -89,6 +104,11 @@ void hal_currentSinkInit(void) {
 	ADC_SoftwareStartConvCmd(ADC1, ENABLE);
 }
 
+/**
+ * \brief Sends a value to the DAC on the analog board
+ *
+ * \param dac 12-bit DAC value (1LSB equals 1mV)
+ */
 void hal_setDAC(uint16_t dac) {
 	dac &= 0x0FFF;
 	uint8_t i;
@@ -110,6 +130,11 @@ void hal_setDAC(uint16_t dac) {
 	GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
 }
 
+/**
+ * \brief Sets the current set gain
+ *
+ * \param en 0: gain is set to 1, 1: gain is set to 10
+ */
 void hal_setGain(uint8_t en) {
 	if (en) {
 		GPIO_WriteBit(GPIOC, GPIO_Pin_14, Bit_SET);
@@ -120,6 +145,11 @@ void hal_setGain(uint8_t en) {
 	}
 }
 
+/**
+ * \brief Sets the voltage measurement gain
+ *
+ * \param en 0: gain is set to 1, 1: gain is set to 10
+ */
 void hal_setVoltageGain(uint8_t en) {
 	if (en) {
 		GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
@@ -130,6 +160,11 @@ void hal_setVoltageGain(uint8_t en) {
 	}
 }
 
+/**
+ * \brief Sets the current measurement gain
+ *
+ * \param en 0: gain is set to 1, 1: gain is set to 10
+ */
 void hal_setCurrentGain(uint8_t en) {
 	if (en) {
 		GPIO_WriteBit(GPIOC, GPIO_Pin_15, Bit_SET);
@@ -140,6 +175,11 @@ void hal_setCurrentGain(uint8_t en) {
 	}
 }
 
+/**
+ * \brief Controls the fans on the analog board
+ *
+ * \param en 0: fans disabled, 1: fans enabled
+ */
 void hal_setFan(uint8_t en) {
 	if (en) {
 		GPIO_WriteBit(GPIOC, GPIO_Pin_7, Bit_SET);
@@ -148,6 +188,13 @@ void hal_setFan(uint8_t en) {
 	}
 }
 
+/**
+ * \brief Reads an ADC channel
+ *
+ * \param channel Channel selection. Can be any value of \ref rawADC_indices
+ * \param nsamples Number of samples (result will be averaged)
+ * \return 12-Bit ADC value
+ */
 uint16_t hal_getADC(uint8_t channel, uint8_t nsamples) {
 	if (nsamples <= 1) {
 		return hal.rawADC[channel];
