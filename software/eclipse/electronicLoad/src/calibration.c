@@ -105,8 +105,10 @@ void calibrationProcess(void) {
 	while (button != BUTTON_ENTER && button != BUTTON_ESC) {
 		button = hal_getButton();
 	}
-	if (button == BUTTON_ESC)
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
 		return;
+	}
 	while (hal_getButton() != BUTTON_NONE)
 		;
 
@@ -134,8 +136,10 @@ void calibrationProcess(void) {
 		button = hal_getButton();
 	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
 	hal_setDAC(0);
-	if (button == BUTTON_ESC)
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
 		return;
+	}
 
 	// save calibration values
 	dac100mA = defaultValue100mA;
@@ -162,8 +166,10 @@ void calibrationProcess(void) {
 		button = hal_getButton();
 	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
 	hal_setDAC(0);
-	if (button == BUTTON_ESC)
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
 		return;
+	}
 
 	// save calibration values
 	dac5A = defaultValue5A;
@@ -185,8 +191,10 @@ void calibrationProcess(void) {
 	do {
 		button = hal_getButton();
 	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
-	if (button == BUTTON_ESC)
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
 		return;
+	}
 
 	// save calibration values
 	adc1V = hal_getADC(ADC_VOLTAGE_SENSE, 100);
@@ -203,8 +211,10 @@ void calibrationProcess(void) {
 	do {
 		button = hal_getButton();
 	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
-	if (button == BUTTON_ESC)
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
 		return;
+	}
 
 	// save calibration values
 	adc12V_lowRange = hal_getADC(ADC_VOLTAGE_SENSE, 100);
@@ -228,8 +238,10 @@ void calibrationProcess(void) {
 	do {
 		button = hal_getButton();
 	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
-	if (button == BUTTON_ESC)
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
 		return;
+	}
 
 	// save calibration values
 	adc30V = hal_getADC(ADC_VOLTAGE_SENSE, 100);
@@ -267,10 +279,20 @@ void calibrationProcess(void) {
 	display_Clear();
 	display_FastString12x16("Calibration", 0, 0);
 	display_FastString12x16("completed", 0, 2);
-	display_FastString6x8("Enter: Continue", 0, 7);
-	while (hal_getButton() != BUTTON_ENTER)
-		;
+	display_FastString6x8("ESC: Discard", 0, 6);
+	display_FastString6x8("Enter: Save", 0, 7);
+	do {
+		button = hal_getButton();
+	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
 	display_Clear();
+	if (button == BUTTON_ESC) {
+		calibration.active = 0;
+		return;
+	}
+
+	// save calibration values in FLASH
+	cal_writeToFlash();
+
 	while (hal_getButton() != BUTTON_NONE)
 		;
 
