@@ -9,8 +9,6 @@
 #define LM35_ADC_TO_TEMP(adc)		((adc*3300)/4096)
 
 struct {
-	uint8_t active;
-
 	int16_t currentSenseOffsetLowRange;
 	float currentSenseScaleLowRange;
 
@@ -28,7 +26,21 @@ struct {
 
 	int16_t currentSetOffsetHighRange;
 	float currentSetScaleHighRange;
+
+	uint8_t active;
 } calibration;
+
+/*
+ * Transfers the calibration values from the end of the FLASH
+ * (see linker script, section '.config') into the RAM
+ */
+void cal_readFromFlash(void);
+
+/*
+ * Writes the calibration values from the RAM into the end
+ * of the FLASH. Use sparsely to preserve FLASH
+ */
+void cal_writeToFlash(void);
 
 /*
  * Starts and executes the calibration process. Stand-alone function,

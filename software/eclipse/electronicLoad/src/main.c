@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
 	// Software inits
 	load_Init();
-	// TODO read calibration
+	cal_readFromFlash();
 
 	timer_SetupPeriodicFunction(2, MS_TO_TICKS(1), load_update, 4);
 	timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);

@@ -1,6 +1,71 @@
 #include "calibration.h"
 
 /*
+ * This section must fit into one flash page and thus
+ * NEVER exceed 1kB
+ */
+__attribute__ ((section(".config")))
+struct {
+	int16_t currentSenseOffsetLowRange;
+	float currentSenseScaleLowRange;
+
+	int16_t currentSenseOffsetHighRange;
+	float currentSenseScaleHighRange;
+
+	int16_t voltageSenseOffsetLowRange;
+	float voltageSenseScaleLowRange;
+
+	int16_t voltageSenseOffsetHighRange;
+	float voltageSenseScaleHighRange;
+
+	int16_t currentSetOffsetLowRange;
+	float currentSetScaleLowRange;
+
+	int16_t currentSetOffsetHighRange;
+	float currentSetScaleHighRange;
+}calibrationFlash;
+
+/*
+ * Transfers the calibration values from the end of the FLASH
+ * (see linker script, section '.config') into the RAM
+ */
+void cal_readFromFlash(void) {
+	// copy memory section from FLASH into RAM
+	// (depends on both sections being identically)
+	uint8_t i;
+	uint32_t *from = (uint32_t*) &calibrationFlash;
+	uint32_t *to = (uint32_t*) &calibration;
+	uint8_t bytes = sizeof(calibrationFlash);
+	for (i = 0; i < bytes; i++) {
+		*to = *from;
+		to++;
+		from++;
+	}
+}
+
+/*
+ * Writes the calibration values from the RAM into the end
+ * of the FLASH. Use sparsely to preserve FLASH
+ */
+void cal_writeToFlash(void) {
+	FLASH_Unlock();
+	FLASH_ClearFlag(
+	FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);
+	FLASH_ErasePage(0x0807F800);
+	// FLASH is ready to be written at this point
+	uint8_t i;
+	uint32_t *from = (uint32_t*) &calibration;
+	uint32_t *to = (uint32_t*) &calibrationFlash;
+	uint8_t words = (sizeof(calibrationFlash) + 3) / 4;
+	for (i = 0; i < words; i++) {
+		FLASH_ProgramWord((uint32_t) to, *from);
+		to += 4;
+		from += 4;
+	}
+	FLASH_Lock();
+}
+
+/*
  * Starts and executes the calibration process. Stand-alone function,
  * start from main thread, depends on interrupts to update display and
  * to get user inputs.
