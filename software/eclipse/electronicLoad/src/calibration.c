@@ -119,7 +119,7 @@ void calibrationProcess(void) {
 	uint16_t adc12V_highRange;
 	uint16_t adc30V;
 
-	Button_t button = BUTTON_NONE;
+	uint32_t button = 0;
 
 	/*
 	 * Step 1: calibrating DAC offset (done in hardware)
@@ -136,14 +136,14 @@ void calibrationProcess(void) {
 	display_FastString6x8("ESC: Abort", 0, 6);
 	display_FastString6x8("Enter: Continue", 0, 7);
 
-	while (button != BUTTON_ENTER && button != BUTTON_ESC) {
+	while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER))) {
 		button = hal_getButton();
 	}
-	if (button == BUTTON_ESC) {
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	/*
@@ -168,9 +168,9 @@ void calibrationProcess(void) {
 		else if (defaultValue100mA > 100)
 			defaultValue100mA = 100;
 		button = hal_getButton();
-	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
+	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
 	hal_setDAC(0);
-	if (button == BUTTON_ESC) {
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
@@ -179,7 +179,7 @@ void calibrationProcess(void) {
 	dac100mA = defaultValue100mA;
 	adc100mA = hal_getADC(ADC_CURRENT_SENSE, 100);
 
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	display_Clear();
@@ -198,9 +198,9 @@ void calibrationProcess(void) {
 		else if (defaultValue5A > 1100)
 			defaultValue5A = 1100;
 		button = hal_getButton();
-	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
+	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
 	hal_setDAC(0);
-	if (button == BUTTON_ESC) {
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
@@ -209,7 +209,7 @@ void calibrationProcess(void) {
 	dac5A = defaultValue5A;
 	adc5A = hal_getADC(ADC_CURRENT_SENSE, 100);
 
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	/*
@@ -224,8 +224,8 @@ void calibrationProcess(void) {
 
 	do {
 		button = hal_getButton();
-	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
-	if (button == BUTTON_ESC) {
+	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
@@ -233,7 +233,7 @@ void calibrationProcess(void) {
 	// save calibration values
 	adc1V = hal_getADC(ADC_VOLTAGE_SENSE, 100);
 
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	display_Clear();
@@ -244,8 +244,8 @@ void calibrationProcess(void) {
 
 	do {
 		button = hal_getButton();
-	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
-	if (button == BUTTON_ESC) {
+	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
@@ -256,7 +256,7 @@ void calibrationProcess(void) {
 	// TODO wait until value has settled
 	adc12V_highRange = hal_getADC(ADC_VOLTAGE_SENSE, 100);
 
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	/*
@@ -271,8 +271,8 @@ void calibrationProcess(void) {
 
 	do {
 		button = hal_getButton();
-	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
-	if (button == BUTTON_ESC) {
+	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
@@ -280,7 +280,7 @@ void calibrationProcess(void) {
 	// save calibration values
 	adc30V = hal_getADC(ADC_VOLTAGE_SENSE, 100);
 
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	calibration.active = 0;
@@ -317,9 +317,9 @@ void calibrationProcess(void) {
 	display_FastString6x8("Enter: Save", 0, 7);
 	do {
 		button = hal_getButton();
-	} while (button != BUTTON_ENTER && button != BUTTON_ESC);
+	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
 	display_Clear();
-	if (button == BUTTON_ESC) {
+	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
 	}
@@ -327,7 +327,7 @@ void calibrationProcess(void) {
 	// save calibration values in FLASH
 	cal_writeToFlash();
 
-	while (hal_getButton() != BUTTON_NONE)
+	while (hal_getButton())
 		;
 
 	calibration.active = 0;
