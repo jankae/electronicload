@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "displayRoutines.h"
-#include "timer.h"
-#include "loadFunctions.h"
+#include "main.h"
 
 #define MS_TO_TICKS(ms) (72000*ms)
 
