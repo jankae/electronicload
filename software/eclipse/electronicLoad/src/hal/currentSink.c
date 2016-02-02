@@ -2,6 +2,7 @@
  * \file 	currentSink.c
  * \author 	Jan Kaeberich
  * \brief	Analog board hardware abstraction layer source file.
+ *
  * 			This file handles all communication with the analog
  * 			power sink board.
  */

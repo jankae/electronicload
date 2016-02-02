@@ -2,6 +2,7 @@
   * \file	frontPanel.h
   * \author	Jan Kaeberich
   * \brief	Frontpanel hardware abstraction layer header file.
+  *
   * 		This file contains all function connected to the
   * 		frontpanel user inputs
   */
@@ -12,7 +13,7 @@
 #include <stdint.h>
 
 /**
- * \defgroup Button_MaskBits Frontpanel Button Codes
+ * \name Frontpanel Button Codes
  * \{
  */
 #define HAL_BUTTON_0		0x00000001
@@ -47,6 +48,7 @@ struct {
  * Initialises GPIOs used for the buttons and the encoder.
  * Also registers the frontPanelUpdate function with Timer4
  * in a 10ms interval
+ * @see hal_frontPanelUpdate
  */
 void hal_frontPanelInit(void);
 

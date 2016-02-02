@@ -2,8 +2,9 @@
  * \file 	currentSink.h
  * \author 	Jan Kaeberich
  * \brief	Analog board hardware abstraction layer header file.
- * 			This file handles all communication with the analog
- * 			power sink board.
+ *
+ * 	        This file handles all communication with the analog
+ * 	        power sink board.
  */
 #ifndef CURRENTSINK_H_
 #define CURRENTSINK_H_
@@ -18,22 +19,24 @@
 #define MAX_CURRENT		20000
 
 /**
- * \defgroup rawADC_indices ADC channels
+ * \name rawADC_indices ADC channels
  * \{
  */
-#define ADC_CURRENT_SENSE		0
-#define ADC_VOLTAGE_SENSE		1
-#define ADC_TEMPERATURE1		2
-#define ADC_TEMPERATURE2		3
+#define ADC_CURRENT_SENSE       0
+#define ADC_VOLTAGE_SENSE       1
+#define ADC_TEMPERATURE1        2
+#define ADC_TEMPERATURE2        3
 /** \} */
 
-typedef enum {RANGE_LOW, RANGE_HIGH} range_t;
+typedef enum {
+    RANGE_LOW, RANGE_HIGH
+} range_t;
 
 struct {
-	range_t currentRange;
-	range_t voltageRange;
-	range_t setRange;
-	uint16_t rawADC[4];
+    range_t currentRange;
+    range_t voltageRange;
+    range_t setRange;
+    uint16_t rawADC[4];
 } hal;
 
 /**
@@ -84,7 +87,7 @@ void hal_setFan(uint8_t en);
 /**
  * \brief Reads an ADC channel
  *
- * \param channel Channel selection. Can be any value of \ref rawADC_indices
+ * \param channel Channel selection. Can be any one of the ADC channels
  * \param nsamples Number of samples (result will be averaged)
  * \return 12-Bit ADC value
  */
