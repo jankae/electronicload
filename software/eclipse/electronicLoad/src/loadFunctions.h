@@ -13,8 +13,8 @@
 
 #define LOAD_MAXVOLTAGE			50000
 #define LOAD_MAXCURRENT			20000
-#define LOAD_MAXRESISTANCE		1000000
-#define LOAD_MAXPOWER			100000
+#define LOAD_MAXRESISTANCE		999999
+#define LOAD_MAXPOWER			200000
 
 typedef enum {
     FUNCTION_CC, FUNCTION_CV, FUNCTION_CR, FUNCTION_CP
@@ -31,6 +31,8 @@ struct {
     uint32_t resistance;
     // constant power in mW
     uint32_t power;
+
+    uint8_t powerOn;
 } loadFunctions;
 
 /**

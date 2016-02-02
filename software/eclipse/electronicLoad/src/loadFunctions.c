@@ -69,6 +69,8 @@ void load_set_CP(uint32_t p) {
  * This function is called from an interrupt (using timer 2) every millisecond
  */
 void load_update(void) {
+    if (calibration.active)
+        return;
     uint32_t voltage = cal_getVoltage();
     uint32_t current = 0;
     switch (loadFunctions.mode) {
@@ -88,5 +90,9 @@ void load_update(void) {
             current = MAX_CURRENT;
         break;
     }
-    cal_setCurrent(current);
+    if (loadFunctions.powerOn) {
+        cal_setCurrent(current);
+    } else {
+        cal_setCurrent(0);
+    }
 }
