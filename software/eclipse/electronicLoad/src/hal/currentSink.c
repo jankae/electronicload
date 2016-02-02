@@ -1,6 +1,5 @@
 /**
- * \file 	currentSink.c
- * \author 	Jan Kaeberich
+ * \file
  * \brief	Analog board hardware abstraction layer source file.
  *
  * 			This file handles all communication with the analog

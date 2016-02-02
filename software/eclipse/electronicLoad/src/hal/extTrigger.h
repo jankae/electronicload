@@ -1,6 +1,5 @@
 /**
- * \file    extTrigger.h
- * \author  Jan Kaeberich
+ * \file
  * \brief   External trigger hardware abstraction layer header file.
  *
  *          This file contains the hardware abstraction for the

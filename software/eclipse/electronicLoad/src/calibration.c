@@ -1,3 +1,10 @@
+/**
+ * \file
+ * \brief   Calibration source file.
+ *
+ * This file contains calibration values and functions to calibrate
+ * the load and store the calibration values
+ */
 #include "calibration.h"
 
 /*
@@ -27,10 +34,11 @@ struct {
 	float currentSetScaleHighRange;
 }calibrationFlash;
 
-/*
- * Transfers the calibration values from the end of the FLASH
+/**
+ * \brief Transfers the calibration values from the end of the FLASH
+ *
  * (see linker script, section '.config') into the RAM
- * @return 0 on success, 1 on failure
+ * \return 0 on success, 1 on failure
  */
 uint8_t cal_readFromFlash(void) {
 	// check whether there is any calibration data in FLASH
@@ -51,9 +59,11 @@ uint8_t cal_readFromFlash(void) {
 	return 1;
 }
 
-/*
- * Writes the calibration values from the RAM into the end
- * of the FLASH. Use sparsely to preserve FLASH
+/**
+ * \brief Writes the calibration values from the RAM into the end
+ * of the FLASH.
+ *
+ * Use sparsely to preserve FLASH
  */
 void cal_writeToFlash(void) {
 	FLASH_Unlock();
@@ -75,8 +85,9 @@ void cal_writeToFlash(void) {
 	FLASH_Lock();
 }
 
-/*
- * Sets the calibration values to the default values.
+/**
+ * \brief Sets the calibration values to the default values.
+ *
  * Should be used in case of missing calibration data.
  */
 void cal_setDefaultCalibration(void) {
@@ -99,10 +110,11 @@ void cal_setDefaultCalibration(void) {
 	calibration.currentSetScaleHighRange = CAL_DEF_CURSET_SCALE_HIGH;
 }
 
-/*
- * Starts and executes the calibration process. Stand-alone function,
- * start from main thread, depends on interrupts to update display and
- * to get user inputs.
+/**
+ * \brief Starts and executes the calibration process.
+ *
+ * Stand-alone function, start from main thread, depends on interrupts
+ * to update display and  to get user inputs.
  * IMPORTANT: disable all functions dealing with the DAC, this is all
  * done internally in this function
  */
@@ -333,8 +345,10 @@ void calibrationProcess(void) {
 	calibration.active = 0;
 }
 
-/*
- * sets the 'should be'-current
+/**
+ * \brief Sets the 'should be'-current
+ *
+ * \param mA Current the load should draw
  */
 void cal_setCurrent(uint32_t mA) {
 	if ((mA <= 20000 && hal.setRange == RANGE_LOW) || mA <= 15000) {
@@ -355,8 +369,10 @@ void cal_setCurrent(uint32_t mA) {
 	}
 }
 
-/*
- * returns the actual sinked current in mA
+/**
+ * \brief Returns the current being drawn
+ *
+ * \return Current in mA
  */
 int32_t cal_getCurrent(void) {
 	uint16_t biased = hal_getADC(ADC_CURRENT_SENSE, 1);
@@ -378,8 +394,10 @@ int32_t cal_getCurrent(void) {
 	return ret;
 }
 
-/*
- * returns the measured voltage at the terminals in mV
+/**
+ * \brief Returns the voltage at the terminals
+ *
+ * \return Voltage in mV
  */
 int32_t cal_getVoltage(void) {
 	uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
@@ -401,15 +419,19 @@ int32_t cal_getVoltage(void) {
 	return ret;
 }
 
-/*
- * returns the temperature of heatsink1 in 0.1°C
+/**
+ * \brief Returns the temperature at heatsink1
+ *
+ * \return Temperature in 0.1°C
  */
 uint16_t cal_getTemp1(void) {
 	return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE1, 1));
 }
 
-/*
- * returns the temperature of heatsink2 in 0.1°C
+/**
+ * \brief Returns the temperature at heatsink2
+ *
+ * \return Temperature in 0.1°C
  */
 uint16_t cal_getTemp2(void) {
 	return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE2, 1));

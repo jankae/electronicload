@@ -1,6 +1,5 @@
 /**
- * \file    timer.c
- * \author  Jan Kaeberich
+ * \file
  * \brief   Timer source file.
  *
  *          This file contains all the timer stuff.

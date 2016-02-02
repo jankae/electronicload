@@ -1,6 +1,5 @@
 /**
-  * \file	frontPanel.h
-  * \author	Jan Kaeberich
+  * \file
   * \brief	Frontpanel hardware abstraction layer header file.
   *
   * 		This file contains all function connected to the

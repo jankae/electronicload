@@ -1,6 +1,5 @@
 /**
- * \file    display.h
- * \author  Jan Kaeberich
+ * \file
  * \brief   Hardware abstraction layer header file for a KS0108
  *          display controller.
  */

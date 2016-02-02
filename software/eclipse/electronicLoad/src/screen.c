@@ -1,3 +1,11 @@
+/**
+ * \file
+ * \brief   High level display source file.
+ *
+ * Contains functions to write and draw on the display.
+ * All functions don't modify the actual display content
+ * but rather the internal display buffer from display.h
+ */
 #include "screen.h"
 
 const char font12x16[256][24] = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1028,8 +1036,8 @@ const char font6x8[256][6] = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },	// 0x00
 		{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } 	// 0xFF
 };
 
-/*
- * clears the entire dispaly
+/**
+ * \brief Clears the entire display
  */
 void screen_Clear(void) {
 	uint16_t i;
@@ -1038,9 +1046,11 @@ void screen_Clear(void) {
 }
 
 /*
- * sets or clears a specific pixel in the display data buffer
- * (no data is actual transmitted to the display, only the *internal*
- * buffer is modified)
+ * \brief Sets or clears a specific pixel in the display data buffer
+ *
+ * \param x X-coordinate, (left = 0, right = 127)
+ * \param y Y-coordinate, (up = 0, down = 63)
+ * \param s new pixel state (PIXEL_OFF or PIXEL_ON)
  */
 void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
 	// calculate byteoffset
@@ -1053,17 +1063,28 @@ void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
 	}
 }
 
+/**
+ * \brief Writes an entire byte (8 vertical pixel) in the display data buffer
+ *
+ * \param x X-coordinate, (left = 0, right = 127)
+ * \param page Y-coordinate (up = 0, down = 7)
+ * \param b Byte containing the pixeldata
+ */
 void screen_SetByte(uint8_t x, uint8_t page, uint8_t b) {
 	if (x >= 128 || page >= 8)
 		return;
 	display.buffer[x + page * 128] = b;
 }
 
-/*
- * transfers a character into the display buffer by copying the whole bytes
- * (fast but limited to 8 lines in y direction)
- * 0<=x<=115
- * 0<=y<=7
+/**
+ * \brief Writes a 12x16 font character into the display data buffer
+ *
+ * Function is fast because it transfers the character into the
+ * buffer by copying the whole bytes. This also limits the y-coordinate
+ * to full pages (e.i. every 8th row)
+ * \param x X-coordinate, (left = 0, right = 127)
+ * \param ypage Y-coordinate (up = 0, down = 6)
+ * \param c Character to be displayed
  */
 void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
 	if (x >= 128 || ypage >= 7)
@@ -1075,11 +1096,15 @@ void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
 	}
 }
 
-/*
- * transfers a character into the display buffer by copying the whole bytes
- * (fast but limited to 8 lines in y direction)
- * 0<=x<=122
- * 0<=y<=7
+/**
+ * \brief Writes a 6x8 font character into the display data buffer
+ *
+ * Function is fast because it transfers the character into the
+ * buffer by copying the whole bytes. This also limits the y-coordinate
+ * to full pages (e.i. every 8th row)
+ * \param x X-coordinate, (left = 0, right = 127)
+ * \param ypage Y-coordinate (up = 0, down = 7)
+ * \param c Character to be displayed
  */
 void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
 	if (x >= 128 || ypage >= 8)
@@ -1090,6 +1115,16 @@ void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
 	}
 }
 
+/**
+ * \brief Writes a 12x16 string into the display data buffer
+ *
+ * Uses screen_FastChar12x16(), thus it is also limited to
+ * full pages in the y-coordinate.
+ *
+ * \param src Pointer to the string
+ * \param x X-coordinate, (left = 0, right = 127)
+ * \param ypage Y-coordinate (up = 0, down = 6)
+ */
 void screen_FastString12x16(char *src, uint8_t x, uint8_t ypage) {
 	while (*src) {
 		screen_FastChar12x16(x, ypage, *src++);
@@ -1097,6 +1132,16 @@ void screen_FastString12x16(char *src, uint8_t x, uint8_t ypage) {
 	}
 }
 
+/**
+ * \brief Writes a 6x8 string into the display data buffer
+ *
+ * Uses screen_FastChar6x8(), thus it is also limited to
+ * full pages in the y-coordinate.
+ *
+ * \param src Pointer to the string
+ * \param x X-coordinate, (left = 0, right = 127)
+ * \param ypage Y-coordinate (up = 0, down = 7)
+ */
 void screen_FastString6x8(char *src, uint8_t x, uint8_t ypage) {
 	while (*src) {
 		screen_FastChar6x8(x, ypage, *src++);
@@ -1104,10 +1149,18 @@ void screen_FastString6x8(char *src, uint8_t x, uint8_t ypage) {
 	}
 }
 
+/**
+ * \brief Fills the display with the default screen
+ *
+ * The first three lines consist of the measured
+ * voltage, current and power currently sinked.
+ * In the last to lines the content of screen.defscreen
+ * will be displayed
+ */
 void screen_UpdateDefaultScreen(void) {
 	char buffer[12];
-	uint32_t voltage = hal_getVoltage();
-	uint32_t current = hal_getCurrent();
+	uint32_t voltage = cal_getVoltage();
+	uint32_t current = cal_getCurrent();
 	uint32_t power = voltage * current / 1000000;
 
 	string_fromUint(voltage / 10, buffer, 4, 2);
@@ -1127,7 +1180,7 @@ void screen_UpdateDefaultScreen(void) {
 
 	uint8_t i;
 	for (i = 0; i < 21; i++) {
-		display_FastChar5x8(i * 6, 6, screen.defScreen[0][i]);
-		display_FastChar5x8(i * 6, 7, screen.defScreen[1][i]);
+		screen_FastChar6x8(i * 6, 6, screen.defScreen[0][i]);
+		screen_FastChar6x8(i * 6, 7, screen.defScreen[1][i]);
 	}
 }
