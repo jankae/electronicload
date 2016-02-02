@@ -44,6 +44,21 @@ void timer_waitms(uint16_t ms);
 void timer_waitus(uint16_t us);
 
 /**
+ * \brief Returns a timeout time
+ *
+ * \param ms Time in milliseconds until timeout
+ */
+uint32_t timer_SetTimeout(uint32_t ms);
+
+/**
+ * \brief Checks whether a timeout has elapsed
+ *
+ * \param timeout The systemtime at which the timeout elapses
+ * \return 1: timeout elapsed, 0: timeout still running
+ */
+uint8_t timer_TimeoutElapsed(uint32_t timeout);
+
+/**
  * \brief Sets up a regularly called function
  *
  * Registers a callback function which will be called periodically

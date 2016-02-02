@@ -83,6 +83,28 @@ void timer_waitus(uint16_t us) {
 }
 
 /**
+ * \brief Returns a timeout time
+ *
+ * \param ms Time in milliseconds until timeout
+ */
+uint32_t timer_SetTimeout(uint32_t ms) {
+    return timer.ms + ms;
+}
+
+/**
+ * \brief Checks whether a timeout has elapsed
+ *
+ * \param timeout The systemtime at which the timeout elapses
+ * \return 1: timeout elapsed, 0: timeout still running
+ */
+uint8_t timer_TimeoutElapsed(uint32_t timeout) {
+    if (timeout <= timer.ms)
+        return 1;
+    else
+        return 0;
+}
+
+/**
  * \brief Sets up a regularly called function
  *
  * Registers a callback function which will be called periodically
@@ -122,25 +144,25 @@ uint8_t timer_SetupPeriodicFunction(uint8_t timerNumber, uint32_t period,
         break;
     }
 
-    // set callback function
+// set callback function
     timer.callbacks[timerNumber - 2] = callback;
 
-    // enable timer clock
+// enable timer clock
     RCC_APB1PeriphClockCmd(clock, ENABLE);
     TIM_TimeBaseInitTypeDef timebase;
     timebase.TIM_ClockDivision = TIM_CKD_DIV1;
     timebase.TIM_CounterMode = TIM_CounterMode_Up;
     timebase.TIM_RepetitionCounter = 0;
-    // calculate timer period
+// calculate timer period
     timebase.TIM_Prescaler = (period / 65536) + 1;
     timebase.TIM_Period = (period / timebase.TIM_Prescaler) - 1;
 
-    // start timer
+// start timer
     TIM_TimeBaseInit(tim, &timebase);
     TIM_Cmd(tim, ENABLE);
     TIM_ITConfig(tim, TIM_IT_Update, ENABLE);
 
-    // configure interrupt
+// configure interrupt
     NVIC_InitTypeDef nvic;
     nvic.NVIC_IRQChannel = irq;
     nvic.NVIC_IRQChannelCmd = ENABLE;
