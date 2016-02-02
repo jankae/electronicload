@@ -6,6 +6,77 @@
  */
 #include "menu.h"
 
+void menu_DefaultScreenHandler(void) {
+    while (1) {
+        // wait for all buttons to be released
+        while (hal_getButton())
+            ;
+        // set default screen entries
+        char setValBuf[11];
+        if(!loadFunctions.powerOn){
+            screen_SetDefaultScreenString("!INPUT OFF!", 5, 0);
+        } else {
+            screen_SetDefaultScreenString("           ", 5, 0);
+        }
+        switch (loadFunctions.mode) {
+        case FUNCTION_CC:
+            screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
+            string_fromUint(loadFunctions.current, setValBuf, 6, 3);
+            break;
+        case FUNCTION_CV:
+            screen_SetDefaultScreenString("CC-Mode [V]:  ", 0, 1);
+            string_fromUint(loadFunctions.voltage, setValBuf, 6, 3);
+            break;
+        case FUNCTION_CR:
+            screen_SetDefaultScreenString("CC-Mode [Ohm]:", 0, 1);
+            string_fromUint(loadFunctions.resistance, setValBuf, 6, 3);
+            break;
+        case FUNCTION_CP:
+            screen_SetDefaultScreenString("CC-Mode [W]:  ", 0, 1);
+            string_fromUint(loadFunctions.power, setValBuf, 6, 3);
+            break;
+        }
+        screen_SetDefaultScreenString(setValBuf, 14, 1);
+        uint32_t button;
+        do {
+            screen_UpdateDefaultScreen();
+            button = hal_getButton();
+            timer_waitms(10);
+        } while (!button);
+        // button has been pressed
+        // -> evaluate
+        if (button & HAL_BUTTON_CC) {
+            if (menu_getInputValue(&loadFunctions.current, "'load current'", 0,
+            LOAD_MAXCURRENT, 3)) {
+                loadFunctions.mode = FUNCTION_CC;
+            }
+        }
+        if (button & HAL_BUTTON_CV) {
+            if (menu_getInputValue(&loadFunctions.voltage, "'load voltage'", 0,
+            LOAD_MAXCURRENT, 3)) {
+                loadFunctions.mode = FUNCTION_CV;
+            }
+        }
+        if (button & HAL_BUTTON_CR) {
+            if (menu_getInputValue(&loadFunctions.resistance,
+                    "'load resistance'", 0,
+                    LOAD_MAXCURRENT, 3)) {
+                loadFunctions.mode = FUNCTION_CR;
+            }
+        }
+        if (button & HAL_BUTTON_CP) {
+            if (menu_getInputValue(&loadFunctions.power, "'load power'", 0,
+            LOAD_MAXCURRENT, 3)) {
+                loadFunctions.mode = FUNCTION_CP;
+            }
+        }
+        if (button & HAL_BUTTON_ONOFF) {
+            // toggle on/off
+            loadFunctions.powerOn ^= 1;
+        }
+    }
+}
+
 /**
  * \brief Retrieves a input parameter from the user
  *

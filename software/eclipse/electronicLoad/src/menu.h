@@ -8,6 +8,9 @@
 #define SYSTEM_MENU_H_
 
 #include "screen.h"
+#include "loadFunctions.h"
+
+void menu_DefaultScreenHandler(void);
 
 /**
  * \brief Retrieves a input parameter from the user
@@ -31,5 +34,7 @@
  */
 uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
         uint32_t max, uint8_t ndot);
+
+
 
 #endif /* SYSTEM_MENU_H_ */

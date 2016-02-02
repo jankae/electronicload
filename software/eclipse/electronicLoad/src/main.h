@@ -8,5 +8,6 @@
 #include "timer.h"
 #include "loadFunctions.h"
 #include "extTrigger.h"
+#include "menu.h"
 
 #endif

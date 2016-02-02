@@ -29,7 +29,6 @@ int main(int argc, char* argv[]) {
 
     timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
 
-    while (1) {
-    }
+    menu_DefaultScreenHandler();
 }
 
