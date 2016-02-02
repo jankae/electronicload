@@ -1,10 +1,10 @@
 /**
-  * \file
-  * \brief	Frontpanel hardware abstraction layer header file.
-  *
-  * 		This file contains all function connected to the
-  * 		frontpanel user inputs
-  */
+ * \file
+ * \brief	Frontpanel hardware abstraction layer header file.
+ *
+ * 		This file contains all function connected to the
+ * 		frontpanel user inputs
+ */
 
 #ifndef FRONTPANEL_H_
 #define FRONTPANEL_H_
@@ -59,11 +59,13 @@
 #define HAL_BUTTON_ENTER	0x00010000
 #define HAL_BUTTON_ONOFF	0x00020000
 #define HAL_BUTTON_ENCODER	0x00040000
+
+#define HAL_BUTTON_ISDIGIT  0x000003ff
 /** \} */
 
 struct {
-	uint32_t buttonState;
-	int32_t encoderCounter;
+    uint32_t buttonState;
+    int32_t encoderCounter;
 } frontpanel;
 
 /**
