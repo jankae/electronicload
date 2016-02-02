@@ -11,6 +11,31 @@
 #define FRONTPANEL_H_
 
 #include <stdint.h>
+#include <stm32f10x_conf.h>
+#include "timer.h"
+
+/**
+ * \name Macros for the frontpanel switches GPIOs
+ * \{
+ */
+#define HAL_FRONTPANEL_SWOUT1_HIGH  GPIOB->BSRR = GPIO_Pin_12
+#define HAL_FRONTPANEL_SWOUT1_LOW   GPIOB->BRR = GPIO_Pin_12
+#define HAL_FRONTPANEL_SWOUT2_HIGH  GPIOC->BSRR = GPIO_Pin_6
+#define HAL_FRONTPANEL_SWOUT2_LOW   GPIOC->BRR = GPIO_Pin_6
+#define HAL_FRONTPANEL_SWOUT3_HIGH  GPIOB->BSRR = GPIO_Pin_15
+#define HAL_FRONTPANEL_SWOUT3_LOW   GPIOB->BRR = GPIO_Pin_15
+
+#define HAL_FRONTPANEL_SWIN1        (GPIOB->IDR & GPIO_Pin_9)
+#define HAL_FRONTPANEL_SWIN2        (GPIOB->IDR & GPIO_Pin_8)
+#define HAL_FRONTPANEL_SWIN3        (GPIOB->IDR & GPIO_Pin_7)
+#define HAL_FRONTPANEL_SWIN4        (GPIOB->IDR & GPIO_Pin_6)
+#define HAL_FRONTPANEL_SWIN5        (GPIOB->IDR & GPIO_Pin_2)
+#define HAL_FRONTPANEL_SWIN6        (GPIOB->IDR & GPIO_Pin_1)
+
+#define HAL_FRONTPANEL_ENCA         (GPIOC->IDR & GPIO_Pin_4)
+#define HAL_FRONTPANEL_ENCB         (GPIOC->IDR & GPIO_Pin_5)
+#define HAL_FRONTPANEL_ENCSWITCH    (GPIOB->IDR & GPIO_Pin_0)
+/** \} */
 
 /**
  * \name Frontpanel Button Codes
@@ -32,8 +57,8 @@
 #define HAL_BUTTON_CV		0x00002000
 #define HAL_BUTTON_CR		0x00004000
 #define HAL_BUTTON_CP		0x00008000
-#define HAL_BUTTON_MENU		0x00010000
-#define HAL_BUTTON_ENTER	0x00020000
+#define HAL_BUTTON_ENTER	0x00010000
+#define HAL_BUTTON_ONOFF	0x00020000
 #define HAL_BUTTON_ENCODER	0x00040000
 /** \} */
 
