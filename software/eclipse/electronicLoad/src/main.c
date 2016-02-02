@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
 		cal_setDefaultCalibration();
 	}
 
-	timer_SetupPeriodicFunction(2, MS_TO_TICKS(1), load_update, 4);
 	timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
 
 	while (1) {

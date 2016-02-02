@@ -6,6 +6,7 @@ void load_Init(void) {
 	loadFunctions.voltage = LOAD_MAXVOLTAGE;
 	loadFunctions.resistance =LOAD_MAXRESISTANCE;
 	loadFunctions.power = 0;
+    timer_SetupPeriodicFunction(2, MS_TO_TICKS(1), load_update, 4);
 }
 
 void load_set_CC(uint32_t c) {
