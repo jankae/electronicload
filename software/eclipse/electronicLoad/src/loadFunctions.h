@@ -21,7 +21,7 @@ typedef enum {
 } loadType_t;
 
 struct {
-    loadType_t type;
+    loadType_t mode;
     // values for the different modes
     // constant current in mA
     uint32_t current;

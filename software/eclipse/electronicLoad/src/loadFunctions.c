@@ -15,7 +15,7 @@
  * call load_update()
  */
 void load_Init(void) {
-    loadFunctions.type = FUNCTION_CC;
+    loadFunctions.mode = FUNCTION_CC;
     loadFunctions.current = 0;
     loadFunctions.voltage = LOAD_MAXVOLTAGE;
     loadFunctions.resistance = LOAD_MAXRESISTANCE;
@@ -29,7 +29,7 @@ void load_Init(void) {
  * \param c Current in mA
  */
 void load_set_CC(uint32_t c) {
-    loadFunctions.type = FUNCTION_CC;
+    loadFunctions.mode = FUNCTION_CC;
     loadFunctions.current = c;
 }
 
@@ -39,7 +39,7 @@ void load_set_CC(uint32_t c) {
  * \param v Voltage in mV
  */
 void load_set_CV(uint32_t v) {
-    loadFunctions.type = FUNCTION_CV;
+    loadFunctions.mode = FUNCTION_CV;
     loadFunctions.voltage = v;
 }
 
@@ -49,7 +49,7 @@ void load_set_CV(uint32_t v) {
  * \param r Resistance in mOhm
  */
 void load_set_CR(uint32_t r) {
-    loadFunctions.type = FUNCTION_CR;
+    loadFunctions.mode = FUNCTION_CR;
     loadFunctions.resistance = r;
 }
 
@@ -59,7 +59,7 @@ void load_set_CR(uint32_t r) {
  * \param p Power in mW
  */
 void load_set_CP(uint32_t p) {
-    loadFunctions.type = FUNCTION_CP;
+    loadFunctions.mode = FUNCTION_CP;
     loadFunctions.power = p;
 }
 
@@ -71,7 +71,7 @@ void load_set_CP(uint32_t p) {
 void load_update(void) {
     uint32_t voltage = cal_getVoltage();
     uint32_t current = 0;
-    switch (loadFunctions.type) {
+    switch (loadFunctions.mode) {
     case FUNCTION_CC:
         current = loadFunctions.current;
         break;
