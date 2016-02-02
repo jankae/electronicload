@@ -2,9 +2,9 @@
 #ifndef CALIBRATION_H_
 #define CALIBRATION_H_
 
+#include <screen.h>
 #include "currentSink.h"
 #include "frontPanel.h"
-#include "displayRoutines.h"
 
 #define LM35_ADC_TO_TEMP(adc)		((adc*3300)/4096)
 

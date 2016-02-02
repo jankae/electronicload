@@ -128,13 +128,13 @@ void calibrationProcess(void) {
 	hal_setCurrentGain(1);
 	hal_setDAC(0);
 
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString6x8("Apply about 5V. Turn", 0, 2);
-	display_FastString6x8("internal trimmer", 0, 2);
-	display_FastString6x8("until load draws 0mA", 0, 3);
-	display_FastString6x8("ESC: Abort", 0, 6);
-	display_FastString6x8("Enter: Continue", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
+	screen_FastString6x8("internal trimmer", 0, 2);
+	screen_FastString6x8("until load draws 0mA", 0, 3);
+	screen_FastString6x8("ESC: Abort", 0, 6);
+	screen_FastString6x8("Enter: Continue", 0, 7);
 
 	while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER))) {
 		button = hal_getButton();
@@ -152,13 +152,13 @@ void calibrationProcess(void) {
 	int32_t defaultValue100mA = 20;
 	int32_t defaultValue5A = 1000;
 
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString6x8("Apply about 5V. Turn", 0, 2);
-	display_FastString6x8("knob until load draws", 0, 3);
-	display_FastString6x8("100mA", 0, 4);
-	display_FastString6x8("ESC: Abort", 0, 6);
-	display_FastString6x8("Enter: Continue", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
+	screen_FastString6x8("knob until load draws", 0, 3);
+	screen_FastString6x8("100mA", 0, 4);
+	screen_FastString6x8("ESC: Abort", 0, 6);
+	screen_FastString6x8("Enter: Continue", 0, 7);
 
 	do {
 		hal_setDAC(defaultValue100mA);
@@ -182,13 +182,13 @@ void calibrationProcess(void) {
 	while (hal_getButton())
 		;
 
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString6x8("Apply about 5V. Turn", 0, 2);
-	display_FastString6x8("knob until load draws", 0, 3);
-	display_FastString6x8("5A", 0, 4);
-	display_FastString6x8("ESC: Abort", 0, 6);
-	display_FastString6x8("Enter: Continue", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
+	screen_FastString6x8("knob until load draws", 0, 3);
+	screen_FastString6x8("5A", 0, 4);
+	screen_FastString6x8("ESC: Abort", 0, 6);
+	screen_FastString6x8("Enter: Continue", 0, 7);
 
 	do {
 		hal_setDAC(defaultValue5A);
@@ -216,11 +216,11 @@ void calibrationProcess(void) {
 	 * Step 3: calibrating low voltage range
 	 */
 	hal_setVoltageGain(1);
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString6x8("Apply exactly 1V.", 0, 2);
-	display_FastString6x8("ESC: Abort", 0, 6);
-	display_FastString6x8("Enter: Continue", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString6x8("Apply exactly 1V.", 0, 2);
+	screen_FastString6x8("ESC: Abort", 0, 6);
+	screen_FastString6x8("Enter: Continue", 0, 7);
 
 	do {
 		button = hal_getButton();
@@ -236,11 +236,11 @@ void calibrationProcess(void) {
 	while (hal_getButton())
 		;
 
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString6x8("Apply exactly 12V.", 0, 2);
-	display_FastString6x8("ESC: Abort", 0, 6);
-	display_FastString6x8("Enter: Continue", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString6x8("Apply exactly 12V.", 0, 2);
+	screen_FastString6x8("ESC: Abort", 0, 6);
+	screen_FastString6x8("Enter: Continue", 0, 7);
 
 	do {
 		button = hal_getButton();
@@ -263,11 +263,11 @@ void calibrationProcess(void) {
 	 * Step 4: calibrating high voltage range
 	 */
 	hal_setVoltageGain(0);
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString6x8("Apply exactly 30V.", 0, 2);
-	display_FastString6x8("ESC: Abort", 0, 6);
-	display_FastString6x8("Enter: Continue", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString6x8("Apply exactly 30V.", 0, 2);
+	screen_FastString6x8("ESC: Abort", 0, 6);
+	screen_FastString6x8("Enter: Continue", 0, 7);
 
 	do {
 		button = hal_getButton();
@@ -310,15 +310,15 @@ void calibrationProcess(void) {
 	calibration.voltageSenseOffsetHighRange = adc12V_highRange
 			- 12000 / calibration.voltageSenseScaleHighRange;
 
-	display_Clear();
-	display_FastString12x16("Calibration", 0, 0);
-	display_FastString12x16("completed", 0, 2);
-	display_FastString6x8("ESC: Discard", 0, 6);
-	display_FastString6x8("Enter: Save", 0, 7);
+	screen_Clear();
+	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString12x16("completed", 0, 2);
+	screen_FastString6x8("ESC: Discard", 0, 6);
+	screen_FastString6x8("Enter: Save", 0, 7);
 	do {
 		button = hal_getButton();
 	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-	display_Clear();
+	screen_Clear();
 	if (button & HAL_BUTTON_ESC) {
 		calibration.active = 0;
 		return;
