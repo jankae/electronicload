@@ -105,6 +105,15 @@ void screen_FastString12x16(char *src, uint8_t x, uint8_t ypage);
 void screen_FastString6x8(char *src, uint8_t x, uint8_t ypage);
 
 /**
+ * \brief Copies a char array into the default screen
+ *
+ * \param *src      Pointer to the array to be read from
+ * \param x         Startposition in the default screen line
+ * \param line      Choose between line 0 and 1 of the default screen
+ */
+void screen_SetDefaultScreenString(char *src, uint8_t x, uint8_t line);
+
+/**
  * \brief Fills the display with the default screen
  *
  * The first three lines consist of the measured
