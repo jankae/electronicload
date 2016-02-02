@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "stm32f10x_conf.h"
+#include "timer.h"
 
 /**
  * \name Macros for the display port GPIOs

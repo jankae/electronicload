@@ -116,13 +116,13 @@ void hal_DisplaySetDatabus(uint8_t data) {
  * \param command Display command
  */
 void hal_DisplayCommand(uint8_t command) {
-    // TODO wait 20us
+    timer_waitus(20); // TODO adjust to display
     hal_DisplaySetDatabus(command);
     HAL_DISPLAY_DI_LOW;
     HAL_DISPLAY_RW_LOW;
     HAL_DISPLAY_E_HIGH;
     HAL_DISPLAY_E_HIGH;
-    // TODO 450ns wait
+    timer_waitus(1);
     HAL_DISPLAY_E_LOW;
 }
 
@@ -163,13 +163,13 @@ void hal_DisplaySetStartline(uint8_t startline) {
  * \param data Databyte to be transmitted
  */
 void hal_DisplayWriteData(uint8_t data) {
-    // TODO wait 20us
+    timer_waitus(20); // TODO adjust to display
     hal_DisplaySetDatabus(data);
     HAL_DISPLAY_DI_HIGH;
     HAL_DISPLAY_RW_LOW;
     HAL_DISPLAY_E_HIGH;
     HAL_DISPLAY_E_HIGH;
-    // TODO 450ns wait
+    timer_waitus(1);
     HAL_DISPLAY_E_LOW;
 }
 
