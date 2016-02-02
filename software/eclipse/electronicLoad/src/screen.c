@@ -1,4 +1,4 @@
-#include "displayRoutines.h"
+#include "screen.h"
 
 const char font12x16[256][24] = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1031,7 +1031,7 @@ const char font6x8[256][6] = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },	// 0x00
 /*
  * clears the entire dispaly
  */
-void display_Clear(void) {
+void screen_Clear(void) {
 	uint16_t i;
 	for (i = 0; i < 1024; i++)
 		display.buffer[i] = 0;
@@ -1042,7 +1042,7 @@ void display_Clear(void) {
  * (no data is actual transmitted to the display, only the *internal*
  * buffer is modified)
  */
-void display_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
+void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
 	// calculate byteoffset
 	uint16_t byte = x * 8 + y / 8;
 	uint8_t bit = 1 << (y % 8);
@@ -1053,7 +1053,7 @@ void display_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
 	}
 }
 
-void display_SetByte(uint8_t x, uint8_t page, uint8_t b) {
+void screen_SetByte(uint8_t x, uint8_t page, uint8_t b) {
 	if (x >= 128 || page >= 8)
 		return;
 	display.buffer[x + page * 128] = b;
@@ -1065,13 +1065,13 @@ void display_SetByte(uint8_t x, uint8_t page, uint8_t b) {
  * 0<=x<=115
  * 0<=y<=7
  */
-void display_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
+void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
 	if (x >= 128 || ypage >= 7)
 		return;
 	uint8_t i;
 	for (i = 0; i < 12; i++) {
-		display_SetByte(x + i, ypage, font12x16[(uint8_t) c][i * 2]);
-		display_SetByte(x + i, ypage + 1, font12x16[(uint8_t) c][i * 2 + 1]);
+		screen_SetByte(x + i, ypage, font12x16[(uint8_t) c][i * 2]);
+		screen_SetByte(x + i, ypage + 1, font12x16[(uint8_t) c][i * 2 + 1]);
 	}
 }
 
@@ -1081,30 +1081,30 @@ void display_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
  * 0<=x<=122
  * 0<=y<=7
  */
-void display_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
+void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
 	if (x >= 128 || ypage >= 8)
 		return;
 	uint8_t i;
 	for (i = 0; i < 6; i++) {
-		display_SetByte(x + i, ypage, font6x8[(uint8_t) c][i]);
+		screen_SetByte(x + i, ypage, font6x8[(uint8_t) c][i]);
 	}
 }
 
-void display_FastString12x16(char *src, uint8_t x, uint8_t ypage) {
+void screen_FastString12x16(char *src, uint8_t x, uint8_t ypage) {
 	while (*src) {
-		display_FastChar12x16(x, ypage, *src++);
+		screen_FastChar12x16(x, ypage, *src++);
 		x += 12;
 	}
 }
 
-void display_FastString6x8(char *src, uint8_t x, uint8_t ypage) {
+void screen_FastString6x8(char *src, uint8_t x, uint8_t ypage) {
 	while (*src) {
-		display_FastChar6x8(x, ypage, *src++);
+		screen_FastChar6x8(x, ypage, *src++);
 		x += 6;
 	}
 }
 
-void display_UpdateDefaultScreen(void) {
+void screen_UpdateDefaultScreen(void) {
 	char buffer[12];
 	uint32_t voltage = hal_getVoltage();
 	uint32_t current = hal_getCurrent();
@@ -1113,21 +1113,21 @@ void display_UpdateDefaultScreen(void) {
 	string_fromUint(voltage / 10, buffer, 4, 2);
 	buffer[5] = 'V';
 	buffer[6] = 0;
-	display_FastString12x16(buffer, 0, 0);
+	screen_FastString12x16(buffer, 0, 0);
 
 	string_fromUint(current / 10, buffer, 4, 2);
 	buffer[5] = 'A';
 	buffer[6] = 0;
-	display_FastString12x16(buffer, 0, 2);
+	screen_FastString12x16(buffer, 0, 2);
 
 	string_fromUint(power, buffer, 6, 3);
 	buffer[7] = 'W';
 	buffer[8] = 0;
-	display_FastString12x16(buffer, 0, 4);
+	screen_FastString12x16(buffer, 0, 4);
 
 	uint8_t i;
 	for (i = 0; i < 21; i++) {
-		display_FastChar5x8(i * 6, 6, display.defScreen[0][i]);
-		display_FastChar5x8(i * 6, 7, display.defScreen[1][i]);
+		display_FastChar5x8(i * 6, 6, screen.defScreen[0][i]);
+		display_FastChar5x8(i * 6, 7, screen.defScreen[1][i]);
 	}
 }
