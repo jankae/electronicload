@@ -13,8 +13,8 @@
 #define MS_TO_TICKS(ms) (72000*ms)
 
 struct {
-	void ((*callbacks[3])());
-	uint32_t ms;
+    void ((*callbacks[3])());
+    uint32_t ms;
 } timer;
 
 /**
@@ -72,7 +72,7 @@ uint8_t timer_TimeoutElapsed(uint32_t timeout);
  *                      will be called
  */
 uint8_t timer_SetupPeriodicFunction(uint8_t timerNumber, uint32_t period,
-		void (*callback)(), uint8_t priority);
+        void (*callback)(), uint8_t priority);
 
 void TIM1_UP_IRQHandler(void);
 

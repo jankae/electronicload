@@ -17,20 +17,20 @@
 #define LOAD_MAXPOWER			100000
 
 typedef enum {
-	FUNCTION_CC, FUNCTION_CV, FUNCTION_CR, FUNCTION_CP
+    FUNCTION_CC, FUNCTION_CV, FUNCTION_CR, FUNCTION_CP
 } loadType_t;
 
 struct {
-	loadType_t type;
-	// values for the different modes
-	// constant current in mA
-	uint32_t current;
-	// constant voltage in mV
-	uint32_t voltage;
-	// constant resistance in mOhm
-	uint32_t resistance;
-	// constant power in mW
-	uint32_t power;
+    loadType_t type;
+    // values for the different modes
+    // constant current in mA
+    uint32_t current;
+    // constant voltage in mV
+    uint32_t voltage;
+    // constant resistance in mOhm
+    uint32_t resistance;
+    // constant power in mW
+    uint32_t power;
 } loadFunctions;
 
 /**

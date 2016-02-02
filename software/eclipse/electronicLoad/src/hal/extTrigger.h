@@ -11,10 +11,12 @@
 #include <stdlib.h>
 #include "stm32f10x.h"
 
-typedef enum {TRIG_RISING, TRIG_FALLING} trigEdge_t;
+typedef enum {
+    TRIG_RISING, TRIG_FALLING
+} trigEdge_t;
 
 struct {
-	void (*callback)(trigEdge_t edge);
+    void (*callback)(trigEdge_t edge);
 } trigger;
 
 /**

@@ -142,5 +142,4 @@ void hal_SelectDisplay1(void);
  */
 void hal_SelectDisplay2(void);
 
-
 #endif

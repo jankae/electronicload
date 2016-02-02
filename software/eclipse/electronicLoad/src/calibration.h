@@ -34,25 +34,25 @@
 #define CAL_DEF_CURSET_SCALE_HIGH	0.02
 
 struct {
-	int16_t currentSenseOffsetLowRange;
-	float currentSenseScaleLowRange;
+    int16_t currentSenseOffsetLowRange;
+    float currentSenseScaleLowRange;
 
-	int16_t currentSenseOffsetHighRange;
-	float currentSenseScaleHighRange;
+    int16_t currentSenseOffsetHighRange;
+    float currentSenseScaleHighRange;
 
-	int16_t voltageSenseOffsetLowRange;
-	float voltageSenseScaleLowRange;
+    int16_t voltageSenseOffsetLowRange;
+    float voltageSenseScaleLowRange;
 
-	int16_t voltageSenseOffsetHighRange;
-	float voltageSenseScaleHighRange;
+    int16_t voltageSenseOffsetHighRange;
+    float voltageSenseScaleHighRange;
 
-	int16_t currentSetOffsetLowRange;
-	float currentSetScaleLowRange;
+    int16_t currentSetOffsetLowRange;
+    float currentSetScaleLowRange;
 
-	int16_t currentSetOffsetHighRange;
-	float currentSetScaleHighRange;
+    int16_t currentSetOffsetHighRange;
+    float currentSetScaleHighRange;
 
-	uint8_t active;
+    uint8_t active;
 } calibration;
 
 /**

@@ -9,5 +9,4 @@
 #include "loadFunctions.h"
 #include "extTrigger.h"
 
-
 #endif

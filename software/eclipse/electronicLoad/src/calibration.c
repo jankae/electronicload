@@ -155,8 +155,8 @@ void calibrationProcess(void) {
 		calibration.active = 0;
 		return;
 	}
-	while (hal_getButton())
-		;
+    while (hal_getButton())
+        ;
 
 	/*
 	 * Step 2: calibrating low current range

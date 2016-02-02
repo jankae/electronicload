@@ -14,11 +14,13 @@
 #include "currentSink.h"
 #include "calibration.h"
 
-typedef enum {PIXEL_OFF, PIXEL_ON} PixelState_t;
+typedef enum {
+    PIXEL_OFF, PIXEL_ON
+} PixelState_t;
 
 struct {
-	// buffer for the two lines of the default screen
-	char defScreen[2][21];
+    // buffer for the two lines of the default screen
+    char defScreen[2][21];
 } screen;
 
 /**
@@ -43,6 +45,16 @@ void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s);
  * \param b Byte containing the pixeldata
  */
 void screen_SetByte(uint8_t x, uint8_t page, uint8_t b);
+
+/**
+ * \brief Draws a rectangle on the screen
+ *
+ * \param x1    X-coordinate of top left corner
+ * \param y1    Y-coordinate of top left corner
+ * \param x2    X-coordinate of bottom right corner
+ * \param y2    Y-coordinate of bottom right corner
+ */
+void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 
 /**
  * \brief Writes a 12x16 font character into the display data buffer
