@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	// Peripheral inits
+	timer_Init();
 	hal_currentSinkInit();
 	hal_displayInit();
 	hal_frontPanelInit();

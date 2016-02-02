@@ -1,5 +1,18 @@
+/**
+ * \file    extTrigger.h
+ * \author  Jan Kaeberich
+ * \brief   External trigger hardware abstraction layer header file.
+ *
+ *          This file contains the hardware abstraction for the
+ *          external trigger input and output.
+ */
 #include "extTrigger.h"
 
+/**
+ * \brief Initializes external trigger hardware
+ *
+ * Configures GPIOs and sets up external interrupt
+ */
 void hal_triggerInit(void) {
 	trigger.callback = NULL;
 
@@ -37,10 +50,23 @@ void hal_triggerInit(void) {
 	NVIC_Init(&nvic);
 }
 
+/**
+ * \brief Registers a callback function for the external trigger input
+ *
+ * The registered function will be called on every edge of the
+ * external trigger input
+ *
+ * \param callback Function that will be called
+ */
 void hal_setTriggerInCallback(void (*callback)(trigEdge_t edge)) {
 	trigger.callback = callback;
 }
 
+/**
+ * \brief Sets the external trigger output
+ *
+ * \param state 1: trigger output high (3,3V), 0: trigger output low (0V)
+ */
 void hal_setTriggerOut(uint8_t state) {
 	if (state) {
 		GPIO_WriteBit(GPIOA, GPIO_Pin_6, Bit_SET);
