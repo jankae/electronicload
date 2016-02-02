@@ -265,7 +265,7 @@ void calibrationProcess(void) {
 	// save calibration values
 	adc12V_lowRange = hal_getADC(ADC_VOLTAGE_SENSE, 100);
 	hal_setVoltageGain(0);
-	// TODO wait until value has settled
+	timer_waitms(10);
 	adc12V_highRange = hal_getADC(ADC_VOLTAGE_SENSE, 100);
 
 	while (hal_getButton())
