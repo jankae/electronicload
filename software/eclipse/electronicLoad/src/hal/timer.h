@@ -4,6 +4,8 @@
 #include "stm32f10x.h"
 #include "stm32f10x_conf.h"
 
+#define MS_TO_TICKS(ms) (72000*ms)
+
 struct {
 	void ((*callbacks[3])());
 } timer;

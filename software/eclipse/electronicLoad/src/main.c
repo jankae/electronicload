@@ -1,7 +1,5 @@
 #include "main.h"
 
-#define MS_TO_TICKS(ms) (72000*ms)
-
 void _exit(int a) {
 	while (1) {
 	};
