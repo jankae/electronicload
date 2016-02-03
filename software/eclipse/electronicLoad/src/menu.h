@@ -10,6 +10,9 @@
 #include "screen.h"
 #include "loadFunctions.h"
 
+/**
+ * \brief Handles user inputs while the default screen is active
+ */
 void menu_DefaultScreenHandler(void);
 
 /**

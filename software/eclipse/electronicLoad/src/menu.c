@@ -1,39 +1,57 @@
 /**
  * \file
- * \brief Menu routines header file
+ * \brief Menu routines source file
  *
  * Contains menu and user interface functions
  */
 #include "menu.h"
 
 void menu_DefaultScreenHandler(void) {
+    uint32_t *setvalue;
+    uint32_t minValue;
+    uint32_t maxValue;
+    uint8_t encoderIndicator = 20;
+    uint8_t encoderInkrement = 1;
     while (1) {
         // wait for all buttons to be released
         while (hal_getButton())
             ;
         // set default screen entries
         char setValBuf[11];
-        if(!loadFunctions.powerOn){
-            screen_SetDefaultScreenString("!INPUT OFF!", 5, 0);
+        if (!loadFunctions.powerOn) {
+            screen_SetDefaultScreenString("!INPUT OFF!          ", 0, 0);
         } else {
-            screen_SetDefaultScreenString("           ", 5, 0);
+            screen_SetDefaultScreenString("                     ", 0, 0);
         }
+        screen_SetDefaultScreenString("\x1A", encoderIndicator, 0);
         switch (loadFunctions.mode) {
         case FUNCTION_CC:
             screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
             string_fromUint(loadFunctions.current, setValBuf, 6, 3);
+            setvalue = &loadFunctions.current;
+            minValue = 0;
+            maxValue = LOAD_MAXCURRENT;
             break;
         case FUNCTION_CV:
             screen_SetDefaultScreenString("CC-Mode [V]:  ", 0, 1);
             string_fromUint(loadFunctions.voltage, setValBuf, 6, 3);
+            setvalue = &loadFunctions.voltage;
+            minValue = LOAD_MINVOLTAGE;
+            maxValue = LOAD_MAXVOLTAGE;
             break;
         case FUNCTION_CR:
             screen_SetDefaultScreenString("CC-Mode [Ohm]:", 0, 1);
             string_fromUint(loadFunctions.resistance, setValBuf, 6, 3);
+            setvalue = &loadFunctions.resistance;
+            minValue = LOAD_MINRESISTANCE;
+            maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
             screen_SetDefaultScreenString("CC-Mode [W]:  ", 0, 1);
             string_fromUint(loadFunctions.power, setValBuf, 6, 3);
+            setvalue = &loadFunctions.power;
+            minValue = 0;
+            maxValue = LOAD_MAXPOWER;
             break;
         }
         screen_SetDefaultScreenString(setValBuf, 14, 1);
@@ -45,6 +63,9 @@ void menu_DefaultScreenHandler(void) {
         } while (!button);
         // button has been pressed
         // -> evaluate
+        /*********************************************************
+         * four standard modes (CC, CV, CR, CP)
+         ********************************************************/
         if (button & HAL_BUTTON_CC) {
             if (menu_getInputValue(&loadFunctions.current, "'load current'", 0,
             LOAD_MAXCURRENT, 3)) {
@@ -70,10 +91,53 @@ void menu_DefaultScreenHandler(void) {
                 loadFunctions.mode = FUNCTION_CP;
             }
         }
+        /*********************************************************
+         * load on/off
+         ********************************************************/
         if (button & HAL_BUTTON_ONOFF) {
             // toggle on/off
             loadFunctions.powerOn ^= 1;
         }
+        /*********************************************************
+         * encoder inkrement setting
+         ********************************************************/
+        if (button & HAL_BUTTON_LEFT) {
+            // move inkrement one position to the left, skip dot
+            if (encoderIndicator > 14) {
+                // encoder inkrement is not all the way to the left
+                // -> move it
+                encoderIndicator--;
+                if (encoderIndicator == 17) {
+                    // set indicator to dot position
+                    // -> move one position further
+                    encoderIndicator--;
+                }
+                encoderInkrement *= 10;
+            }
+        }
+        if (button & HAL_BUTTON_RIGHT) {
+            // move inkrement one position to the right, skip dot
+            if (encoderIndicator < 20) {
+                // encoder inkrement is not all the way to the right
+                // -> move it
+                encoderIndicator++;
+                if (encoderIndicator == 17) {
+                    // set indicator to dot position
+                    // -> move one position further
+                    encoderIndicator++;
+                }
+                encoderInkrement /= 10;
+            }
+        }
+        /*********************************************************
+         * encoder inkrement handling
+         ********************************************************/
+        int32_t inkrements = hal_getEncoderMovement();
+        *setvalue += inkrements * encoderInkrement;
+        if (*setvalue < minValue)
+            *setvalue = minValue;
+        if (*setvalue > maxValue)
+            *setvalue = maxValue;
     }
 }
 
@@ -89,8 +153,8 @@ void menu_DefaultScreenHandler(void) {
  * aborts the input process.
  *
  * \param *value    Pointer to the input parameter value
- *                  (will only be written to, if input was successful)
- * \param *descr    Pointer to a char array describing the input paramer
+ *                  (will only be written to if input was successful)
+ * \param *descr    Pointer to a char array describing the input parameter
  *                  (up to 21 characters)
  * \param min       Lower boundary for input value
  * \param max       Upper boundary for input value
