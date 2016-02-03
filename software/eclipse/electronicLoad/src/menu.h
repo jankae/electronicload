@@ -10,10 +10,46 @@
 #include "screen.h"
 #include "loadFunctions.h"
 
+#define MENU_MAIN_MAX_ENRIES       10
+
+struct mainMenuEntry {
+    char descr[21];
+    void (*menuFunction)();
+};
+
+struct {
+    uint8_t nentries;
+    struct mainMenuEntry entries[MENU_MAIN_MAX_ENRIES];
+} menu;
+
 /**
  * \brief Handles user inputs while the default screen is active
+ *
+ * Functionality includes: displaying selected mode and value,
+ * switching load on/off, switching between standard modes (CC,
+ * CV, CR, CP) and handling encoder inputs (changes the value
+ * correspondent to the selected mode)
  */
 void menu_DefaultScreenHandler(void);
+
+/**
+ * \brief Displays the main menu and handles user inputs
+ *
+ * Displays the main menu with all entries registered using
+ * menu_AddMainMenuEntry(). The user can move through the menu
+ * by using the UP and DOWN buttons or turning the encoder.
+ * A submenu item is entered by pressing ENTER or the encoder.
+ */
+void menu_MainMenu(void);
+
+/**
+ * \brief Adds an entry to the main menu
+ *
+ * \param *descr        Name of the menu entry (up to 20 chararcters)
+ * \param *menuFunction Pointer to function that will be called upon
+ *                      selecting the menu entry
+ */
+void menu_AddMainMenuEntry(char *descr, void (*menuFunction)());
 
 /**
  * \brief Retrieves a input parameter from the user
@@ -37,7 +73,5 @@ void menu_DefaultScreenHandler(void);
  */
 uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
         uint32_t max, uint8_t ndot);
-
-
 
 #endif /* SYSTEM_MENU_H_ */

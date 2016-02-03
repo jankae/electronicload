@@ -6,6 +6,14 @@
  */
 #include "menu.h"
 
+/**
+ * \brief Handles user inputs while the default screen is active
+ *
+ * Functionality includes: displaying selected mode and value,
+ * switching load on/off, switching between standard modes (CC,
+ * CV, CR, CP) and handling encoder inputs (changes the value
+ * correspondent to the selected mode)
+ */
 void menu_DefaultScreenHandler(void) {
     uint32_t *setvalue;
     uint32_t minValue;
@@ -23,7 +31,7 @@ void menu_DefaultScreenHandler(void) {
         } else {
             screen_SetDefaultScreenString("                     ", 0, 0);
         }
-        screen_SetDefaultScreenString("\x1A", encoderIndicator, 0);
+        screen_SetDefaultScreenString("\x19", encoderIndicator, 0);
         switch (loadFunctions.mode) {
         case FUNCTION_CC:
             screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
@@ -56,11 +64,13 @@ void menu_DefaultScreenHandler(void) {
         }
         screen_SetDefaultScreenString(setValBuf, 14, 1);
         uint32_t button;
+        int32_t encoder;
         do {
             screen_UpdateDefaultScreen();
             button = hal_getButton();
+            encoder = hal_getEncoderMovement();
             timer_waitms(10);
-        } while (!button);
+        } while (!button && !encoder);
         // button has been pressed
         // -> evaluate
         /*********************************************************
@@ -132,12 +142,122 @@ void menu_DefaultScreenHandler(void) {
         /*********************************************************
          * encoder inkrement handling
          ********************************************************/
-        int32_t inkrements = hal_getEncoderMovement();
-        *setvalue += inkrements * encoderInkrement;
+        *setvalue += encoder * encoderInkrement;
         if (*setvalue < minValue)
             *setvalue = minValue;
         if (*setvalue > maxValue)
             *setvalue = maxValue;
+        /*********************************************************
+         * enter main menu
+         ********************************************************/
+        if (button & HAL_BUTTON_ENTER) {
+            menu_MainMenu();
+        }
+    }
+}
+
+/**
+ * \brief Displays the main menu and handles user inputs
+ *
+ * Displays the main menu with all entries registered using
+ * menu_AddMainMenuEntry(). The user can move through the menu
+ * by using the UP and DOWN buttons or turning the encoder.
+ * A submenu item is entered by pressing ENTER or the encoder.
+ */
+void menu_MainMenu(void) {
+    if (menu.nentries == 0) {
+        // no menu entries
+        // -> no main menu
+        return;
+    }
+    uint8_t menuActive = 1;
+    static uint8_t selectedEntry = 0;
+    static uint8_t firstDisplayedEntry = 0;
+    do {
+        // wait for all buttons to be released
+        while (hal_getButton())
+            ;
+        // display menu surroundings
+        screen_Clear();
+        screen_FastString6x8(
+                "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD", 0,
+                0);
+        screen_FastString6x8("Use |,|,ESC and Enter", 0, 7);
+        // display menu entries
+        uint8_t i;
+        for (i = 0; i < 6 && i + firstDisplayedEntry < menu.nentries; i++) {
+            screen_FastString6x8(menu.entries[i + firstDisplayedEntry].descr, 6,
+                    i + 1);
+        }
+        // display arrow at selected menu entry
+        screen_FastChar6x8(0, 1 + selectedEntry - firstDisplayedEntry, 0x1A);
+
+        uint32_t button;
+        int32_t encoder;
+        // wait for user input
+        do {
+            button = hal_getButton();
+            encoder = hal_getEncoderMovement();
+        } while (!button && !encoder);
+        // button has been pressed
+        // -> evaluate
+        /*********************************************************
+         * moving in menu
+         ********************************************************/
+        if ((button & HAL_BUTTON_UP) || encoder < 0) {
+            // move entry selection one up
+            if (selectedEntry > 0) {
+                selectedEntry--;
+                // scroll if necessary
+                if (selectedEntry < firstDisplayedEntry)
+                    firstDisplayedEntry = selectedEntry;
+            }
+        }
+        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
+            // move entry selection one down
+            if (selectedEntry < menu.nentries - 1) {
+                selectedEntry++;
+                // scroll if necessary
+                if (selectedEntry > firstDisplayedEntry + 5)
+                    firstDisplayedEntry = selectedEntry - 5;
+            }
+        }
+        /*********************************************************
+         * leaving menu
+         ********************************************************/
+        if (button & HAL_BUTTON_ESC) {
+            menuActive = 0;
+        }
+        /*********************************************************
+         * entering submenu
+         ********************************************************/
+        if (button & (HAL_BUTTON_ENTER | HAL_BUTTON_ENCODER)) {
+            // call submenu function
+            menu.entries[selectedEntry].menuFunction();
+        }
+    } while (menuActive);
+}
+
+/**
+ * \brief Adds an entry to the main menu
+ *
+ * \param *descr        Name of the menu entry (up to 20 chararcters)
+ * \param *menuFunction Pointer to function that will be called upon
+ *                      selecting the menu entry
+ */
+void menu_AddMainMenuEntry(char *descr, void (*menuFunction)()) {
+    if (menu.nentries < MENU_MAIN_MAX_ENRIES) {
+        // still some space left -> add entry
+        menu.entries[menu.nentries].menuFunction = menuFunction;
+        uint8_t i = 0;
+        while (*descr && i < 20) {
+            menu.entries[menu.nentries].descr[i] = *descr++;
+        }
+        // fill empty characters with space
+        for (; i < 20; i++)
+            menu.entries[menu.nentries].descr[i] = ' ';
+        menu.entries[menu.nentries].descr[20] = 0;
+        menu.nentries++;
     }
 }
 
