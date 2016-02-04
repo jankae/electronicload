@@ -20,10 +20,10 @@
 
 typedef enum {
     FUNCTION_CC, FUNCTION_CV, FUNCTION_CR, FUNCTION_CP
-} loadType_t;
+} loadMode_t;
 
 struct {
-    loadType_t mode;
+    loadMode_t mode;
     // values for the different modes
     // constant current in mA
     uint32_t current;
