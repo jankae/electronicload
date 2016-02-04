@@ -64,6 +64,19 @@ void load_set_CP(uint32_t p) {
 }
 
 /**
+ * \brief Changes the active load mode
+ *
+ * The load will use the already set mode parameter
+ * (e.i. switching between modes without affecting
+ * parameters)
+ *
+ * \param mode New load mode
+ */
+void load_setMode(loadMode_t mode) {
+    loadFunctions.mode = mode;
+}
+
+/**
  * \brief Updates the current drawn by load according to selected load function
  *
  * This function is called from an interrupt (using timer 2) every millisecond
