@@ -175,6 +175,7 @@ uint8_t timer_SetupPeriodicFunction(uint8_t timerNumber, uint32_t period,
 
 void TIM1_UP_IRQHandler(void) {
     if (TIM_GetITStatus(TIM1, TIM_IT_Update) == SET) {
+        TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
         timer.ms++;
     }
 }
