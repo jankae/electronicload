@@ -14,8 +14,13 @@
  * \name Macros for the display port GPIOs
  * \{
  */
-#define HAL_DISPLAY_RST_LOW		GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_RESET)
-#define HAL_DISPLAY_RST_HIGH	GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_SET)
+
+// changed RST line with botch wire
+// TODO change back for next board
+//#define HAL_DISPLAY_RST_LOW	GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_RESET)
+//#define HAL_DISPLAY_RST_HIGH	GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_SET)
+#define HAL_DISPLAY_RST_LOW     GPIO_WriteBit(GPIOB, GPIO_Pin_11, Bit_RESET)
+#define HAL_DISPLAY_RST_HIGH    GPIO_WriteBit(GPIOB, GPIO_Pin_11, Bit_SET)
 #define HAL_DISPLAY_CS1_LOW		GPIO_WriteBit(GPIOA, GPIO_Pin_9, Bit_RESET)
 #define HAL_DISPLAY_CS1_HIGH	GPIO_WriteBit(GPIOA, GPIO_Pin_9, Bit_SET)
 #define HAL_DISPLAY_CS2_LOW		GPIO_WriteBit(GPIOA, GPIO_Pin_8, Bit_RESET)

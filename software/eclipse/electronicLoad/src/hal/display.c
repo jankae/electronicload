@@ -23,12 +23,12 @@ void hal_displayInit(void) {
 
     // PORT B
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    gpio.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+    gpio.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_11; /* RST temporarely change to PB11) */
     GPIO_Init(GPIOB, &gpio);
 
     // PORT C
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-    gpio.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
+    gpio.GPIO_Pin = /*GPIO_Pin_9 (was RST wire) |*/ GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
     GPIO_Init(GPIOC, &gpio);
 
     // PORT D
