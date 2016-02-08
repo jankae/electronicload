@@ -9,6 +9,10 @@
  * \brief Initializes display related hardware
  */
 void hal_displayInit(void) {
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+
     GPIO_InitTypeDef gpio;
 
     // initialize display GPIO
@@ -23,12 +27,13 @@ void hal_displayInit(void) {
 
     // PORT B
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    gpio.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_11; /* RST temporarely change to PB11) */
+    gpio.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_14; /* RST temporarily change to PB14) */
     GPIO_Init(GPIOB, &gpio);
 
     // PORT C
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-    gpio.GPIO_Pin = /*GPIO_Pin_9 (was RST wire) |*/ GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
+    gpio.GPIO_Pin = GPIO_Pin_8 | /*GPIO_Pin_9 (was RST wire) |*/GPIO_Pin_10
+            | GPIO_Pin_11 | GPIO_Pin_12;
     GPIO_Init(GPIOC, &gpio);
 
     // PORT D
@@ -37,6 +42,14 @@ void hal_displayInit(void) {
     GPIO_Init(GPIOD, &gpio);
 
     HAL_DISPLAY_RST_HIGH;
+    HAL_DISPLAY_BL_ON;
+
+    screen_Clear();
+    hal_SelectDisplay1();
+    hal_DisplayCommand(DISPLAY_ON_CMD);
+    hal_SelectDisplay2();
+    hal_DisplayCommand(DISPLAY_ON_CMD);
+    hal_updateDisplay();
 }
 
 /**
@@ -116,13 +129,13 @@ void hal_DisplaySetDatabus(uint8_t data) {
  * \param command Display command
  */
 void hal_DisplayCommand(uint8_t command) {
-    timer_waitus(20); // TODO adjust to display
+    timer_waitus(2); // TODO adjust to display
     hal_DisplaySetDatabus(command);
     HAL_DISPLAY_DI_LOW;
     HAL_DISPLAY_RW_LOW;
     HAL_DISPLAY_E_HIGH;
     HAL_DISPLAY_E_HIGH;
-    timer_waitus(1);
+    timer_waitus(2);
     HAL_DISPLAY_E_LOW;
 }
 
@@ -163,13 +176,12 @@ void hal_DisplaySetStartline(uint8_t startline) {
  * \param data Databyte to be transmitted
  */
 void hal_DisplayWriteData(uint8_t data) {
-    timer_waitus(20); // TODO adjust to display
+    timer_waitus(2); // TODO adjust to display
     hal_DisplaySetDatabus(data);
     HAL_DISPLAY_DI_HIGH;
     HAL_DISPLAY_RW_LOW;
     HAL_DISPLAY_E_HIGH;
-    HAL_DISPLAY_E_HIGH;
-    timer_waitus(1);
+    timer_waitus(2);
     HAL_DISPLAY_E_LOW;
 }
 
