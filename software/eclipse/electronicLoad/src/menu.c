@@ -15,16 +15,17 @@
  * correspondent to the selected mode)
  */
 void menu_DefaultScreenHandler(void) {
-    uint32_t *setvalue;
-    uint32_t minValue;
-    uint32_t maxValue;
+    int32_t *setvalue;
+    int32_t minValue;
+    int32_t maxValue;
     uint8_t encoderIndicator = 20;
-    uint8_t encoderInkrement = 1;
+    uint32_t encoderInkrement = 1;
     while (1) {
         // wait for all buttons to be released
         while (hal_getButton())
             ;
         // set default screen entries
+        screen_Clear();
         char setValBuf[11];
         if (!loadFunctions.powerOn) {
             screen_SetDefaultScreenString("!INPUT OFF!          ", 0, 0);
@@ -41,21 +42,21 @@ void menu_DefaultScreenHandler(void) {
             maxValue = LOAD_MAXCURRENT;
             break;
         case FUNCTION_CV:
-            screen_SetDefaultScreenString("CC-Mode [V]:  ", 0, 1);
+            screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
             string_fromUint(loadFunctions.voltage, setValBuf, 6, 3);
             setvalue = &loadFunctions.voltage;
             minValue = LOAD_MINVOLTAGE;
             maxValue = LOAD_MAXVOLTAGE;
             break;
         case FUNCTION_CR:
-            screen_SetDefaultScreenString("CC-Mode [Ohm]:", 0, 1);
+            screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
             string_fromUint(loadFunctions.resistance, setValBuf, 6, 3);
             setvalue = &loadFunctions.resistance;
             minValue = LOAD_MINRESISTANCE;
             maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
-            screen_SetDefaultScreenString("CC-Mode [W]:  ", 0, 1);
+            screen_SetDefaultScreenString("CP-Mode [W]:  ", 0, 1);
             string_fromUint(loadFunctions.power, setValBuf, 6, 3);
             setvalue = &loadFunctions.power;
             minValue = 0;
@@ -80,25 +81,29 @@ void menu_DefaultScreenHandler(void) {
             if (menu_getInputValue(&loadFunctions.current, "'load current'", 0,
             LOAD_MAXCURRENT, 3)) {
                 loadFunctions.mode = FUNCTION_CC;
+                loadFunctions.powerOn = 0;
             }
         }
         if (button & HAL_BUTTON_CV) {
             if (menu_getInputValue(&loadFunctions.voltage, "'load voltage'", 0,
-            LOAD_MAXCURRENT, 3)) {
+            LOAD_MAXVOLTAGE, 3)) {
                 loadFunctions.mode = FUNCTION_CV;
+                loadFunctions.powerOn = 0;
             }
         }
         if (button & HAL_BUTTON_CR) {
             if (menu_getInputValue(&loadFunctions.resistance,
                     "'load resistance'", 0,
-                    LOAD_MAXCURRENT, 3)) {
+                    LOAD_MAXRESISTANCE, 3)) {
                 loadFunctions.mode = FUNCTION_CR;
-            }
+                loadFunctions.powerOn = 0;
+           }
         }
         if (button & HAL_BUTTON_CP) {
             if (menu_getInputValue(&loadFunctions.power, "'load power'", 0,
-            LOAD_MAXCURRENT, 3)) {
+            LOAD_MAXPOWER, 3)) {
                 loadFunctions.mode = FUNCTION_CP;
+                loadFunctions.powerOn = 0;
             }
         }
         /*********************************************************
@@ -142,6 +147,14 @@ void menu_DefaultScreenHandler(void) {
         /*********************************************************
          * encoder inkrement handling
          ********************************************************/
+        if (button & HAL_BUTTON_UP) {
+            // move inkrement one position to the right, skip dot
+            *setvalue += encoderInkrement;
+        }
+        if (button & HAL_BUTTON_DOWN) {
+            // move inkrement one position to the right, skip dot
+            *setvalue -= encoderInkrement;
+        }
         *setvalue += encoder * encoderInkrement;
         if (*setvalue < minValue)
             *setvalue = minValue;
@@ -182,7 +195,7 @@ void menu_MainMenu(void) {
         screen_FastString6x8(
                 "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD", 0,
                 0);
-        screen_FastString6x8("Use |,|,ESC and Enter", 0, 7);
+        screen_FastString6x8("Use \x18,\x19,ESC and Enter", 0, 7);
         // display menu entries
         uint8_t i;
         for (i = 0; i < 6 && i + firstDisplayedEntry < menu.nentries; i++) {
@@ -251,7 +264,7 @@ void menu_AddMainMenuEntry(char *descr, void (*menuFunction)()) {
         menu.entries[menu.nentries].menuFunction = menuFunction;
         uint8_t i = 0;
         while (*descr && i < 20) {
-            menu.entries[menu.nentries].descr[i] = *descr++;
+            menu.entries[menu.nentries].descr[i++] = *descr++;
         }
         // fill empty characters with space
         for (; i < 20; i++)
@@ -286,6 +299,8 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
     uint32_t inputValue;
     uint8_t valueValid = 0;
     do {
+        while (hal_getButton())
+            ;
         // display input mask
         screen_Clear();
         screen_FastString6x8("Input parameter:", 0, 0);
@@ -296,7 +311,7 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
         screen_FastString6x8("Enter: set parameter", 0, 7);
         uint32_t button;
         // current input position (in input array)
-        uint8_t inputPosition;
+        uint8_t inputPosition = 0;
         // position of dot (0xff = no dot set)
         uint8_t dotPosition = 0xff;
         // input buffer string
@@ -336,14 +351,19 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
                             input[inputPosition++] = '8';
                         if (button & HAL_BUTTON_9)
                             input[inputPosition++] = '9';
+                        while (hal_getButton())
+                            ;
                     } else if ((button & HAL_BUTTON_DOT)
                             && dotPosition == 0xff) {
                         // dot button pressed and dot not set yet
                         dotPosition = inputPosition;
                         input[inputPosition++] = '.';
+                        while (hal_getButton())
+                            ;
                     }
                 }
             }
+            screen_FastString12x16(input, 4, 3);
         } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
         if (button & HAL_BUTTON_ESC)
             return 0;
@@ -360,7 +380,7 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
                     // calculate digits after dot in input
                     uint8_t afterDot = 0;
                     if (dotPosition != 0xff) {
-                        afterDot = i - dotPosition;
+                        afterDot = i - dotPosition - 1;
                     }
                     // shift value by remaining digits
                     uint8_t j;
@@ -388,7 +408,7 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
             screen_FastString6x8("Max. parameter:", 0, 5);
             string_fromUint(max, buf, 9, ndot);
             screen_FastString12x16(buf, 0, 6);
-            uint32_t timeout = timer_SetTimeout(3000);
+            uint32_t timeout = timer_SetTimeout(6000);
             // display error message for 3 seconds
             // (can be aborted by pressing escape button)
             while (!(hal_getButton() & HAL_BUTTON_ESC)
