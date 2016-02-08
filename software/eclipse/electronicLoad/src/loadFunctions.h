@@ -26,13 +26,13 @@ struct {
     loadMode_t mode;
     // values for the different modes
     // constant current in mA
-    uint32_t current;
+    int32_t current;
     // constant voltage in mV
-    uint32_t voltage;
+    int32_t voltage;
     // constant resistance in mOhm
-    uint32_t resistance;
+    int32_t resistance;
     // constant power in mW
-    uint32_t power;
+    int32_t power;
 
     uint8_t powerOn;
 } loadFunctions;
