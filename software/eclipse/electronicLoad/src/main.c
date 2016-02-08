@@ -6,9 +6,12 @@ void _exit(int a) {
 }
 
 int main(int argc, char* argv[]) {
+    /* TODO move this section into HAL */
     SystemInit();
     SysTick_Config(72000);
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
     // Peripheral inits
     timer_Init();
@@ -17,15 +20,18 @@ int main(int argc, char* argv[]) {
     hal_frontPanelInit();
     hal_triggerInit();
 
-    // External hardware inits
-    // (nothing so far)
+    timer_waitms(100);
 
-    // Software inits
+// External hardware inits
+// (nothing so far)
+
+// Software inits
     load_Init();
-    if (cal_readFromFlash()) {
-        // no valid calibration data available
-        cal_setDefaultCalibration();
-    }
+//    if (cal_readFromFlash()) {
+//        // no valid calibration data available
+//        cal_setDefaultCalibration();
+//    }
+    cal_setDefaultCalibration();
 
     timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
 
