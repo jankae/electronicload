@@ -14,6 +14,12 @@
 #include "timer.h"
 
 /**
+ * \def HAL_ENCODER_SENSITIVITY
+ * Encoder steps needed to inkrement encoder counter by one
+ */
+#define HAL_ENCODER_SENSITIVITY     5
+
+/**
  * \name Macros for the frontpanel switches GPIOs
  * \{
  */
