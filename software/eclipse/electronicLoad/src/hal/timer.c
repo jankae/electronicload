@@ -154,8 +154,8 @@ uint8_t timer_SetupPeriodicFunction(uint8_t timerNumber, uint32_t period,
     timebase.TIM_CounterMode = TIM_CounterMode_Up;
     timebase.TIM_RepetitionCounter = 0;
 // calculate timer period
-    timebase.TIM_Prescaler = (period / 65536) + 1;
-    timebase.TIM_Period = (period / timebase.TIM_Prescaler) - 1;
+    timebase.TIM_Prescaler = (period / 65536);
+    timebase.TIM_Period = (period / (timebase.TIM_Prescaler + 1)) - 1;
 
 // start timer
     TIM_TimeBaseInit(tim, &timebase);
