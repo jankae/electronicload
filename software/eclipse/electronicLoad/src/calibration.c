@@ -119,6 +119,7 @@ void cal_setDefaultCalibration(void) {
  * done internally in this function
  */
 void calibrationProcess(void) {
+    while(hal_getButton());
 	calibration.active = 1;
 
 	uint16_t adc100mA;
@@ -141,10 +142,14 @@ void calibrationProcess(void) {
 	hal_setDAC(0);
 
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+	screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
-	screen_FastString6x8("internal trimmer", 0, 2);
-	screen_FastString6x8("until load draws 0mA", 0, 3);
+	screen_FastString6x8("internal trimmer", 0, 3);
+	screen_FastString6x8("until load draws 0mA", 0, 4);
 	screen_FastString6x8("ESC: Abort", 0, 6);
 	screen_FastString6x8("Enter: Continue", 0, 7);
 
@@ -165,7 +170,11 @@ void calibrationProcess(void) {
 	int32_t defaultValue5A = 1000;
 
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+    screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
 	screen_FastString6x8("knob until load draws", 0, 3);
 	screen_FastString6x8("100mA", 0, 4);
@@ -180,6 +189,7 @@ void calibrationProcess(void) {
 		else if (defaultValue100mA > 100)
 			defaultValue100mA = 100;
 		button = hal_getButton();
+        timer_waitms(1);
 	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
 	hal_setDAC(0);
 	if (button & HAL_BUTTON_ESC) {
@@ -195,7 +205,11 @@ void calibrationProcess(void) {
 		;
 
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+    screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
 	screen_FastString6x8("knob until load draws", 0, 3);
 	screen_FastString6x8("5A", 0, 4);
@@ -210,6 +224,7 @@ void calibrationProcess(void) {
 		else if (defaultValue5A > 1100)
 			defaultValue5A = 1100;
 		button = hal_getButton();
+		timer_waitms(1);
 	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
 	hal_setDAC(0);
 	if (button & HAL_BUTTON_ESC) {
@@ -229,7 +244,11 @@ void calibrationProcess(void) {
 	 */
 	hal_setVoltageGain(1);
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+    screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString6x8("Apply exactly 1V.", 0, 2);
 	screen_FastString6x8("ESC: Abort", 0, 6);
 	screen_FastString6x8("Enter: Continue", 0, 7);
@@ -249,7 +268,11 @@ void calibrationProcess(void) {
 		;
 
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+    screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString6x8("Apply exactly 12V.", 0, 2);
 	screen_FastString6x8("ESC: Abort", 0, 6);
 	screen_FastString6x8("Enter: Continue", 0, 7);
@@ -276,7 +299,11 @@ void calibrationProcess(void) {
 	 */
 	hal_setVoltageGain(0);
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+    screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString6x8("Apply exactly 30V.", 0, 2);
 	screen_FastString6x8("ESC: Abort", 0, 6);
 	screen_FastString6x8("Enter: Continue", 0, 7);
@@ -323,7 +350,11 @@ void calibrationProcess(void) {
 			- 12000 / calibration.voltageSenseScaleHighRange;
 
 	screen_Clear();
-	screen_FastString12x16("Calibration", 0, 0);
+    screen_FastString12x16("Cal", 0, 0);
+    screen_FastChar12x16(33, 0, 'i');
+    screen_FastString12x16("brat", 43, 0);
+    screen_FastChar12x16(89, 0, 'i');
+    screen_FastString12x16("on", 99, 0);
 	screen_FastString12x16("completed", 0, 2);
 	screen_FastString6x8("ESC: Discard", 0, 6);
 	screen_FastString6x8("Enter: Save", 0, 7);
