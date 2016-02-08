@@ -29,6 +29,7 @@ void hal_frontPanelInit(void) {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     gpio.GPIO_Mode = GPIO_Mode_Out_PP;
     gpio.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_15;
+    GPIO_Init(GPIOB, &gpio);
     gpio.GPIO_Mode = GPIO_Mode_IPU;
     gpio.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_6
             | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9;
@@ -38,6 +39,7 @@ void hal_frontPanelInit(void) {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
     gpio.GPIO_Mode = GPIO_Mode_Out_PP;
     gpio.GPIO_Pin = GPIO_Pin_6;
+    GPIO_Init(GPIOC, &gpio);
     gpio.GPIO_Mode = GPIO_Mode_IPU;
     gpio.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
     GPIO_Init(GPIOC, &gpio);
@@ -62,6 +64,7 @@ void hal_frontPanelUpdate(void) {
 
     // first row:
     HAL_FRONTPANEL_SWOUT1_LOW;
+    timer_waitus(2);
     if (!HAL_FRONTPANEL_SWIN1)
         state |= HAL_BUTTON_1;
     if (!HAL_FRONTPANEL_SWIN2)
@@ -74,10 +77,10 @@ void hal_frontPanelUpdate(void) {
         state |= HAL_BUTTON_CC;
     if (!HAL_FRONTPANEL_SWIN6)
         state |= HAL_BUTTON_CV;
-
     // second row:
     HAL_FRONTPANEL_SWOUT1_HIGH;
     HAL_FRONTPANEL_SWOUT2_LOW;
+    timer_waitus(2);
     if (!HAL_FRONTPANEL_SWIN1)
         state |= HAL_BUTTON_4;
     if (!HAL_FRONTPANEL_SWIN2)
@@ -94,7 +97,8 @@ void hal_frontPanelUpdate(void) {
     // third row:
     HAL_FRONTPANEL_SWOUT2_HIGH;
     HAL_FRONTPANEL_SWOUT3_LOW;
-    if (!HAL_FRONTPANEL_SWIN1)
+    timer_waitus(2);
+   if (!HAL_FRONTPANEL_SWIN1)
         state |= HAL_BUTTON_7;
     if (!HAL_FRONTPANEL_SWIN2)
         state |= HAL_BUTTON_8;
