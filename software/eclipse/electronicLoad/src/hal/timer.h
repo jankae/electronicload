@@ -14,7 +14,7 @@
 
 struct {
     void ((*callbacks[3])());
-    uint32_t ms;
+    volatile uint32_t ms;
 } timer;
 
 /**
