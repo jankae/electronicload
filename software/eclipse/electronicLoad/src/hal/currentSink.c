@@ -88,13 +88,13 @@ void hal_currentSinkInit(void) {
     ADC_Init(ADC1, &adc);
 
     // configure channels
-    ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_28Cycles5);
-    ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 2, ADC_SampleTime_28Cycles5);
-    ADC_RegularChannelConfig(ADC1, ADC_Channel_2, 3, ADC_SampleTime_28Cycles5);
-    ADC_RegularChannelConfig(ADC1, ADC_Channel_3, 4, ADC_SampleTime_28Cycles5);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 1, ADC_SampleTime_28Cycles5);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 2, ADC_SampleTime_28Cycles5);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 3, ADC_SampleTime_28Cycles5);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 4, ADC_SampleTime_28Cycles5);
 
-    ADC_Cmd(ADC1, ENABLE);
     ADC_DMACmd(ADC1, ENABLE);
+    ADC_Cmd(ADC1, ENABLE);
     ADC_ResetCalibration(ADC1);
     while (ADC_GetResetCalibrationStatus(ADC1))
         ;
@@ -112,22 +112,20 @@ void hal_currentSinkInit(void) {
 void hal_setDAC(uint16_t dac) {
     dac &= 0x0FFF;
     uint8_t i;
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 12; i++) {
         if (dac & 0x0800) {
-            // set DIN high
-            GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_SET);
+            HAL_DAC_DIN_HIGH;
         } else {
-            // set DIN low
-            GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_RESET);
+            HAL_DAC_DIN_LOW;
         }
         // generate clock pulse
-        GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_SET);
-        GPIO_WriteBit(GPIOA, GPIO_Pin_5, Bit_RESET);
+        HAL_DAC_CLK_LOW;
+        HAL_DAC_CLK_HIGH;
         dac <<= 1;
     }
     // generate load pulse
-    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
-    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+    HAL_DAC_LOAD_LOW;
+    HAL_DAC_LOAD_HIGH;
 }
 
 /**

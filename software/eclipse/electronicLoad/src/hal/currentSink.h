@@ -27,6 +27,13 @@
 #define ADC_TEMPERATURE2        3
 /** \} */
 
+#define HAL_DAC_CLK_LOW         (GPIOA->BRR = GPIO_Pin_5)
+#define HAL_DAC_CLK_HIGH        (GPIOA->BSRR = GPIO_Pin_5)
+#define HAL_DAC_DIN_LOW         (GPIOA->BRR = GPIO_Pin_7)
+#define HAL_DAC_DIN_HIGH        (GPIOA->BSRR = GPIO_Pin_7)
+#define HAL_DAC_LOAD_LOW        (GPIOC->BRR = GPIO_Pin_13)
+#define HAL_DAC_LOAD_HIGH       (GPIOC->BSRR = GPIO_Pin_13)
+
 typedef enum {
     RANGE_LOW, RANGE_HIGH
 } range_t;
@@ -35,7 +42,7 @@ struct {
     range_t currentRange;
     range_t voltageRange;
     range_t setRange;
-    uint16_t rawADC[4];
+    volatile uint16_t rawADC[4];
 } hal;
 
 /**
