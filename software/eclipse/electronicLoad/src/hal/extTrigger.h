@@ -11,13 +11,10 @@
 #include <stdlib.h>
 #include "stm32f10x.h"
 
-typedef enum {
-    TRIG_RISING, TRIG_FALLING
-} trigEdge_t;
+#define EXT_TRIGGER_HIGH        GPIOA->BSRR = GPIO_Pin_6
+#define EXT_TRIGGER_LOW         GPIOA->BRR = GPIO_Pin_6
 
-struct {
-    void (*callback)(trigEdge_t edge);
-} trigger;
+#define EXT_TRIGGER_IN          (GPIOA->IDR & GPIO_Pin_4)
 
 /**
  * \brief Initializes external trigger hardware
@@ -27,22 +24,17 @@ struct {
 void hal_triggerInit(void);
 
 /**
- * \brief Registers a callback function for the external trigger input
- *
- * The registered function will be called on every edge of the
- * external trigger input
- *
- * \param callback Function that will be called
- */
-void hal_setTriggerInCallback(void (*callback)(trigEdge_t edge));
-
-/**
  * \brief Sets the external trigger output
  *
  * \param state 1: trigger output high (3,3V), 0: trigger output low (0V)
  */
 void hal_setTriggerOut(uint8_t state);
 
-void EXTI4_IRQHandler(void);
+/**
+ * \brief reads the status of the trigger input
+ *
+ * \return 0 if trigger in is low, 1 otherwise
+ */
+uint8_t hal_getTriggerIn(void);
 
 #endif

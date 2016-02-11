@@ -13,8 +13,6 @@
  * Configures GPIOs and sets up external interrupt
  */
 void hal_triggerInit(void) {
-    trigger.callback = NULL;
-
     GPIO_InitTypeDef gpio;
 
     // initialize display GPIO
@@ -30,35 +28,6 @@ void hal_triggerInit(void) {
     gpio.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     gpio.GPIO_Pin = GPIO_Pin_4;
     GPIO_Init(GPIOA, &gpio);
-
-    // setup external interrupt
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource4);
-    EXTI_InitTypeDef exti;
-    exti.EXTI_Line = EXTI_Line4;
-    exti.EXTI_LineCmd = ENABLE;
-    exti.EXTI_Mode = EXTI_Mode_Interrupt;
-    exti.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
-    EXTI_Init(&exti);
-
-    // setup nvic controller
-    NVIC_InitTypeDef nvic;
-    nvic.NVIC_IRQChannel = EXTI4_IRQn;
-    nvic.NVIC_IRQChannelCmd = ENABLE;
-    nvic.NVIC_IRQChannelPreemptionPriority = 1;
-    nvic.NVIC_IRQChannelSubPriority = 0;
-    NVIC_Init(&nvic);
-}
-
-/**
- * \brief Registers a callback function for the external trigger input
- *
- * The registered function will be called on every edge of the
- * external trigger input
- *
- * \param callback Function that will be called
- */
-void hal_setTriggerInCallback(void (*callback)(trigEdge_t edge)) {
-    trigger.callback = callback;
 }
 
 /**
@@ -68,20 +37,15 @@ void hal_setTriggerInCallback(void (*callback)(trigEdge_t edge)) {
  */
 void hal_setTriggerOut(uint8_t state) {
     if (state) {
-        GPIO_WriteBit(GPIOA, GPIO_Pin_6, Bit_SET);
+        EXT_TRIGGER_HIGH;
     } else {
-        GPIO_WriteBit(GPIOA, GPIO_Pin_6, Bit_RESET);
+        EXT_TRIGGER_LOW;
     }
 }
 
-void EXTI4_IRQHandler(void) {
-    if (EXTI_GetITStatus(EXTI_Line4) == SET) {
-        EXTI_ClearITPendingBit(EXTI_Line4);
-        if (trigger.callback) {
-            if (GPIOA->IDR & GPIO_Pin_4)
-                trigger.callback(TRIG_RISING);
-            else
-                trigger.callback(TRIG_FALLING);
-        }
-    }
+uint8_t hal_getTriggerIn(void){
+    if(EXT_TRIGGER_IN)
+        return 1;
+    else
+        return 0;
 }
