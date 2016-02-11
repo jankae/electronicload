@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "loadFunctions.h"
 #include "extTrigger.h"
+#include "menu.h"
 
 #define EV_MAXEVENTS        5
 #define EV_MAXTIMERS        5
@@ -36,6 +37,7 @@ struct event {
     // variables for param lower/higher
     uint32_t *srcParam;
     uint32_t srcLimit;
+    uint8_t srcTimerNum;
     /******************************
      * event destination parameters
      *****************************/
@@ -90,5 +92,18 @@ void events_triggerEventDestination(uint8_t ev);
  * Should be called each millisecond
  */
 void events_decrementTimers(void);
+
+/**
+ * \brief Constructs a short description of an event
+ *
+ * \param ev        Number of the event that will be described
+ * \param *descr    Pointer to the char array (at least of size 21) that will contain the description
+ */
+void events_getDescr(uint8_t ev, char *descr);
+
+/**
+ * \brief Display the 'event list' menu
+ */
+void events_menu(void);
 
 #endif

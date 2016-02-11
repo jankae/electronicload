@@ -1,6 +1,6 @@
 #include "events.h"
 
-void events_Init(void){
+void events_Init(void) {
     uint8_t i;
     for (i = 0; i < EV_MAXEVENTS; i++) {
         events.evlist[i].sourceType = EV_SRC_DISABLED;
@@ -79,4 +79,94 @@ void events_decrementTimers(void) {
             events.evTimers[i]--;
         }
     }
+}
+
+void events_getDescr(uint8_t ev, char* descr) {
+    if (events.evlist[ev].sourceType == EV_SRC_DISABLED) {
+        string_copy(descr, "DISABLED");
+        return;
+    }
+    // construct source description
+    switch (events.evlist[ev].sourceType) {
+    case EV_SRC_PARAM_HIGHER:
+        // TODO add partial parameter name
+        string_copy(descr, "P>:      ");
+        break;
+    case EV_SRC_PARAM_LOWER:
+        // TODO add partial parameter name
+        string_copy(descr, "P<:      ");
+        break;
+    case EV_SRC_TIM_ZERO:
+        string_copy(descr, "Timer  =0");
+        descr[5] = (events.evlist[ev].srcTimerNum / 10) + '0';
+        descr[6] = (events.evlist[ev].srcTimerNum % 10) + '0';
+        break;
+    case EV_SRC_TRIG_FALL:
+        string_copy(descr, "TrigFall\x19");
+        break;
+    case EV_SRC_TRIG_RISE:
+        string_copy(descr, "TrigRise\x18");
+        break;
+    }
+
+    descr[9] = 0x1A; // right arrow
+
+    // construct destination description
+    switch (events.evlist[ev].destType) {
+    case EV_DEST_LOAD_MODE:
+        string_copy(&descr[10], "Mode C ");
+        switch (events.evlist[ev].destMode) {
+        case FUNCTION_CC:
+            descr[16] = 'C';
+            break;
+        case FUNCTION_CV:
+            descr[16] = 'V';
+            break;
+        case FUNCTION_CR:
+            descr[16] = 'R';
+            break;
+        case FUNCTION_CP:
+            descr[16] = 'P';
+            break;
+        }
+        break;
+    case EV_DEST_LOAD_OFF:
+        string_copy(&descr[10], "OutputOff");
+        break;
+    case EV_DEST_LOAD_ON:
+        string_copy(&descr[10], "OutputOn");
+        break;
+    case EV_DEST_SET_PARAM:
+        // TODO add partial parameter name
+        string_copy(&descr[10], "P=:       ");
+        break;
+    case EV_DEST_SET_TIMER:
+        string_copy(&descr[10], "SetTim   ");
+        descr[17] = (events.evlist[ev].destTimerNum / 10) + '0';
+        descr[18] = (events.evlist[ev].destTimerNum % 10) + '0';
+        break;
+    case EV_DEST_TRIG_HIGH:
+        string_copy(&descr[10], "TrigHigh\x18");
+        break;
+    case EV_DEST_TRIG_LOW:
+        string_copy(&descr[10], "TrigLow\x19");
+        break;
+    }
+}
+
+void events_menu(void) {
+    char eventDescr[EV_MAXEVENTS][21];
+    char *descrList[EV_MAXEVENTS];
+    uint8_t i;
+    for (i = 0; i < EV_MAXEVENTS; i++) {
+        events_getDescr(i, eventDescr[i]);
+        descrList[i] = eventDescr[i];
+    }
+    int8_t ev;
+    do {
+        ev = menu_ItemChooseDialog(
+                "\xCD\xCD\xCD\xCD\xCD" "EVENT LIST\xCD\xCD\xCD\xCD\xCD\xCD",
+                descrList,
+                EV_MAXEVENTS);
+    } while (ev >= 0);
 }
