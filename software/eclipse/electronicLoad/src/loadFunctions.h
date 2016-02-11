@@ -22,6 +22,8 @@ typedef enum {
     FUNCTION_CC, FUNCTION_CV, FUNCTION_CR, FUNCTION_CP
 } loadMode_t;
 
+#include "events.h"
+
 struct {
     loadMode_t mode;
     // values for the different modes
@@ -35,6 +37,8 @@ struct {
     int32_t power;
 
     uint8_t powerOn;
+
+    uint8_t triggerInOld;
 } loadFunctions;
 
 /**

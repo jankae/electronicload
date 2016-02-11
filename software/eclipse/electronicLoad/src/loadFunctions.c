@@ -20,7 +20,8 @@ void load_Init(void) {
     loadFunctions.voltage = LOAD_MAXVOLTAGE;
     loadFunctions.resistance = LOAD_MAXRESISTANCE;
     loadFunctions.power = 0;
-    timer_SetupPeriodicFunction(2, MS_TO_TICKS(0.5), load_update, 4);
+    loadFunctions.triggerInOld = hal_getTriggerIn();
+    timer_SetupPeriodicFunction(2, MS_TO_TICKS(1), load_update, 4);
 }
 
 /**
@@ -86,6 +87,14 @@ void load_update(void) {
         return;
     uint32_t voltage = cal_getVoltage();
     uint32_t current = 0;
+
+    uint8_t triggerIn = hal_getTriggerIn();
+    events.triggerInState = triggerIn - loadFunctions.triggerInOld;
+    loadFunctions.triggerInOld = triggerIn;
+
+    events_decrementTimers();
+    events_HandleEvents();
+
     switch (loadFunctions.mode) {
     case FUNCTION_CC:
         current = loadFunctions.current;
