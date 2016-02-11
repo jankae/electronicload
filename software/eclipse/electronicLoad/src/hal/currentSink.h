@@ -21,8 +21,8 @@
  * \name rawADC_indices ADC channels
  * \{
  */
-#define ADC_CURRENT_SENSE       0
-#define ADC_VOLTAGE_SENSE       1
+#define ADC_CURRENT_SENSE       1
+#define ADC_VOLTAGE_SENSE       0
 #define ADC_TEMPERATURE1        2
 #define ADC_TEMPERATURE2        3
 /** \} */
