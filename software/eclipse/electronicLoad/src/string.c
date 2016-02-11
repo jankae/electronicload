@@ -34,3 +34,10 @@ void string_fromUint(uint32_t value, char *dest, uint8_t digits, uint8_t dot) {
     }
     *dest = 0;
 }
+
+void string_copy(char *dest, const char *src) {
+    while (*src) {
+        *dest++ = *src++;
+    }
+    *dest = 0;
+}

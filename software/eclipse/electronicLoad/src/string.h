@@ -23,4 +23,12 @@
  */
 void string_fromUint(uint32_t value, char *dest, uint8_t digits, uint8_t dot);
 
+/**
+ * \brief copies a string from the FLASH into a char array
+ *
+ * \param *dest Pointer to destination array (must be large enough to hold the string)
+ * \param *src String to be copied into the array
+ */
+void string_copy(char *dest, const char *src);
+
 #endif
