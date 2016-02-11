@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
 // (nothing so far)
 
 // Software inits
+    events_Init();
     load_Init();
 //    if (cal_readFromFlash()) {
 //        // no valid calibration data available
