@@ -23,7 +23,9 @@ typedef enum {
     EV_DEST_TRIG_LOW,
     EV_DEST_SET_PARAM,
     EV_DEST_SET_TIMER,
-    EV_DEST_LOAD_MODE
+    EV_DEST_LOAD_MODE,
+    EV_DEST_LOAD_ON,
+    EV_DEST_LOAD_OFF
 } evDestType_t;
 
 struct event {
@@ -51,7 +53,14 @@ struct event {
 struct {
     uint32_t evTimers[EV_MAXTIMERS];
     struct event evlist[EV_MAXEVENTS];
+    // 0: no change, 1: rising edge, -1: falling edge
+    int8_t triggerInState;
 } events;
+
+/**
+ * \brief Initializes event structs (disables all events)
+ */
+void events_Init(void);
 
 /**
  * \brief Executes the destination action for every triggered event

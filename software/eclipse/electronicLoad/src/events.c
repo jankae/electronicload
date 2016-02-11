@@ -1,5 +1,20 @@
 #include "events.h"
 
+void events_Init(void){
+    uint8_t i;
+    for (i = 0; i < EV_MAXEVENTS; i++) {
+        events.evlist[i].sourceType = EV_SRC_DISABLED;
+        events.evlist[i].srcParam = NULL;
+        events.evlist[i].srcLimit = 0;
+        events.evlist[i].destMode = FUNCTION_CC;
+        events.evlist[i].destParam = NULL;
+        events.evlist[i].destSetValue = 0;
+        events.evlist[i].destTimerNum = 0;
+        events.evlist[i].destTimerValue = 0;
+        events.evlist[i].destType = EV_DEST_LOAD_OFF;
+    }
+}
+
 void events_HandleEvents(void) {
     uint8_t i;
     for (i = 0; i < EV_MAXEVENTS; i++) {
@@ -24,11 +39,11 @@ uint8_t events_isEventSourceTriggered(uint8_t ev) {
             triggered = 1;
     }
     if (events.evlist[ev].sourceType == EV_SRC_TRIG_FALL) {
-        if (0/* TODO ext trigger fall detection */)
+        if (events.triggerInState == -1)
             triggered = 1;
     }
     if (events.evlist[ev].sourceType == EV_SRC_TRIG_RISE) {
-        if (0/* TODO ext trigger rise detection */)
+        if (events.triggerInState == 1)
             triggered = 1;
     }
     return triggered;
