@@ -97,7 +97,7 @@ void menu_DefaultScreenHandler(void) {
                     LOAD_MAXRESISTANCE, 3)) {
                 loadFunctions.mode = FUNCTION_CR;
                 loadFunctions.powerOn = 0;
-           }
+            }
         }
         if (button & HAL_BUTTON_CP) {
             if (menu_getInputValue(&loadFunctions.power, "'load power'", 0,
@@ -178,77 +178,17 @@ void menu_DefaultScreenHandler(void) {
  * A submenu item is entered by pressing ENTER or the encoder.
  */
 void menu_MainMenu(void) {
-    if (menu.nentries == 0) {
-        // no menu entries
-        // -> no main menu
-        return;
+    char *entries[MENU_MAIN_MAX_ENRIES];
+    uint8_t i;
+    for (i = 0; i < menu.nentries; i++) {
+        entries[i] = menu.entries[i].descr;
     }
-    uint8_t menuActive = 1;
-    static uint8_t selectedEntry = 0;
-    static uint8_t firstDisplayedEntry = 0;
-    do {
-        // wait for all buttons to be released
-        while (hal_getButton())
-            ;
-        // display menu surroundings
-        screen_Clear();
-        screen_FastString6x8(
-                "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD", 0,
-                0);
-        screen_FastString6x8("Use \x18,\x19,ESC and Enter", 0, 7);
-        // display menu entries
-        uint8_t i;
-        for (i = 0; i < 6 && i + firstDisplayedEntry < menu.nentries; i++) {
-            screen_FastString6x8(menu.entries[i + firstDisplayedEntry].descr, 6,
-                    i + 1);
-        }
-        // display arrow at selected menu entry
-        screen_FastChar6x8(0, 1 + selectedEntry - firstDisplayedEntry, 0x1A);
-
-        uint32_t button;
-        int32_t encoder;
-        // wait for user input
-        do {
-            button = hal_getButton();
-            encoder = hal_getEncoderMovement();
-        } while (!button && !encoder);
-        // button has been pressed
-        // -> evaluate
-        /*********************************************************
-         * moving in menu
-         ********************************************************/
-        if ((button & HAL_BUTTON_UP) || encoder < 0) {
-            // move entry selection one up
-            if (selectedEntry > 0) {
-                selectedEntry--;
-                // scroll if necessary
-                if (selectedEntry < firstDisplayedEntry)
-                    firstDisplayedEntry = selectedEntry;
-            }
-        }
-        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
-            // move entry selection one down
-            if (selectedEntry < menu.nentries - 1) {
-                selectedEntry++;
-                // scroll if necessary
-                if (selectedEntry > firstDisplayedEntry + 5)
-                    firstDisplayedEntry = selectedEntry - 5;
-            }
-        }
-        /*********************************************************
-         * leaving menu
-         ********************************************************/
-        if (button & HAL_BUTTON_ESC) {
-            menuActive = 0;
-        }
-        /*********************************************************
-         * entering submenu
-         ********************************************************/
-        if (button & (HAL_BUTTON_ENTER | HAL_BUTTON_ENCODER)) {
-            // call submenu function
-            menu.entries[selectedEntry].menuFunction();
-        }
-    } while (menuActive);
+    int8_t sel = menu_ItemChooseDialog(
+            "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD",
+            entries, menu.nentries);
+    if(sel>=0){
+        menu.entries[sel].menuFunction();
+    }
 }
 
 /**
@@ -421,4 +361,74 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
 
     *value = inputValue;
     return 1;
+}
+
+int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
+    if (nitems == 0) {
+        // no menu entries
+        // -> no main menu
+        return -1;
+    }
+    static uint8_t selectedItem = 0;
+    static uint8_t firstDisplayedItem = 0;
+    do {
+        // wait for all buttons to be released
+        while (hal_getButton())
+            ;
+        // display menu surroundings
+        screen_Clear();
+        screen_FastString6x8(title, 0, 0);
+        screen_FastString6x8("Use \x18,\x19,ESC and Enter", 0, 7);
+        // display menu entries
+        uint8_t i;
+        for (i = 0; i < 6 && i + firstDisplayedItem < menu.nentries; i++) {
+            screen_FastString6x8(items[i + firstDisplayedItem], 6, i + 1);
+        }
+        // display arrow at selected menu entry
+        screen_FastChar6x8(0, 1 + selectedItem - firstDisplayedItem, 0x1A);
+
+        uint32_t button;
+        int32_t encoder;
+        // wait for user input
+        do {
+            button = hal_getButton();
+            encoder = hal_getEncoderMovement();
+        } while (!button && !encoder);
+        // button has been pressed
+        // -> evaluate
+        /*********************************************************
+         * moving in menu
+         ********************************************************/
+        if ((button & HAL_BUTTON_UP) || encoder < 0) {
+            // move entry selection one up
+            if (selectedItem > 0) {
+                selectedItem--;
+                // scroll if necessary
+                if (selectedItem < firstDisplayedItem)
+                    firstDisplayedItem = selectedItem;
+            }
+        }
+        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
+            // move entry selection one down
+            if (selectedItem < menu.nentries - 1) {
+                selectedItem++;
+                // scroll if necessary
+                if (selectedItem > firstDisplayedItem + 5)
+                    firstDisplayedItem = selectedItem - 5;
+            }
+        }
+        /*********************************************************
+         * leaving menu
+         ********************************************************/
+        if (button & HAL_BUTTON_ESC) {
+            return -1;
+        }
+        /*********************************************************
+         * entering submenu
+         ********************************************************/
+        if (button & (HAL_BUTTON_ENTER | HAL_BUTTON_ENCODER)) {
+            return selectedItem;
+        }
+    } while (1); // not really an endless loop
+
 }

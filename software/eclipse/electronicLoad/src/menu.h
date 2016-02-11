@@ -74,4 +74,18 @@ void menu_AddMainMenuEntry(char *descr, void (*menuFunction)());
 uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
         uint32_t max, uint8_t ndot);
 
+/**
+ * \brief Allows the user to choose an item out of a list
+ *
+ * It displays the chooser dialog and handles every button
+ * press.
+ *
+ * \param *title Title of the menu being displayed
+ * \param **items List of pointers to char array describing the items
+ * \param nitems Number of items
+ *
+ * \return item number if item was chosen, otherwise -1
+ */
+int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems);
+
 #endif /* SYSTEM_MENU_H_ */
