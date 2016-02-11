@@ -183,12 +183,15 @@ void menu_MainMenu(void) {
     for (i = 0; i < menu.nentries; i++) {
         entries[i] = menu.entries[i].descr;
     }
-    int8_t sel = menu_ItemChooseDialog(
-            "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD",
-            entries, menu.nentries);
-    if(sel>=0){
-        menu.entries[sel].menuFunction();
-    }
+    int8_t sel;
+    do {
+        sel = menu_ItemChooseDialog(
+                "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD",
+                entries, menu.nentries);
+        if (sel >= 0) {
+            menu.entries[sel].menuFunction();
+        }
+    } while (sel >= 0);
 }
 
 /**
@@ -369,8 +372,8 @@ int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
         // -> no main menu
         return -1;
     }
-    static uint8_t selectedItem = 0;
-    static uint8_t firstDisplayedItem = 0;
+    uint8_t selectedItem = 0;
+    uint8_t firstDisplayedItem = 0;
     do {
         // wait for all buttons to be released
         while (hal_getButton())
@@ -381,7 +384,7 @@ int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
         screen_FastString6x8("Use \x18,\x19,ESC and Enter", 0, 7);
         // display menu entries
         uint8_t i;
-        for (i = 0; i < 6 && i + firstDisplayedItem < menu.nentries; i++) {
+        for (i = 0; i < 6 && i + firstDisplayedItem < nitems; i++) {
             screen_FastString6x8(items[i + firstDisplayedItem], 6, i + 1);
         }
         // display arrow at selected menu entry
@@ -410,7 +413,7 @@ int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
         }
         if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
             // move entry selection one down
-            if (selectedItem < menu.nentries - 1) {
+            if (selectedItem < nitems - 1) {
                 selectedItem++;
                 // scroll if necessary
                 if (selectedItem > firstDisplayedItem + 5)
