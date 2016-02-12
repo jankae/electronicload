@@ -6,36 +6,42 @@
 #include "extTrigger.h"
 #include "menu.h"
 
-#define EV_MAXEVENTS        5
+#define EV_MAXEVENTS        10
 #define EV_MAXTIMERS        5
+
+#define EV_NUM_SOURCETYPES  6
+#define EV_NUM_DESTTYPES    7
+#define EV_NUM_COMPPARAMS   3
+#define EV_NUM_SETPARAMS    4
 
 #define EV_TIMER_STOPPED    0xffffffff
 
 typedef enum {
-    EV_SRC_TRIG_RISE,
-    EV_SRC_TRIG_FALL,
-    EV_SRC_PARAM_LOWER,
-    EV_SRC_PARAM_HIGHER,
-    EV_SRC_TIM_ZERO,
-    EV_SRC_DISABLED
+    EV_SRC_DISABLED = 0,
+    EV_SRC_TRIG_RISE = 1,
+    EV_SRC_TRIG_FALL = 2,
+    EV_SRC_PARAM_LOWER = 3,
+    EV_SRC_PARAM_HIGHER = 4,
+    EV_SRC_TIM_ZERO = 5
 } evSourceType_t;
 typedef enum {
-    EV_DEST_TRIG_HIGH,
-    EV_DEST_TRIG_LOW,
-    EV_DEST_SET_PARAM,
-    EV_DEST_SET_TIMER,
-    EV_DEST_LOAD_MODE,
-    EV_DEST_LOAD_ON,
-    EV_DEST_LOAD_OFF
+    EV_DEST_TRIG_HIGH = 0,
+    EV_DEST_TRIG_LOW = 1,
+    EV_DEST_SET_PARAM = 2,
+    EV_DEST_SET_TIMER = 3,
+    EV_DEST_LOAD_MODE = 4,
+    EV_DEST_LOAD_ON = 5,
+    EV_DEST_LOAD_OFF = 6
 } evDestType_t;
 
 struct event {
     /******************************
      * event source parameters
      *****************************/
-    evSourceType_t sourceType;
+    evSourceType_t srcType;
     // variables for param lower/higher
     uint32_t *srcParam;
+    uint8_t srcParamNum;
     uint32_t srcLimit;
     uint8_t srcTimerNum;
     /******************************
@@ -44,6 +50,7 @@ struct event {
     evDestType_t destType;
     // variables for set param
     uint32_t *destParam;
+    uint8_t destParamNum;
     uint32_t destSetValue;
     // variables for set timer
     uint8_t destTimerNum;
@@ -105,5 +112,12 @@ void events_getDescr(uint8_t ev, char *descr);
  * \brief Display the 'event list' menu
  */
 void events_menu(void);
+
+/**
+ * \brief Displays a menu which enables the user to edit an event entry
+ *
+ * \param ev    Number of the event that will be edited
+ */
+void events_editEventMenu(uint8_t ev);
 
 #endif
