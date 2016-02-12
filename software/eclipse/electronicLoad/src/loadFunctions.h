@@ -19,7 +19,7 @@
 #define LOAD_MAXPOWER			200000
 
 typedef enum {
-    FUNCTION_CC, FUNCTION_CV, FUNCTION_CR, FUNCTION_CP
+    FUNCTION_CC = 0, FUNCTION_CV = 1, FUNCTION_CR = 2, FUNCTION_CP = 3
 } loadMode_t;
 
 #include "events.h"
