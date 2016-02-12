@@ -26,9 +26,23 @@ void string_fromUint(uint32_t value, char *dest, uint8_t digits, uint8_t dot);
 /**
  * \brief copies a string from the FLASH into a char array
  *
+ * Copies bytes from src to dest until it reaches a string terminator (the terminator
+ * itself will also be copied)
+ *
  * \param *dest Pointer to destination array (must be large enough to hold the string)
  * \param *src String to be copied into the array
  */
 void string_copy(char *dest, const char *src);
+
+/**
+ * \brief copies a string of bytes from the FLASH into a char array
+ *
+ * Like string_copy() but with an maximum limit of copied bytes and the terminator won't be copied
+ *
+ * \param *dest Pointer to destination array (must be large enough to hold the string)
+ * \param *src String to be copied into the array
+ * \param n Maximum number of copied bytes
+ */
+void string_copyn(char *dest, const char *src, uint8_t n);
 
 #endif

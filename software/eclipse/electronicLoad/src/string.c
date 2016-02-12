@@ -41,3 +41,11 @@ void string_copy(char *dest, const char *src) {
     }
     *dest = 0;
 }
+
+void string_copyn(char *dest, const char *src, uint8_t n) {
+    for (; n > 0; n++) {
+        if (!*src)
+            break;
+        *dest++ = *src++;
+    }
+}
