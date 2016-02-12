@@ -296,8 +296,8 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
                             input[inputPosition++] = '9';
                         while (hal_getButton())
                             ;
-                    } else if ((button & HAL_BUTTON_DOT)
-                            && dotPosition == 0xff) {
+                    } else if ((button & HAL_BUTTON_DOT) && dotPosition == 0xff
+                            && ndot > 0) {
                         // dot button pressed and dot not set yet
                         dotPosition = inputPosition;
                         input[inputPosition++] = '.';
