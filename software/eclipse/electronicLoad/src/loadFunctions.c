@@ -15,12 +15,12 @@
  * call load_update()
  */
 void load_Init(void) {
-    loadFunctions.mode = FUNCTION_CC;
-    loadFunctions.current = 0;
-    loadFunctions.voltage = LOAD_MAXVOLTAGE;
-    loadFunctions.resistance = LOAD_MAXRESISTANCE;
-    loadFunctions.power = 0;
-    loadFunctions.triggerInOld = hal_getTriggerIn();
+    load.mode = FUNCTION_CC;
+    load.current = 0;
+    load.voltage = LOAD_MAXVOLTAGE;
+    load.resistance = LOAD_MAXRESISTANCE;
+    load.power = 0;
+    load.triggerInOld = hal_getTriggerIn();
     timer_SetupPeriodicFunction(2, MS_TO_TICKS(1), load_update, 4);
 }
 
@@ -30,8 +30,8 @@ void load_Init(void) {
  * \param c Current in mA
  */
 void load_set_CC(uint32_t c) {
-    loadFunctions.mode = FUNCTION_CC;
-    loadFunctions.current = c;
+    load.mode = FUNCTION_CC;
+    load.current = c;
 }
 
 /**
@@ -40,8 +40,8 @@ void load_set_CC(uint32_t c) {
  * \param v Voltage in mV
  */
 void load_set_CV(uint32_t v) {
-    loadFunctions.mode = FUNCTION_CV;
-    loadFunctions.voltage = v;
+    load.mode = FUNCTION_CV;
+    load.voltage = v;
 }
 
 /**
@@ -50,8 +50,8 @@ void load_set_CV(uint32_t v) {
  * \param r Resistance in mOhm
  */
 void load_set_CR(uint32_t r) {
-    loadFunctions.mode = FUNCTION_CR;
-    loadFunctions.resistance = r;
+    load.mode = FUNCTION_CR;
+    load.resistance = r;
 }
 
 /**
@@ -60,8 +60,8 @@ void load_set_CR(uint32_t r) {
  * \param p Power in mW
  */
 void load_set_CP(uint32_t p) {
-    loadFunctions.mode = FUNCTION_CP;
-    loadFunctions.power = p;
+    load.mode = FUNCTION_CP;
+    load.power = p;
 }
 
 /**
@@ -74,7 +74,7 @@ void load_set_CP(uint32_t p) {
  * \param mode New load mode
  */
 void load_setMode(loadMode_t mode) {
-    loadFunctions.mode = mode;
+    load.mode = mode;
 }
 
 /**
@@ -85,34 +85,38 @@ void load_setMode(loadMode_t mode) {
 void load_update(void) {
     if (calibration.active)
         return;
-    uint32_t voltage = cal_getVoltage();
+    load.state.voltage = cal_getVoltage();
+    load.state.current = cal_getCurrent();
+    load.state.power = load.state.voltage
+            * load.state.current / 1000;
+
     uint32_t current = 0;
 
     uint8_t triggerIn = hal_getTriggerIn();
-    events.triggerInState = triggerIn - loadFunctions.triggerInOld;
-    loadFunctions.triggerInOld = triggerIn;
+    events.triggerInState = triggerIn - load.triggerInOld;
+    load.triggerInOld = triggerIn;
 
     events_decrementTimers();
     events_HandleEvents();
 
-    switch (loadFunctions.mode) {
+    switch (load.mode) {
     case FUNCTION_CC:
-        current = loadFunctions.current;
+        current = load.current;
         break;
     case FUNCTION_CV:
         //TODO
         break;
     case FUNCTION_CR:
-        current = (voltage * 1000) / loadFunctions.resistance;
+        current = (load.state.voltage * 1000) / load.resistance;
         break;
     case FUNCTION_CP:
-        if (voltage > 0)
-            current = (loadFunctions.power * 1000) / voltage;
+        if (load.state.voltage > 0)
+            current = (load.power * 1000) / load.state.voltage;
         else
             current = MAX_CURRENT;
         break;
     }
-    if (loadFunctions.powerOn) {
+    if (load.powerOn) {
         cal_setCurrent(current);
     } else {
         cal_setCurrent(0);

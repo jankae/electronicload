@@ -39,7 +39,15 @@ struct {
     uint8_t powerOn;
 
     uint8_t triggerInOld;
-} loadFunctions;
+
+    struct {
+        uint32_t current;
+        uint32_t voltage;
+        uint32_t power;
+        uint16_t temp1;
+        uint16_t temp2;
+    } state;
+} load;
 
 /**
  * \brief Initializes loadregulation
