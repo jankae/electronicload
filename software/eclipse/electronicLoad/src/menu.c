@@ -19,7 +19,7 @@ void menu_DefaultScreenHandler(void) {
     int32_t minValue;
     int32_t maxValue;
     uint8_t encoderIndicator = 20;
-    uint32_t encoderInkrement = 1;
+    uint32_t encoderInkrement = 10;
     while (1) {
         // wait for all buttons to be released
         while (hal_getButton())
@@ -27,38 +27,38 @@ void menu_DefaultScreenHandler(void) {
         // set default screen entries
         screen_Clear();
         char setValBuf[11];
-        if (!loadFunctions.powerOn) {
+        if (!load.powerOn) {
             screen_SetDefaultScreenString("!INPUT OFF!          ", 0, 0);
         } else {
             screen_SetDefaultScreenString("                     ", 0, 0);
         }
         screen_SetDefaultScreenString("\x19", encoderIndicator, 0);
-        switch (loadFunctions.mode) {
+        switch (load.mode) {
         case FUNCTION_CC:
             screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
-            string_fromUint(loadFunctions.current, setValBuf, 6, 3);
-            setvalue = &loadFunctions.current;
+            string_fromUint(load.current/10, setValBuf, 6, 2);
+            setvalue = &load.current;
             minValue = 0;
             maxValue = LOAD_MAXCURRENT;
             break;
         case FUNCTION_CV:
             screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
-            string_fromUint(loadFunctions.voltage, setValBuf, 6, 3);
-            setvalue = &loadFunctions.voltage;
+            string_fromUint(load.voltage/10, setValBuf, 6, 2);
+            setvalue = &load.voltage;
             minValue = LOAD_MINVOLTAGE;
             maxValue = LOAD_MAXVOLTAGE;
             break;
         case FUNCTION_CR:
             screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
-            string_fromUint(loadFunctions.resistance, setValBuf, 6, 3);
-            setvalue = &loadFunctions.resistance;
+            string_fromUint(load.resistance/10, setValBuf, 6, 2);
+            setvalue = &load.resistance;
             minValue = LOAD_MINRESISTANCE;
             maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
             screen_SetDefaultScreenString("CP-Mode [W]:  ", 0, 1);
-            string_fromUint(loadFunctions.power, setValBuf, 6, 3);
-            setvalue = &loadFunctions.power;
+            string_fromUint(load.power/10, setValBuf, 6, 2);
+            setvalue = &load.power;
             minValue = 0;
             maxValue = LOAD_MAXPOWER;
             break;
@@ -78,32 +78,32 @@ void menu_DefaultScreenHandler(void) {
          * four standard modes (CC, CV, CR, CP)
          ********************************************************/
         if (button & HAL_BUTTON_CC) {
-            if (menu_getInputValue(&loadFunctions.current, "'load current'", 0,
+            if (menu_getInputValue(&load.current, "'load current'", 0,
             LOAD_MAXCURRENT, 3)) {
-                loadFunctions.mode = FUNCTION_CC;
-                loadFunctions.powerOn = 0;
+                load.mode = FUNCTION_CC;
+                load.powerOn = 0;
             }
         }
         if (button & HAL_BUTTON_CV) {
-            if (menu_getInputValue(&loadFunctions.voltage, "'load voltage'", 0,
+            if (menu_getInputValue(&load.voltage, "'load voltage'", 0,
             LOAD_MAXVOLTAGE, 3)) {
-                loadFunctions.mode = FUNCTION_CV;
-                loadFunctions.powerOn = 0;
+                load.mode = FUNCTION_CV;
+                load.powerOn = 0;
             }
         }
         if (button & HAL_BUTTON_CR) {
-            if (menu_getInputValue(&loadFunctions.resistance,
-                    "'load resistance'", 0,
+            if (menu_getInputValue(&load.resistance,
+                    "'load resistance'", LOAD_MINRESISTANCE,
                     LOAD_MAXRESISTANCE, 3)) {
-                loadFunctions.mode = FUNCTION_CR;
-                loadFunctions.powerOn = 0;
+                load.mode = FUNCTION_CR;
+                load.powerOn = 0;
             }
         }
         if (button & HAL_BUTTON_CP) {
-            if (menu_getInputValue(&loadFunctions.power, "'load power'", 0,
+            if (menu_getInputValue(&load.power, "'load power'", 0,
             LOAD_MAXPOWER, 3)) {
-                loadFunctions.mode = FUNCTION_CP;
-                loadFunctions.powerOn = 0;
+                load.mode = FUNCTION_CP;
+                load.powerOn = 0;
             }
         }
         /*********************************************************
@@ -111,18 +111,18 @@ void menu_DefaultScreenHandler(void) {
          ********************************************************/
         if (button & HAL_BUTTON_ONOFF) {
             // toggle on/off
-            loadFunctions.powerOn ^= 1;
+            load.powerOn ^= 1;
         }
         /*********************************************************
          * encoder inkrement setting
          ********************************************************/
         if (button & HAL_BUTTON_LEFT) {
             // move inkrement one position to the left, skip dot
-            if (encoderIndicator > 14) {
+            if (encoderIndicator > 15) {
                 // encoder inkrement is not all the way to the left
                 // -> move it
                 encoderIndicator--;
-                if (encoderIndicator == 17) {
+                if (encoderIndicator == 18) {
                     // set indicator to dot position
                     // -> move one position further
                     encoderIndicator--;
@@ -136,7 +136,7 @@ void menu_DefaultScreenHandler(void) {
                 // encoder inkrement is not all the way to the right
                 // -> move it
                 encoderIndicator++;
-                if (encoderIndicator == 17) {
+                if (encoderIndicator == 18) {
                     // set indicator to dot position
                     // -> move one position further
                     encoderIndicator++;
