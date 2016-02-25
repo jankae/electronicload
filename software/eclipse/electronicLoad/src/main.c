@@ -28,11 +28,10 @@ int main(int argc, char* argv[]) {
 // Software inits
     events_Init();
     load_Init();
-//    if (cal_readFromFlash()) {
-//        // no valid calibration data available
-//        cal_setDefaultCalibration();
-//    }
-    cal_setDefaultCalibration();
+    if (cal_readFromFlash()) {
+        // no valid calibration data available
+        cal_setDefaultCalibration();
+    }
 
     timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
 
