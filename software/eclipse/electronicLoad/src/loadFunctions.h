@@ -18,6 +18,10 @@
 #define LOAD_MINRESISTANCE      50
 #define LOAD_MAXPOWER			200000
 
+#define LOAD_MAX_TEMP           100
+#define LOAD_FANON_TEMP         30
+#define LOAD_FANOFF_TEMP        25
+
 typedef enum {
     FUNCTION_CC = 0, FUNCTION_CV = 1, FUNCTION_CR = 2, FUNCTION_CP = 3
 } loadMode_t;

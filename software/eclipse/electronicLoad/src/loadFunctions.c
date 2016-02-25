@@ -87,8 +87,19 @@ void load_update(void) {
         return;
     load.state.voltage = cal_getVoltage();
     load.state.current = cal_getCurrent();
-    load.state.power = load.state.voltage
-            * load.state.current / 1000;
+    load.state.power = load.state.voltage * load.state.current / 1000;
+
+    load.state.temp1 = cal_getTemp1();
+    load.state.temp2 = cal_getTemp2();
+    uint16_t highTemp = load.state.temp1;
+    if (load.state.temp2 > load.state.temp1)
+        highTemp = load.state.temp2;
+
+    // switch fan
+    if (highTemp >= LOAD_FANON_TEMP)
+        hal_setFan(1);
+    else if (highTemp <= LOAD_FANOFF_TEMP)
+        hal_setFan(0);
 
     uint32_t current = 0;
 
@@ -116,7 +127,7 @@ void load_update(void) {
             current = MAX_CURRENT;
         break;
     }
-    if (load.powerOn) {
+    if (load.powerOn && highTemp <= LOAD_MAX_TEMP) {
         cal_setCurrent(current);
     } else {
         cal_setCurrent(0);
