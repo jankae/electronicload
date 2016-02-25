@@ -36,28 +36,28 @@ void menu_DefaultScreenHandler(void) {
         switch (load.mode) {
         case FUNCTION_CC:
             screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
-            string_fromUint(load.current/10, setValBuf, 6, 2);
+            string_fromUint(load.current/10, setValBuf, 5, 2);
             setvalue = &load.current;
             minValue = 0;
             maxValue = LOAD_MAXCURRENT;
             break;
         case FUNCTION_CV:
             screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
-            string_fromUint(load.voltage/10, setValBuf, 6, 2);
+            string_fromUint(load.voltage/10, setValBuf, 5, 2);
             setvalue = &load.voltage;
             minValue = LOAD_MINVOLTAGE;
             maxValue = LOAD_MAXVOLTAGE;
             break;
         case FUNCTION_CR:
             screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
-            string_fromUint(load.resistance/10, setValBuf, 6, 2);
+            string_fromUint(load.resistance/10, setValBuf, 5, 2);
             setvalue = &load.resistance;
             minValue = LOAD_MINRESISTANCE;
             maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
             screen_SetDefaultScreenString("CP-Mode [W]:  ", 0, 1);
-            string_fromUint(load.power/10, setValBuf, 6, 2);
+            string_fromUint(load.power/10, setValBuf, 5, 2);
             setvalue = &load.power;
             minValue = 0;
             maxValue = LOAD_MAXPOWER;
