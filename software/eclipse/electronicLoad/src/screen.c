@@ -1196,33 +1196,28 @@ void screen_SetDefaultScreenString(char *src, uint8_t x, uint8_t line) {
  */
 void screen_UpdateDefaultScreen(void) {
     char buffer[12];
-    uint32_t voltage = cal_getVoltage();
-    uint32_t current = cal_getCurrent();
-    uint32_t power = voltage * current / 1000;
-    uint16_t temp1 = cal_getTemp1();
-    uint16_t temp2 = cal_getTemp2();
 
-    string_fromUint(voltage / 10, buffer, 5, 2);
+    string_fromUint(load.state.voltage / 10, buffer, 5, 2);
     buffer[6] = 'V';
     buffer[7] = 0;
     screen_FastString12x16(buffer, 12, 0);
 
-    string_fromUint(current / 10, buffer, 5, 2);
+    string_fromUint(load.state.current / 10, buffer, 5, 2);
     buffer[6] = 'A';
     buffer[7] = 0;
     screen_FastString12x16(buffer, 12, 2);
 
-    string_fromUint(power, buffer, 6, 3);
+    string_fromUint(load.state.power, buffer, 6, 3);
     buffer[7] = 'W';
     buffer[8] = 0;
     screen_FastString12x16(buffer, 0, 4);
 
-    string_fromUint(temp1/10, buffer, 2, 0);
+    string_fromUint(load.state.temp1/10, buffer, 2, 0);
     buffer[2] = 0xf8;
     buffer[3] = 'C';
     buffer[4] = 0;
     screen_FastString6x8(buffer, 104, 0);
-    string_fromUint(temp2/10, buffer, 2, 0);
+    string_fromUint(load.state.temp2/10, buffer, 2, 0);
     buffer[2] = 0xf8;
     screen_FastString6x8(buffer, 104, 1);
 

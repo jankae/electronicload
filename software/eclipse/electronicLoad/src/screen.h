@@ -13,6 +13,7 @@
 #include "string.h"
 #include "currentSink.h"
 #include "calibration.h"
+#include "loadFunctions.h"
 
 typedef enum {
     PIXEL_OFF, PIXEL_ON
