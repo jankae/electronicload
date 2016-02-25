@@ -16,10 +16,10 @@
 
 // default calibration values (assuming perfect parts and resistor values)
 #define CAL_DEF_CURSENS_OFFSET_LOW	0
-#define CAL_DEF_CURSENS_SCALE_LOW	5.000 // TODO adjust to shunt
+#define CAL_DEF_CURSENS_SCALE_LOW	0.500 // TODO adjust to shunt
 
 #define CAL_DEF_CURSENS_OFFSET_HIGH	0
-#define CAL_DEF_CURSENS_SCALE_HIGH	50.00 // TODO adjust to shunt
+#define CAL_DEF_CURSENS_SCALE_HIGH	5.00 // TODO adjust to shunt
 
 #define CAL_DEF_VOLSENS_OFFSET_LOW	0
 #define CAL_DEF_VOLSENS_SCALE_LOW	3.4375

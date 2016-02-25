@@ -134,39 +134,15 @@ void calibrationProcess(void) {
 
 	uint32_t button = 0;
 
-	/*
-	 * Step 1: calibrating DAC offset (done in hardware)
-	 */
-	hal_setGain(0);
-	hal_setCurrentGain(1);
-	hal_setDAC(0);
-
-	screen_Clear();
-	screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-	screen_FastString6x8("Apply about 5V. Turn", 0, 2);
-	screen_FastString6x8("internal trimmer", 0, 3);
-	screen_FastString6x8("until load draws 0mA", 0, 4);
-	screen_FastString6x8("ESC: Abort", 0, 6);
-	screen_FastString6x8("Enter: Continue", 0, 7);
-
-	while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER))) {
-		button = hal_getButton();
-	}
-	if (button & HAL_BUTTON_ESC) {
-		calibration.active = 0;
-		return;
-	}
-    while (hal_getButton())
-        ;
 
 	/*
 	 * Step 2: calibrating low current range
 	 */
-	int32_t defaultValue100mA = 20;
+    hal_setGain(0);
+    hal_setCurrentGain(1);
+    hal_setDAC(0);
+
+    int32_t defaultValue100mA = 20;
 	int32_t defaultValue5A = 1000;
 
 	screen_Clear();
@@ -186,8 +162,8 @@ void calibrationProcess(void) {
 		defaultValue100mA += hal_getEncoderMovement();
 		if (defaultValue100mA < 0)
 			defaultValue100mA = 0;
-		else if (defaultValue100mA > 100)
-			defaultValue100mA = 100;
+		else if (defaultValue100mA > 4096)
+			defaultValue100mA = 4096;
 		button = hal_getButton();
         timer_waitms(1);
 	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
@@ -219,10 +195,10 @@ void calibrationProcess(void) {
 	do {
 		hal_setDAC(defaultValue5A);
 		defaultValue5A += hal_getEncoderMovement();
-		if (defaultValue5A < 900)
-			defaultValue5A = 900;
-		else if (defaultValue5A > 1100)
-			defaultValue5A = 1100;
+		if (defaultValue5A < 0)
+			defaultValue5A = 0;
+		else if (defaultValue5A > 4096)
+			defaultValue5A = 4096;
 		button = hal_getButton();
 		timer_waitms(1);
 	} while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
@@ -328,27 +304,6 @@ void calibrationProcess(void) {
 	 * Step 5: all done!
 	 */
 
-	// calculate calibration values
-	calibration.currentSetScaleLowRange = (float) (dac5A - dac100mA)
-			/ (5000 - 100);
-	calibration.currentSetOffsetLowRange = dac100mA
-			- 100 * calibration.currentSetScaleLowRange;
-
-	calibration.currentSenseScaleLowRange = (float) (5000 - 100)
-			/ (adc5A - adc100mA);
-	calibration.currentSenseOffsetLowRange = adc100mA
-			- 100 / calibration.currentSenseScaleLowRange;
-
-	calibration.voltageSenseScaleLowRange = (float) (12000 - 1000)
-			/ (adc12V_lowRange - adc1V);
-	calibration.voltageSenseOffsetLowRange = adc1V
-			- 1000 / calibration.voltageSenseScaleLowRange;
-
-	calibration.voltageSenseScaleHighRange = (float) (30000 - 12000)
-			/ (adc30V - adc12V_highRange);
-	calibration.voltageSenseOffsetHighRange = adc12V_highRange
-			- 12000 / calibration.voltageSenseScaleHighRange;
-
 	screen_Clear();
     screen_FastString12x16("Cal", 0, 0);
     screen_FastChar12x16(33, 0, 'i');
@@ -366,6 +321,27 @@ void calibrationProcess(void) {
 		calibration.active = 0;
 		return;
 	}
+
+    // calculate calibration values
+    calibration.currentSetScaleLowRange = (float) (dac5A - dac100mA)
+            / (5000 - 100);
+    calibration.currentSetOffsetLowRange = dac100mA
+            - 100 * calibration.currentSetScaleLowRange;
+
+    calibration.currentSenseScaleLowRange = (float) (5000 - 100)
+            / (adc5A - adc100mA);
+    calibration.currentSenseOffsetLowRange = adc100mA
+            - 100 / calibration.currentSenseScaleLowRange;
+
+    calibration.voltageSenseScaleLowRange = (float) (12000 - 1000)
+            / (adc12V_lowRange - adc1V);
+    calibration.voltageSenseOffsetLowRange = adc1V
+            - 1000 / calibration.voltageSenseScaleLowRange;
+
+    calibration.voltageSenseScaleHighRange = (float) (30000 - 12000)
+            / (adc30V - adc12V_highRange);
+    calibration.voltageSenseOffsetHighRange = adc12V_highRange
+            - 12000 / calibration.voltageSenseScaleHighRange;
 
 	// save calibration values in FLASH
 	cal_writeToFlash();
@@ -415,13 +391,13 @@ int32_t cal_getCurrent(void) {
 		int16_t unbiased = biased - calibration.currentSenseOffsetHighRange;
 		ret = unbiased * calibration.currentSenseScaleHighRange;
 	}
-	if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
-		// low range is near limit -> switch to high range
-		hal_setCurrentGain(0);
-	} else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
-		// high range is near limit -> switch to low range
-		hal_setCurrentGain(1);
-	}
+//	if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
+//		// low range is near limit -> switch to high range
+//		hal_setCurrentGain(0);
+//	} else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
+//		// high range is near limit -> switch to low range
+//		hal_setCurrentGain(1);
+//	}
 	return ret;
 }
 
