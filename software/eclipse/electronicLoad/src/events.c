@@ -10,8 +10,14 @@ const char eventDestNames[EV_NUM_DESTTYPES][21] = { "TRIGGER HIGH",
 const char eventSetParamNames[EV_NUM_SETPARAMS][21] = { "CURRENT", "VOLTAGE",
         "RESISTANCE", "POWER" };
 
+uint32_t *eventSetParamPointers[EV_NUM_SETPARAMS] = { &load.current,
+        &load.voltage, &load.resistance, &load.power };
+
 const char eventCompParamNames[EV_NUM_COMPPARAMS][21] = { "CURRENT", "VOLTAGE",
         "POWER" };
+
+uint32_t *eventCompParamPointers[EV_NUM_COMPPARAMS] = {
+        &load.state.current, &load.state.voltage, &load.state.power };
 
 void events_Init(void) {
     uint8_t i;
@@ -351,7 +357,7 @@ void events_editEventMenu(uint8_t ev) {
                         itemList, EV_NUM_COMPPARAMS);
                 if (sel >= 0) {
                     events.evlist[ev].srcParamNum = sel;
-                    // TODO change pointer
+                    events.evlist[ev].srcParam = eventCompParamPointers[sel];
                 }
             } else if (selectedRow == 3
                     && (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)) {
@@ -394,7 +400,7 @@ void events_editEventMenu(uint8_t ev) {
                         itemList, EV_NUM_SETPARAMS);
                 if (sel >= 0) {
                     events.evlist[ev].destParamNum = sel;
-                    // TODO change pointer
+                    events.evlist[ev].destParam = eventSetParamPointers[sel];
                 }
             } else if (selectedRow == 7 && dest == EV_DEST_SET_PARAM) {
                 // change compare value
