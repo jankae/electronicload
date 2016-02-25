@@ -94,6 +94,8 @@ void load_update(void) {
     uint16_t highTemp = load.state.temp1;
     if (load.state.temp2 > load.state.temp1)
         highTemp = load.state.temp2;
+    // convert to °C
+    highTemp/=10;
 
     // switch fan
     if (highTemp >= LOAD_FANON_TEMP)
