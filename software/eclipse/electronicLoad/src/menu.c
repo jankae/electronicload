@@ -63,7 +63,7 @@ void menu_DefaultScreenHandler(void) {
             maxValue = LOAD_MAXPOWER;
             break;
         }
-        screen_SetDefaultScreenString(setValBuf, 14, 1);
+        screen_SetDefaultScreenString(setValBuf, 15, 1);
         uint32_t button;
         int32_t encoder;
         do {
