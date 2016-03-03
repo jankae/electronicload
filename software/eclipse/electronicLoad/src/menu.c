@@ -36,28 +36,28 @@ void menu_DefaultScreenHandler(void) {
         switch (load.mode) {
         case FUNCTION_CC:
             screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
-            string_fromUint(load.current/10, setValBuf, 5, 2);
+            string_fromUint(load.current / 10, setValBuf, 5, 2);
             setvalue = &load.current;
             minValue = 0;
             maxValue = LOAD_MAXCURRENT;
             break;
         case FUNCTION_CV:
             screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
-            string_fromUint(load.voltage/10, setValBuf, 5, 2);
+            string_fromUint(load.voltage / 10, setValBuf, 5, 2);
             setvalue = &load.voltage;
             minValue = LOAD_MINVOLTAGE;
             maxValue = LOAD_MAXVOLTAGE;
             break;
         case FUNCTION_CR:
             screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
-            string_fromUint(load.resistance/10, setValBuf, 5, 2);
+            string_fromUint(load.resistance / 10, setValBuf, 5, 2);
             setvalue = &load.resistance;
             minValue = LOAD_MINRESISTANCE;
             maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
             screen_SetDefaultScreenString("CP-Mode [W]:  ", 0, 1);
-            string_fromUint(load.power/10, setValBuf, 5, 2);
+            string_fromUint(load.power / 10, setValBuf, 5, 2);
             setvalue = &load.power;
             minValue = 0;
             maxValue = LOAD_MAXPOWER;
@@ -66,12 +66,13 @@ void menu_DefaultScreenHandler(void) {
         screen_SetDefaultScreenString(setValBuf, 15, 1);
         uint32_t button;
         int32_t encoder;
+        uint32_t wait = timer_SetTimeout(100);
         do {
             screen_UpdateDefaultScreen();
             button = hal_getButton();
             encoder = hal_getEncoderMovement();
             timer_waitms(10);
-        } while (!button && !encoder);
+        } while (!button && !encoder && !timer_TimeoutElapsed(wait));
         // button has been pressed
         // -> evaluate
         /*********************************************************
@@ -92,9 +93,9 @@ void menu_DefaultScreenHandler(void) {
             }
         }
         if (button & HAL_BUTTON_CR) {
-            if (menu_getInputValue(&load.resistance,
-                    "'load resistance'", LOAD_MINRESISTANCE,
-                    LOAD_MAXRESISTANCE, 3)) {
+            if (menu_getInputValue(&load.resistance, "'load resistance'",
+            LOAD_MINRESISTANCE,
+            LOAD_MAXRESISTANCE, 3)) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
             }
@@ -265,7 +266,8 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
             input[i] = 0;
         // get input
         do {
-            button = hal_getButton();
+            while (!(button = hal_getButton()))
+                ;
             if (inputPosition < 10) {
                 // room left for input
                 if ((dotPosition == 0xff
