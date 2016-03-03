@@ -16,8 +16,8 @@ uint32_t *eventSetParamPointers[EV_NUM_SETPARAMS] = { &load.current,
 const char eventCompParamNames[EV_NUM_COMPPARAMS][21] = { "CURRENT", "VOLTAGE",
         "POWER" };
 
-uint32_t *eventCompParamPointers[EV_NUM_COMPPARAMS] = {
-        &load.state.current, &load.state.voltage, &load.state.power };
+uint32_t *eventCompParamPointers[EV_NUM_COMPPARAMS] = { &load.state.current,
+        &load.state.voltage, &load.state.power };
 
 void events_Init(void) {
     uint8_t i;
@@ -65,6 +65,9 @@ uint8_t events_isEventSourceTriggered(uint8_t ev) {
         if (events.triggerInState == 1)
             triggered = 1;
     }
+    if(triggered){
+        uart_writeString("event triggered\n");
+    }
     return triggered;
 }
 
@@ -84,6 +87,12 @@ void events_triggerEventDestination(uint8_t ev) {
     }
     if (events.evlist[ev].destType == EV_DEST_LOAD_MODE) {
         load_setMode(events.evlist[ev].destMode);
+    }
+    if (events.evlist[ev].destType == EV_DEST_LOAD_ON) {
+        load.powerOn = 1;
+    }
+    if (events.evlist[ev].destType == EV_DEST_LOAD_OFF) {
+        load.powerOn = 0;
     }
 }
 
