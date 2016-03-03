@@ -9,5 +9,6 @@
 #include "loadFunctions.h"
 #include "extTrigger.h"
 #include "menu.h"
+#include "uart.h"
 
 #endif

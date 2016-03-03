@@ -19,8 +19,11 @@ int main(int argc, char* argv[]) {
     hal_displayInit();
     hal_frontPanelInit();
     hal_triggerInit();
+    uart_Init();
+    uart_writeString("electronicload\n");
 
     timer_waitms(100);
+
 
 // External hardware inits
 // (nothing so far)
@@ -31,6 +34,9 @@ int main(int argc, char* argv[]) {
     if (cal_readFromFlash()) {
         // no valid calibration data available
         cal_setDefaultCalibration();
+        uart_writeString("WARNING: not calibrated\n");
+    } else {
+        uart_writeString("calibration loaded\n");
     }
 
     timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
