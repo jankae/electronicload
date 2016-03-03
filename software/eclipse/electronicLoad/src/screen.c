@@ -1043,6 +1043,7 @@ void screen_Clear(void) {
     uint16_t i;
     for (i = 0; i < 1024; i++)
         display.buffer[i] = 0;
+    display.updateTime = timer_SetTimeout(5);
 }
 
 /*
@@ -1063,6 +1064,7 @@ void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
     } else {
         display.buffer[byte] &= ~bit;
     }
+    display.updateTime = timer_SetTimeout(5);
 }
 
 /**
@@ -1076,6 +1078,7 @@ void screen_SetByte(uint8_t x, uint8_t page, uint8_t b) {
     if (x >= 128 || page >= 8)
         return;
     display.buffer[x + page * 128] = b;
+    display.updateTime = timer_SetTimeout(5);
 }
 
 /**

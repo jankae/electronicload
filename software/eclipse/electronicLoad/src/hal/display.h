@@ -76,6 +76,7 @@ struct {
      * to buffer[128-255] ...
      */
     uint8_t buffer[1024];
+    uint32_t updateTime;
 } display;
 
 /**

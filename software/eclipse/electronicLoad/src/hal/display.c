@@ -40,6 +40,7 @@ void hal_displayInit(void) {
     HAL_DISPLAY_RST_HIGH;
     HAL_DISPLAY_BL_ON;
 
+    display.updateTime = UINT32_MAX;
     screen_Clear();
     hal_SelectDisplay1();
     hal_DisplayCommand(DISPLAY_ON_CMD);
@@ -56,24 +57,29 @@ void hal_displayInit(void) {
  * constant framerate
  */
 void hal_updateDisplay(void) {
-    uint8_t page;
-    uint8_t x;
-    for (page = 0; page < 8; page++) {
-        for (x = 0; x < 128; x++) {
-            if (x == 0) {
-                hal_SelectDisplay1();
-                hal_DisplaySetPage(page);
-                hal_DisplaySetAddress(x);
+    // TODO instead of calling this function and then checking
+    // for updateTime, implement a call from an interrupt only when
+    // updateTime is reached
+    if (timer_TimeoutElapsed(display.updateTime)) {
+        display.updateTime = UINT32_MAX;
+        uint8_t page;
+        uint8_t x;
+        for (page = 0; page < 8; page++) {
+            for (x = 0; x < 128; x++) {
+                if (x == 0) {
+                    hal_SelectDisplay1();
+                    hal_DisplaySetPage(page);
+                    hal_DisplaySetAddress(x);
+                }
+                if (x == 64) {
+                    hal_SelectDisplay2();
+                    hal_DisplaySetPage(page);
+                    hal_DisplaySetAddress(x - 64);
+                }
+                hal_DisplayWriteData(display.buffer[x + page * 128]);
             }
-            if (x == 64) {
-                hal_SelectDisplay2();
-                hal_DisplaySetPage(page);
-                hal_DisplaySetAddress(x - 64);
-            }
-            hal_DisplayWriteData(display.buffer[x + page * 128]);
         }
     }
-
 }
 
 /**
