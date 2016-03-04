@@ -59,66 +59,72 @@ void hal_frontPanelInit(void) {
  * cycle and handles the encoder counter
  */
 void hal_frontPanelUpdate(void) {
-    uint32_t state = 0;
-    // multiplex button matrix
+    // crude debouncing (only check buttons on every 20th call)
+    static uint8_t cnt = 0;
+    cnt++;
+    if (cnt == 20) {
+        cnt = 0;
+        uint32_t state = 0;
+        // multiplex button matrix
 
-    // first row:
-    HAL_FRONTPANEL_SWOUT1_LOW;
-    timer_waitus(2);
-    if (!HAL_FRONTPANEL_SWIN1)
-        state |= HAL_BUTTON_1;
-    if (!HAL_FRONTPANEL_SWIN2)
-        state |= HAL_BUTTON_2;
-    if (!HAL_FRONTPANEL_SWIN3)
-        state |= HAL_BUTTON_3;
-    if (!HAL_FRONTPANEL_SWIN4)
-        state |= HAL_BUTTON_ESC;
-    if (!HAL_FRONTPANEL_SWIN5)
-        state |= HAL_BUTTON_CC;
-    if (!HAL_FRONTPANEL_SWIN6)
-        state |= HAL_BUTTON_CV;
-    // second row:
-    HAL_FRONTPANEL_SWOUT1_HIGH;
-    HAL_FRONTPANEL_SWOUT2_LOW;
-    timer_waitus(2);
-    if (!HAL_FRONTPANEL_SWIN1)
-        state |= HAL_BUTTON_4;
-    if (!HAL_FRONTPANEL_SWIN2)
-        state |= HAL_BUTTON_5;
-    if (!HAL_FRONTPANEL_SWIN3)
-        state |= HAL_BUTTON_6;
-    if (!HAL_FRONTPANEL_SWIN4)
-        state |= HAL_BUTTON_0;
-    if (!HAL_FRONTPANEL_SWIN5)
-        state |= HAL_BUTTON_CP;
-    if (!HAL_FRONTPANEL_SWIN6)
-        state |= HAL_BUTTON_CR;
+        // first row:
+        HAL_FRONTPANEL_SWOUT1_LOW;
+        timer_waitus(2);
+        if (!HAL_FRONTPANEL_SWIN1)
+            state |= HAL_BUTTON_1;
+        if (!HAL_FRONTPANEL_SWIN2)
+            state |= HAL_BUTTON_2;
+        if (!HAL_FRONTPANEL_SWIN3)
+            state |= HAL_BUTTON_3;
+        if (!HAL_FRONTPANEL_SWIN4)
+            state |= HAL_BUTTON_ESC;
+        if (!HAL_FRONTPANEL_SWIN5)
+            state |= HAL_BUTTON_CC;
+        if (!HAL_FRONTPANEL_SWIN6)
+            state |= HAL_BUTTON_CV;
+        // second row:
+        HAL_FRONTPANEL_SWOUT1_HIGH;
+        HAL_FRONTPANEL_SWOUT2_LOW;
+        timer_waitus(2);
+        if (!HAL_FRONTPANEL_SWIN1)
+            state |= HAL_BUTTON_4;
+        if (!HAL_FRONTPANEL_SWIN2)
+            state |= HAL_BUTTON_5;
+        if (!HAL_FRONTPANEL_SWIN3)
+            state |= HAL_BUTTON_6;
+        if (!HAL_FRONTPANEL_SWIN4)
+            state |= HAL_BUTTON_0;
+        if (!HAL_FRONTPANEL_SWIN5)
+            state |= HAL_BUTTON_CP;
+        if (!HAL_FRONTPANEL_SWIN6)
+            state |= HAL_BUTTON_CR;
 
-    // third row:
-    HAL_FRONTPANEL_SWOUT2_HIGH;
-    HAL_FRONTPANEL_SWOUT3_LOW;
-    timer_waitus(2);
-   if (!HAL_FRONTPANEL_SWIN1)
-        state |= HAL_BUTTON_7;
-    if (!HAL_FRONTPANEL_SWIN2)
-        state |= HAL_BUTTON_8;
-    if (!HAL_FRONTPANEL_SWIN3)
-        state |= HAL_BUTTON_9;
-    if (!HAL_FRONTPANEL_SWIN4)
-        state |= HAL_BUTTON_DOT;
-    if (!HAL_FRONTPANEL_SWIN5)
-        state |= HAL_BUTTON_ENTER;
-    if (!HAL_FRONTPANEL_SWIN6)
-        state |= HAL_BUTTON_ONOFF;
+        // third row:
+        HAL_FRONTPANEL_SWOUT2_HIGH;
+        HAL_FRONTPANEL_SWOUT3_LOW;
+        timer_waitus(2);
+        if (!HAL_FRONTPANEL_SWIN1)
+            state |= HAL_BUTTON_7;
+        if (!HAL_FRONTPANEL_SWIN2)
+            state |= HAL_BUTTON_8;
+        if (!HAL_FRONTPANEL_SWIN3)
+            state |= HAL_BUTTON_9;
+        if (!HAL_FRONTPANEL_SWIN4)
+            state |= HAL_BUTTON_DOT;
+        if (!HAL_FRONTPANEL_SWIN5)
+            state |= HAL_BUTTON_ENTER;
+        if (!HAL_FRONTPANEL_SWIN6)
+            state |= HAL_BUTTON_ONOFF;
 
-    HAL_FRONTPANEL_SWOUT3_HIGH;
+        HAL_FRONTPANEL_SWOUT3_HIGH;
 
-    if (!HAL_FRONTPANEL_ENCSWITCH)
-        state |= HAL_BUTTON_ENCODER;
+        if (!HAL_FRONTPANEL_ENCSWITCH)
+            state |= HAL_BUTTON_ENCODER;
 
-    // all buttons read
-    // -> update status
-    frontpanel.buttonState = state;
+        // all buttons read
+        // -> update status
+        frontpanel.buttonState = state;
+    }
 
     // read encoder
     // see www.mikrocontroller.net/articles/Drehgeber
@@ -146,7 +152,7 @@ uint32_t hal_getButton(void) {
  * \return encoder steps since last call
  */
 int32_t hal_getEncoderMovement(void) {
-    int32_t buf = frontpanel.encoderCounter/HAL_ENCODER_SENSITIVITY;
-    frontpanel.encoderCounter -= buf*HAL_ENCODER_SENSITIVITY;
+    int32_t buf = frontpanel.encoderCounter / HAL_ENCODER_SENSITIVITY;
+    frontpanel.encoderCounter -= buf * HAL_ENCODER_SENSITIVITY;
     return buf;
 }
