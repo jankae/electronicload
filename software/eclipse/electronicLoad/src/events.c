@@ -23,10 +23,13 @@ void events_Init(void) {
     uint8_t i;
     for (i = 0; i < EV_MAXEVENTS; i++) {
         events.evlist[i].srcType = EV_SRC_DISABLED;
-        events.evlist[i].srcParam = NULL;
+        events.evlist[i].srcParam = eventCompParamPointers[0];
+        events.evlist[i].srcParamNum = 0;
         events.evlist[i].srcLimit = 0;
+        events.evlist[i].srcTimerNum = 0;
         events.evlist[i].destMode = FUNCTION_CC;
-        events.evlist[i].destParam = NULL;
+        events.evlist[i].destParam = eventSetParamPointers[0];
+        events.evlist[i].destParamNum = 0;
         events.evlist[i].destSetValue = 0;
         events.evlist[i].destTimerNum = 0;
         events.evlist[i].destTimerValue = 0;
