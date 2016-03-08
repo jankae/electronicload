@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
 // Software inits
     events_Init();
     load_Init();
+    com_Init();
     stats_Reset();
     if (cal_readFromFlash()) {
         // no valid calibration data available
