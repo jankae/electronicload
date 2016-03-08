@@ -64,11 +64,11 @@ void menu_DefaultScreenHandler(void) {
             break;
         }
         screen_SetDefaultScreenString(setValBuf, 15, 1);
+        screen_UpdateDefaultScreen();
         uint32_t button;
         int32_t encoder;
-        uint32_t wait = timer_SetTimeout(100);
+        uint32_t wait = timer_SetTimeout(300);
         do {
-            screen_UpdateDefaultScreen();
             button = hal_getButton();
             encoder = hal_getEncoderMovement();
             timer_waitms(10);
