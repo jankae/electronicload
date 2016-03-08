@@ -1198,29 +1198,37 @@ void screen_SetDefaultScreenString(char *src, uint8_t x, uint8_t line) {
  * will be displayed
  */
 void screen_UpdateDefaultScreen(void) {
+    uint32_t avgVoltage, avgCurrent, avgPower;
+    avgVoltage = load.state.voltageSum / load.state.nsamples;
+    avgCurrent = load.state.currentSum / load.state.nsamples;
+    avgPower = load.state.powerSum / load.state.nsamples;
+    load.state.currentSum = 0;
+    load.state.voltageSum = 0;
+    load.state.powerSum = 0;
+    load.state.nsamples = 0;
     char buffer[12];
 
-    string_fromUint(load.state.voltage / 10, buffer, 5, 2);
+    string_fromUint(avgVoltage / 10, buffer, 5, 2);
     buffer[6] = 'V';
     buffer[7] = 0;
     screen_FastString12x16(buffer, 12, 0);
 
-    string_fromUint(load.state.current / 10, buffer, 5, 2);
+    string_fromUint(avgCurrent / 10, buffer, 5, 2);
     buffer[6] = 'A';
     buffer[7] = 0;
     screen_FastString12x16(buffer, 12, 2);
 
-    string_fromUint(load.state.power, buffer, 6, 3);
+    string_fromUint(avgPower, buffer, 6, 3);
     buffer[7] = 'W';
     buffer[8] = 0;
     screen_FastString12x16(buffer, 0, 4);
 
-    string_fromUint(load.state.temp1/10, buffer, 2, 0);
+    string_fromUint(load.state.temp1 / 10, buffer, 2, 0);
     buffer[2] = 0xf8;
     buffer[3] = 'C';
     buffer[4] = 0;
     screen_FastString6x8(buffer, 104, 0);
-    string_fromUint(load.state.temp2/10, buffer, 2, 0);
+    string_fromUint(load.state.temp2 / 10, buffer, 2, 0);
     buffer[2] = 0xf8;
     screen_FastString6x8(buffer, 104, 1);
 

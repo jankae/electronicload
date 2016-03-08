@@ -88,6 +88,10 @@ void load_update(void) {
     load.state.voltage = cal_getVoltage();
     load.state.current = cal_getCurrent();
     load.state.power = load.state.voltage * load.state.current / 1000;
+    load.state.voltageSum += load.state.voltage;
+    load.state.currentSum += load.state.current;
+    load.state.powerSum += load.state.power;
+    load.state.nsamples++;
 
     load.state.temp1 = cal_getTemp1();
     load.state.temp2 = cal_getTemp2();
@@ -95,7 +99,7 @@ void load_update(void) {
     if (load.state.temp2 > load.state.temp1)
         highTemp = load.state.temp2;
     // convert to °C
-    highTemp/=10;
+    highTemp /= 10;
 
     // switch fan
     if (highTemp >= LOAD_FANON_TEMP)
@@ -129,9 +133,12 @@ void load_update(void) {
             current = MAX_CURRENT;
         break;
     }
-    if (load.powerOn && highTemp <= LOAD_MAX_TEMP) {
+    if (load.powerOn && highTemp <= LOAD_MAX_TEMP
+            && load.state.voltage >= 2700) {
         cal_setCurrent(current);
     } else {
-        cal_setCurrent(0);
+        hal_setDAC(0);
+        //cal_setCurrent(0);
     }
+    stats_Update();
 }

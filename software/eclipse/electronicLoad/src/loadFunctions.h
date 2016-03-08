@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "currentSink.h"
 #include "calibration.h"
+#include "statistics.h"
 
 #define LOAD_MAXVOLTAGE			50000
 #define LOAD_MINVOLTAGE         100
@@ -46,10 +47,14 @@ struct {
 
     struct {
         uint32_t current;
+        uint32_t currentSum;
         uint32_t voltage;
+        uint32_t voltageSum;
         uint32_t power;
+        uint32_t powerSum;
         uint16_t temp1;
         uint16_t temp2;
+        uint32_t nsamples;
     } state;
 } load;
 
