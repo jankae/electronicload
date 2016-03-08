@@ -9,8 +9,8 @@
 #ifndef SCREEN_H_
 #define SCREEN_H_
 
+#include <stringFunctions.h>
 #include "display.h"
-#include "string.h"
 #include "currentSink.h"
 #include "calibration.h"
 #include "loadFunctions.h"

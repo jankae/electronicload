@@ -2,8 +2,8 @@
  * \file
  * \brief   String conversion header file.
  */
-#ifndef STRING_H_
-#define STRING_H_
+#ifndef STRINGFUNCTIONS_H_
+#define STRINGFUNCTIONS_H_
 
 #include <stdint.h>
 

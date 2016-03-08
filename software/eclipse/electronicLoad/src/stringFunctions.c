@@ -2,7 +2,7 @@
  * \file
  * \brief   String conversion source file.
  */
-#include "string.h"
+#include <stringFunctions.h>
 
 /**
  * \brief Creates a string from an unsigned integer
