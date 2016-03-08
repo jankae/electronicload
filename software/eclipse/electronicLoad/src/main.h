@@ -10,5 +10,6 @@
 #include "extTrigger.h"
 #include "menu.h"
 #include "uart.h"
+#include "statistics.h"
 
 #endif

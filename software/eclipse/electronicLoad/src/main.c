@@ -24,13 +24,13 @@ int main(int argc, char* argv[]) {
 
     timer_waitms(100);
 
-
 // External hardware inits
 // (nothing so far)
 
 // Software inits
     events_Init();
     load_Init();
+    stats_Reset();
     if (cal_readFromFlash()) {
         // no valid calibration data available
         cal_setDefaultCalibration();
@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     // setup main menu
     menu_AddMainMenuEntry("Events", events_menu);
     menu_AddMainMenuEntry("Calibration", calibrationProcess);
+    menu_AddMainMenuEntry("Statistics", stats_Display);
 
     menu_DefaultScreenHandler();
 }
