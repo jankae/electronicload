@@ -87,7 +87,7 @@ void USART2_IRQHandler(void) {
 
 uint8_t uart_dataAvailable(void) {
     if (uart.newDataFlag)
-        return uart.inWritePos - 1;
+        return uart.inWritePos;
     else
         return 0;
 }
@@ -98,6 +98,8 @@ void uart_retrieveData(uint8_t *dest) {
         for (i = 0; i < uart.inWritePos - 1; i++) {
             *dest++ = uart.inputBuffer[i];
         }
+        // string terminator
+        *dest = 0;
         uart.inWritePos = 0;
         uart.newDataFlag = 0;
     }
