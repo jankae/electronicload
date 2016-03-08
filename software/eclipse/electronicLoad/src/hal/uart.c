@@ -27,6 +27,7 @@ void uart_Init(void) {
     usart.USART_StopBits = USART_StopBits_1;
     usart.USART_WordLength = USART_WordLength_8b;
 
+    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
     USART_Init(USART2, &usart);
 
     nvic.NVIC_IRQChannel = USART2_IRQn;
@@ -69,5 +70,35 @@ void USART2_IRQHandler(void) {
             USART_ClearITPendingBit(USART2, USART_IT_TXE);
             USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
         }
+    }
+    if (USART_GetITStatus(USART2, USART_IT_RXNE)) {
+        uint8_t data = USART_ReceiveData(USART2);
+        if (!uart.newDataFlag) {
+            uart.inputBuffer[uart.inWritePos++] = data;
+            if (uart.inWritePos == UART_BUF_IN_SIZE)
+                uart.inWritePos = 0;
+            if (data == 0x0A) {
+                // line feed, end of command
+                uart.newDataFlag = 1;
+            }
+        }
+    }
+}
+
+uint32_t uart_dataAvailable(void) {
+    if (uart.newDataFlag)
+        return uart.inWritePos - 1;
+    else
+        return 0;
+}
+
+void uart_retrieveData(uint8_t *dest) {
+    if (uart.newDataFlag) {
+        uint32_t i;
+        for (i = 0; i < uart.inWritePos - 1; i++) {
+            *dest++ = uart.inputBuffer[i];
+        }
+        uart.inWritePos = 0;
+        uart.newDataFlag = 0;
     }
 }
