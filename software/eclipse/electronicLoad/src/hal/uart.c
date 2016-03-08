@@ -85,7 +85,7 @@ void USART2_IRQHandler(void) {
     }
 }
 
-uint32_t uart_dataAvailable(void) {
+uint8_t uart_dataAvailable(void) {
     if (uart.newDataFlag)
         return uart.inWritePos - 1;
     else

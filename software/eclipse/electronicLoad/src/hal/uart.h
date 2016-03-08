@@ -16,7 +16,7 @@ struct {
     volatile uint32_t outReadPos;
     uint32_t outWritePos;
     uint8_t inputBuffer[UART_BUF_IN_SIZE];
-    uint32_t inWritePos;
+    uint8_t inWritePos;
     uint8_t newDataFlag;
 } uart;
 
@@ -28,7 +28,7 @@ void uart_writeData(uint8_t *data, uint32_t length);
 
 void uart_writeString(char *s);
 
-uint32_t uart_dataAvailable(void);
+uint8_t uart_dataAvailable(void);
 
 void uart_retrieveData(uint8_t *dest);
 
