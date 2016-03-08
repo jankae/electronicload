@@ -141,4 +141,5 @@ void load_update(void) {
         //cal_setCurrent(0);
     }
     stats_Update();
+    hal_frontPanelUpdate();
 }

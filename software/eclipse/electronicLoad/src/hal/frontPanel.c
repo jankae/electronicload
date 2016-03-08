@@ -48,7 +48,8 @@ void hal_frontPanelInit(void) {
     HAL_FRONTPANEL_SWOUT2_HIGH;
     HAL_FRONTPANEL_SWOUT3_HIGH;
 
-    timer_SetupPeriodicFunction(4, MS_TO_TICKS(1), hal_frontPanelUpdate, 8);
+    // moved function call into load_update to free timer 4
+//    timer_SetupPeriodicFunction(4, MS_TO_TICKS(1), hal_frontPanelUpdate, 8);
 }
 
 /**
