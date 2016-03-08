@@ -11,29 +11,31 @@
  * This section must fit into one flash page and thus
  * NEVER exceed 1kB
  */
-__attribute__ ((section(".config")))
-struct {
-    int16_t currentSenseOffsetLowRange;
-    float currentSenseScaleLowRange;
-
-    int16_t currentSenseOffsetHighRange;
-    float currentSenseScaleHighRange;
-
-    int16_t voltageSenseOffsetLowRange;
-    float voltageSenseScaleLowRange;
-
-    int16_t voltageSenseOffsetHighRange;
-    float voltageSenseScaleHighRange;
-
-    int16_t currentSetOffsetLowRange;
-    float currentSetScaleLowRange;
-
-    int16_t currentSetOffsetHighRange;
-    float currentSetScaleHighRange;
-}calibrationFlash;
-
-__attribute__ ((section(".config")))
-uint32_t calFlashValid;
+//__attribute__ ((section(".config")))
+//struct {
+//    int16_t currentSenseOffsetLowRange;
+//    float currentSenseScaleLowRange;
+//
+//    int16_t currentSenseOffsetHighRange;
+//    float currentSenseScaleHighRange;
+//
+//    int16_t voltageSenseOffsetLowRange;
+//    float voltageSenseScaleLowRange;
+//
+//    int16_t voltageSenseOffsetHighRange;
+//    float voltageSenseScaleHighRange;
+//
+//    int16_t currentSetOffsetLowRange;
+//    float currentSetScaleLowRange;
+//
+//    int16_t currentSetOffsetHighRange;
+//    float currentSetScaleHighRange;
+//}calibrationFlash;
+//
+//__attribute__ ((section(".config")))
+//uint32_t calFlashValid;
+#define FLASH_CALIBRATION_DATA          0x0801FC04
+#define FLASH_VALID_CALIB_INDICATOR     0x0801FC00
 
 /**
  * \brief Transfers the calibration values from the end of the FLASH
@@ -43,18 +45,19 @@ uint32_t calFlashValid;
  */
 uint8_t cal_readFromFlash(void) {
     // check whether there is any calibration data in FLASH
-    if (calFlashValid == 0x01) {
+    if (*(uint32_t*)FLASH_VALID_CALIB_INDICATOR == 0x01) {
         // copy memory section from FLASH into RAM
         // (depends on both sections being identically)
         uint8_t i;
-        uint32_t *from = (uint32_t*) &calibrationFlash;
+        uint32_t *from = (uint32_t*) FLASH_CALIBRATION_DATA;
         uint32_t *to = (uint32_t*) &calibration;
-        uint8_t words = (sizeof(calibrationFlash) + 3) / 4;
+        uint8_t words = (sizeof(calibration) + 3) / 4;
         for (i = 0; i < words; i++) {
             *to = *from;
             to++;
             from++;
         }
+        calibration.active = 0;
         return 0;
     }
     return 1;
@@ -74,15 +77,15 @@ void cal_writeToFlash(void) {
     // FLASH is ready to be written at this point
     uint8_t i;
     uint32_t *from = (uint32_t*) &calibration;
-    uint32_t *to = (uint32_t*) &calibrationFlash;
-    uint8_t words = (sizeof(calibrationFlash) + 3) / 4;
+    uint32_t *to = (uint32_t*) FLASH_CALIBRATION_DATA;
+    uint8_t words = (sizeof(calibration) + 3) / 4;
     for (i = 0; i < words; i++) {
         FLASH_ProgramWord((uint32_t) to, *from);
         to++;
         from++;
     }
     // set valid data indicator
-    FLASH_ProgramWord((uint32_t) &calFlashValid, 0x01);
+    FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR, 0x01);
     FLASH_Lock();
 }
 
@@ -446,6 +449,8 @@ int32_t cal_getCurrent(void) {
         // high range is near limit -> switch to low range
         hal_setCurrentGain(1);
     }
+    if (ret < 0)
+        ret = 0;
     return ret;
 }
 
@@ -471,6 +476,8 @@ int32_t cal_getVoltage(void) {
         // high range is near limit -> switch to low range
         hal_setVoltageGain(1);
     }
+    if (ret < 0)
+        ret = 0;
     return ret;
 }
 
