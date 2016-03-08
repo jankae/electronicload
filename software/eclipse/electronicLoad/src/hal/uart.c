@@ -55,7 +55,7 @@ void uart_writeData(uint8_t *data, uint32_t length) {
         uart_writeByte(*data++);
 }
 
-void uart_writeString(char *s) {
+void uart_writeString(const char *s) {
     while (*s)
         uart_writeByte(*s++);
 }

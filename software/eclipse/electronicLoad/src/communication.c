@@ -69,7 +69,6 @@ void com_Update(void) {
                 load.resistance = strtol(&cmd[4], NULL, 0);
                 break;
             case COM_CMD_GET_VOLTAGE:
-                ;
                 string_fromUint(load.state.voltage, answer, 6, 0);
                 answer[6] = 'm';
                 answer[7] = 'V';
@@ -78,7 +77,6 @@ void com_Update(void) {
                 uart_writeString(answer);
                 break;
             case COM_CMD_GET_CURRENT:
-                ;
                 string_fromUint(load.state.current, answer, 5, 0);
                 answer[5] = 'm';
                 answer[6] = 'A';
@@ -87,7 +85,6 @@ void com_Update(void) {
                 uart_writeString(answer);
                 break;
             case COM_CMD_GET_POWER:
-                ;
                 string_fromUint(load.state.power, answer, 6, 0);
                 answer[6] = 'm';
                 answer[7] = 'W';

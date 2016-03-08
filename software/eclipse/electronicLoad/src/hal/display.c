@@ -41,7 +41,6 @@ void hal_displayInit(void) {
     HAL_DISPLAY_BL_ON;
 
     display.updateTime = UINT32_MAX;
-    screen_Clear();
     hal_SelectDisplay1();
     hal_DisplayCommand(DISPLAY_ON_CMD);
     hal_SelectDisplay2();

@@ -435,7 +435,7 @@ void events_editEventMenu(uint8_t ev) {
                 }
             } else if (selectedRow == 6 && dest == EV_DEST_LOAD_MODE) {
                 // change load mode
-                const char *modeList[4] = { "CC", "CV", "CR", "CP" };
+                char *modeList[4] = { "CC", "CV", "CR", "CP" };
                 int8_t sel = menu_ItemChooseDialog("Select load mode:",
                         modeList, 4);
                 if (sel >= 0) {

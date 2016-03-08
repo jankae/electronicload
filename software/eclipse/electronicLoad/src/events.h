@@ -5,6 +5,7 @@
 #include "loadFunctions.h"
 #include "extTrigger.h"
 #include "menu.h"
+#include "uart.h"
 
 #define EV_MAXEVENTS        10
 #define EV_MAXTIMERS        5

@@ -26,7 +26,7 @@ void uart_writeByte(uint8_t b);
 
 void uart_writeData(uint8_t *data, uint32_t length);
 
-void uart_writeString(char *s);
+void uart_writeString(const char *s);
 
 uint8_t uart_dataAvailable(void);
 

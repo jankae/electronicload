@@ -11,5 +11,6 @@
 #include "menu.h"
 #include "uart.h"
 #include "statistics.h"
+#include "communication.h"
 
 #endif

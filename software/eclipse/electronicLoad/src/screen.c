@@ -1150,7 +1150,7 @@ void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
  * \param x X-coordinate, (left = 0, right = 127)
  * \param ypage Y-coordinate (up = 0, down = 6)
  */
-void screen_FastString12x16(char *src, uint8_t x, uint8_t ypage) {
+void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage) {
     while (*src) {
         screen_FastChar12x16(x, ypage, *src++);
         x += 12;
@@ -1167,7 +1167,7 @@ void screen_FastString12x16(char *src, uint8_t x, uint8_t ypage) {
  * \param x X-coordinate, (left = 0, right = 127)
  * \param ypage Y-coordinate (up = 0, down = 7)
  */
-void screen_FastString6x8(char *src, uint8_t x, uint8_t ypage) {
+void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage) {
     while (*src) {
         screen_FastChar6x8(x, ypage, *src++);
         x += 6;
@@ -1181,7 +1181,7 @@ void screen_FastString6x8(char *src, uint8_t x, uint8_t ypage) {
  * \param x         Startposition in the default screen line
  * \param line      Choose between line 0 and 1 of the default screen
  */
-void screen_SetDefaultScreenString(char *src, uint8_t x, uint8_t line) {
+void screen_SetDefaultScreenString(const char *src, uint8_t x, uint8_t line) {
     if (line > 1)
         return;
     while (*src && x < 21) {
