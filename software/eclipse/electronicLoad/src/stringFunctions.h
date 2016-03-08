@@ -45,4 +45,15 @@ void string_copy(char *dest, const char *src);
  */
 void string_copyn(char *dest, const char *src, uint8_t n);
 
+/**
+ * \brief comares two strings
+ *
+ * Like strcmp, but terminates with 0 if it reaches a string terminator (0) in either of
+ * the input strings (provided they are equal up to that point)
+ *
+ * \param *s1 Pointer to the first string
+ * \param *s2 Pointer to the second string
+ */
+int string_compare(const char *s1, const char *s2);
+
 #endif

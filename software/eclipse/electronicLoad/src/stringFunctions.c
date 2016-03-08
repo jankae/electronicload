@@ -49,3 +49,11 @@ void string_copyn(char *dest, const char *src, uint8_t n) {
         *dest++ = *src++;
     }
 }
+int string_compare(const char *s1, const char *s2) {
+    while (*s1 && *s2) {
+        int diff = *s1++ - *s2++;
+        if (diff)
+            return diff;
+    }
+    return 0;
+}
