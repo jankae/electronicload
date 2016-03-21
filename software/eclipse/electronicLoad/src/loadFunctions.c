@@ -83,6 +83,7 @@ void load_setMode(loadMode_t mode) {
  * This function is called from an interrupt (using timer 2) every millisecond
  */
 void load_update(void) {
+    hal_frontPanelUpdate();
     if (calibration.active)
         return;
     load.state.voltage = cal_getVoltage();
@@ -141,5 +142,4 @@ void load_update(void) {
         //cal_setCurrent(0);
     }
     stats_Update();
-    hal_frontPanelUpdate();
 }
