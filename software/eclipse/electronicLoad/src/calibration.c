@@ -45,7 +45,7 @@
  */
 uint8_t cal_readFromFlash(void) {
     // check whether there is any calibration data in FLASH
-    if (*(uint32_t*)FLASH_VALID_CALIB_INDICATOR == 0x01) {
+    if (*(uint32_t*) FLASH_VALID_CALIB_INDICATOR == 0x01) {
         // copy memory section from FLASH into RAM
         // (depends on both sections being identically)
         uint8_t i;
@@ -87,6 +87,22 @@ void cal_writeToFlash(void) {
     // set valid data indicator
     FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR, 0x01);
     FLASH_Lock();
+}
+
+uint32_t cal_sampleADC(uint8_t channel) {
+    screen_Clear();
+    screen_FastString12x16("Sampling..", 0, 0);
+    screen_Rectangle(12, 21, 115, 42);
+    screen_Rectangle(13, 22, 114, 41);
+    uint32_t sum = 0;
+    uint16_t cnt;
+    for (cnt = 0; cnt < 500; cnt++) {
+        sum += hal_getADC(channel, 1);
+        if (cnt % 5 == 0)
+            screen_VerticalLine(13 + cnt / 5, 23, 18);
+        timer_waitms(10);
+    }
+    return sum /= 500;
 }
 
 /**
@@ -173,7 +189,7 @@ void calibrationProcess(void) {
         else if (defaultValue100mA > 4096)
             defaultValue100mA = 4096;
         button = hal_getButton();
-        timer_waitms(1);
+        timer_waitms(20);
     } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
     if (button & HAL_BUTTON_ESC) {
         hal_setDAC(0);
@@ -183,7 +199,7 @@ void calibrationProcess(void) {
 
     // save calibration values
     dac100mA = defaultValue100mA;
-    adc100mA = hal_getADC(ADC_CURRENT_SENSE, 200);
+    adc100mA = cal_sampleADC(ADC_CURRENT_SENSE);
     hal_setDAC(0);
 
     while (hal_getButton())
@@ -209,7 +225,7 @@ void calibrationProcess(void) {
         else if (defaultValue2A > 4096)
             defaultValue2A = 4096;
         button = hal_getButton();
-        timer_waitms(1);
+        timer_waitms(20);
     } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
     if (button & HAL_BUTTON_ESC) {
         hal_setDAC(0);
@@ -218,10 +234,10 @@ void calibrationProcess(void) {
     }
 
     // save calibration values
-    adc2A_lowRange = hal_getADC(ADC_CURRENT_SENSE, 200);
+    adc2A_lowRange = cal_sampleADC(ADC_CURRENT_SENSE);
     hal_setCurrentGain(0);
-    timer_waitms(10);
-    adc2A_highRange = hal_getADC(ADC_CURRENT_SENSE, 200);
+    timer_waitms(20);
+    adc2A_highRange = cal_sampleADC(ADC_CURRENT_SENSE);
     hal_setDAC(0);
 
     while (hal_getButton())
@@ -247,7 +263,7 @@ void calibrationProcess(void) {
         else if (defaultValue10A > 4096)
             defaultValue10A = 4096;
         button = hal_getButton();
-        timer_waitms(1);
+        timer_waitms(20);
     } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
     if (button & HAL_BUTTON_ESC) {
         hal_setDAC(0);
@@ -257,7 +273,7 @@ void calibrationProcess(void) {
 
     // save calibration values
     dac10A = defaultValue10A;
-    adc10A = hal_getADC(ADC_CURRENT_SENSE, 200);
+    adc10A = cal_sampleADC(ADC_CURRENT_SENSE);
     hal_setDAC(0);
 
     while (hal_getButton())
@@ -286,7 +302,7 @@ void calibrationProcess(void) {
     }
 
     // save calibration values
-    adc1V = hal_getADC(ADC_VOLTAGE_SENSE, 200);
+    adc1V = cal_sampleADC(ADC_VOLTAGE_SENSE);
 
     while (hal_getButton())
         ;
@@ -310,10 +326,10 @@ void calibrationProcess(void) {
     }
 
     // save calibration values
-    adc12V_lowRange = hal_getADC(ADC_VOLTAGE_SENSE, 200);
+    adc12V_lowRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
     hal_setVoltageGain(0);
-    timer_waitms(10);
-    adc12V_highRange = hal_getADC(ADC_VOLTAGE_SENSE, 200);
+    timer_waitms(20);
+    adc12V_highRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
 
     while (hal_getButton())
         ;
@@ -341,7 +357,7 @@ void calibrationProcess(void) {
     }
 
     // save calibration values
-    adc30V = hal_getADC(ADC_VOLTAGE_SENSE, 200);
+    adc30V = cal_sampleADC(ADC_VOLTAGE_SENSE);
 
     while (hal_getButton())
         ;

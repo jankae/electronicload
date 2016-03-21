@@ -72,6 +72,17 @@ uint8_t cal_readFromFlash(void);
 void cal_writeToFlash(void);
 
 /**
+ * \brief Samples an ADC channel
+ *
+ * The specified channel is sampled 200 times, averaged and returned.
+ * Additionally, this function displays a progress bar.
+ *
+ * \param channel   ADC channel to be sampled
+ * \return          averaged ADC channel value
+ */
+uint32_t cal_sampleADC(uint8_t channel);
+
+/**
  * \brief Sets the calibration values to the default values.
  *
  * Should be used in case of missing calibration data.
@@ -122,5 +133,7 @@ uint16_t cal_getTemp1(void);
  * \return Temperature in 0.1°C
  */
 uint16_t cal_getTemp2(void);
+
+
 
 #endif
