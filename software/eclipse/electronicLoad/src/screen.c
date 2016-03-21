@@ -1043,7 +1043,7 @@ void screen_Clear(void) {
     uint16_t i;
     for (i = 0; i < 1024; i++)
         display.buffer[i] = 0;
-    display.updateTime = timer_SetTimeout(5);
+    display.updateTime = timer_SetTimeout(2);
 }
 
 /*
@@ -1064,7 +1064,7 @@ void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s) {
     } else {
         display.buffer[byte] &= ~bit;
     }
-    display.updateTime = timer_SetTimeout(5);
+    display.updateTime = timer_SetTimeout(2);
 }
 
 /**
@@ -1078,7 +1078,21 @@ void screen_SetByte(uint8_t x, uint8_t page, uint8_t b) {
     if (x >= 128 || page >= 8)
         return;
     display.buffer[x + page * 128] = b;
-    display.updateTime = timer_SetTimeout(5);
+    display.updateTime = timer_SetTimeout(2);
+}
+
+void screen_VerticalLine(uint8_t x, uint8_t y, uint8_t length) {
+    uint8_t s = y;
+    for (; y < s + length; y++) {
+        screen_SetPixel(x, y, PIXEL_ON);
+    }
+}
+
+void screen_HorizontalLine(uint8_t x, uint8_t y, uint8_t length) {
+    uint8_t s = x;
+    for (; x < s + length; x++) {
+        screen_SetPixel(x, y, PIXEL_ON);
+    }
 }
 
 /**

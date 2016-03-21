@@ -48,6 +48,24 @@ void screen_SetPixel(uint8_t x, uint8_t y, PixelState_t s);
 void screen_SetByte(uint8_t x, uint8_t page, uint8_t b);
 
 /**
+ * \brief Draws a vertical line on the screen
+ *
+ * \param x         X-coordinate of line
+ * \param y         Y-coordinate of upper line end
+ * \param length    length of the line in pixels
+ */
+void screen_VerticalLine(uint8_t x, uint8_t y, uint8_t length);
+
+/**
+ * \brief Draws a horizontal line on the screen
+ *
+ * \param x         X-coordinate of left line end
+ * \param y         Y-coordinate
+ * \param length    length of the line in pixels
+ */
+void screen_HorizontalLine(uint8_t x, uint8_t y, uint8_t length);
+
+/**
  * \brief Draws a rectangle on the screen
  *
  * \param x1    X-coordinate of top left corner
