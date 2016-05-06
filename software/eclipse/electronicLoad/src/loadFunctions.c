@@ -77,6 +77,28 @@ void load_setMode(loadMode_t mode) {
     load.mode = mode;
 }
 
+void load_ConstrainSettings(void) {
+    if (load.current < 0)
+        load.current = 0;
+    else if (load.current > LOAD_MAXCURRENT)
+        load.current = LOAD_MAXCURRENT;
+
+    if (load.voltage < LOAD_MINVOLTAGE)
+        load.voltage = LOAD_MINVOLTAGE;
+    else if (load.voltage > LOAD_MAXVOLTAGE)
+        load.voltage = LOAD_MAXVOLTAGE;
+
+    if (load.resistance < LOAD_MINRESISTANCE)
+        load.resistance = LOAD_MINRESISTANCE;
+    else if (load.resistance > LOAD_MAXRESISTANCE)
+        load.resistance = LOAD_MAXRESISTANCE;
+
+    if (load.power < 0)
+        load.power = 0;
+    else if (load.power > LOAD_MAXPOWER)
+        load.power = LOAD_MAXPOWER;
+}
+
 /**
  * \brief Updates the current drawn by load according to selected load function
  *
@@ -116,6 +138,9 @@ void load_update(void) {
 
     events_decrementTimers();
     events_HandleEvents();
+
+//    waveform_Update();
+//    load_ConstrainSettings();
 
     switch (load.mode) {
     case FUNCTION_CC:

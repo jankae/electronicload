@@ -11,6 +11,7 @@
 #include "currentSink.h"
 #include "calibration.h"
 #include "statistics.h"
+#include "waveforms.h"
 
 #define LOAD_MAXVOLTAGE			50000
 #define LOAD_MINVOLTAGE         100
@@ -106,6 +107,11 @@ void load_set_CP(uint32_t p);
  * \param mode New load mode
  */
 void load_setMode(loadMode_t mode);
+
+/**
+ * brief Limits the load settigns
+ */
+void load_ConstrainSettings(void);
 
 /**
  * \brief Updates the current drawn by load according to selected load function
