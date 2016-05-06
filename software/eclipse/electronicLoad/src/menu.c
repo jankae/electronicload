@@ -83,6 +83,7 @@ void menu_DefaultScreenHandler(void) {
             LOAD_MAXCURRENT, 3)) {
                 load.mode = FUNCTION_CC;
                 load.powerOn = 0;
+                waveform.form = WAVE_NONE;
             }
         }
         if (button & HAL_BUTTON_CV) {
@@ -90,6 +91,7 @@ void menu_DefaultScreenHandler(void) {
             LOAD_MAXVOLTAGE, 3)) {
                 load.mode = FUNCTION_CV;
                 load.powerOn = 0;
+                waveform.form = WAVE_NONE;
             }
         }
         if (button & HAL_BUTTON_CR) {
@@ -98,6 +100,7 @@ void menu_DefaultScreenHandler(void) {
             LOAD_MAXRESISTANCE, 3)) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
+                waveform.form = WAVE_NONE;
             }
         }
         if (button & HAL_BUTTON_CP) {
@@ -105,6 +108,7 @@ void menu_DefaultScreenHandler(void) {
             LOAD_MAXPOWER, 3)) {
                 load.mode = FUNCTION_CP;
                 load.powerOn = 0;
+                waveform.form = WAVE_NONE;
             }
         }
         /*********************************************************
