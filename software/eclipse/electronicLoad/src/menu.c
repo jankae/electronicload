@@ -27,10 +27,11 @@ void menu_DefaultScreenHandler(void) {
         // set default screen entries
         screen_Clear();
         char setValBuf[11];
+        screen_SetDefaultScreenString("                     ", 0, 0);
         if (!load.powerOn) {
-            screen_SetDefaultScreenString("!INPUT OFF!          ", 0, 0);
-        } else {
-            screen_SetDefaultScreenString("                     ", 0, 0);
+            screen_SetDefaultScreenString("!INPUT OFF!", 0, 0);
+        } else if (waveform.form != WAVE_NONE) {
+            screen_SetDefaultScreenString("!WAVEFORM ON!", 0, 0);
         }
         screen_SetDefaultScreenString("\x19", encoderIndicator, 0);
         switch (load.mode) {

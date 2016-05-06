@@ -271,24 +271,35 @@ void waveform_Menu(void) {
                         5);
                 if (sel >= 0) {
                     waveform.form = sel;
+                    load.powerOn = 0;
+                    if (waveform.form != WAVE_NONE) {
+                        // set load in correct mode
+                        // This works correctly because load.mode and paramNum
+                        // are using the same coding for the 4 different
+                        // modes/paramters
+                        load.mode = waveform.paramNum;
+                    }
                 }
             } else if (selectedRow == 2) {
                 // change amplitude
                 uint32_t val;
                 if (menu_getInputValue(&val, "Amplitude:", 0, 1000000, 3)) {
                     waveform.amplitude = val;
+                    load.powerOn = 0;
                 }
             } else if (selectedRow == 3) {
                 // change offset
                 uint32_t val;
                 if (menu_getInputValue(&val, "Offset:", 0, 1000000, 3)) {
                     waveform.offset = val;
+                    load.powerOn = 0;
                 }
             } else if (selectedRow == 4) {
                 // change period
                 uint32_t val;
                 if (menu_getInputValue(&val, "Period[s]:", 0, 30000, 3)) {
                     waveform.period = val;
+                    load.powerOn = 0;
                 }
             } else if (selectedRow == 5) {
                 // change set parameter
@@ -302,6 +313,13 @@ void waveform_Menu(void) {
                 if (sel >= 0) {
                     waveform.paramNum = sel;
                     waveform.param = waveSetParamPointers[sel];
+                    if (waveform.form != WAVE_NONE) {
+                        // set load in correct mode
+                        // This works correctly because load.mode and paramNum
+                        // are using the same coding for the 4 different
+                        // modes/paramters
+                        load.mode = waveform.paramNum;
+                    }
                 }
             }
         }
