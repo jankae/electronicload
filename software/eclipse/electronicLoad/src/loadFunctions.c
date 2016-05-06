@@ -139,8 +139,8 @@ void load_update(void) {
     events_decrementTimers();
     events_HandleEvents();
 
-//    waveform_Update();
-//    load_ConstrainSettings();
+    waveform_Update();
+    load_ConstrainSettings();
 
     switch (load.mode) {
     case FUNCTION_CC:

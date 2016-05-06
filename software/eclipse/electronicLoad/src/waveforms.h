@@ -17,6 +17,7 @@ struct {
     Waveform_t form;
     uint16_t period;
     int32_t *param;
+    uint8_t paramNum;
 } waveform;
 
 void waveform_Init(void);

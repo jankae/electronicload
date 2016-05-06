@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
 
 // Software inits
     events_Init();
+    waveform_Init();
     load_Init();
     com_Init();
     stats_Reset();
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
     timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
 
     // setup main menu
-//    menu_AddMainMenuEntry("Waveforms", waveform_Menu);
+    menu_AddMainMenuEntry("Waveforms", waveform_Menu);
     menu_AddMainMenuEntry("Events", events_menu);
     menu_AddMainMenuEntry("Calibration", calibrationProcess);
     menu_AddMainMenuEntry("Statistics", stats_Display);

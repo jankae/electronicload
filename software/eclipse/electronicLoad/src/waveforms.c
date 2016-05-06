@@ -1,6 +1,6 @@
 #include "waveforms.h"
 
-const uint16_t wave_SineLookup[1024] = { 0, 101, 201, 302, 402, 503, 603, 704,
+const uint16_t wave_SineLookup[1025] = { 0, 101, 201, 302, 402, 503, 603, 704,
         804, 905, 1005, 1106, 1206, 1307, 1407, 1508, 1608, 1709, 1809, 1910,
         2010, 2111, 2211, 2312, 2412, 2513, 2613, 2714, 2814, 2914, 3015, 3115,
         3216, 3316, 3416, 3517, 3617, 3718, 3818, 3918, 4019, 4119, 4219, 4320,
@@ -101,26 +101,34 @@ const uint16_t wave_SineLookup[1024] = { 0, 101, 201, 302, 402, 503, 603, 704,
         65461, 65466, 65470, 65475, 65479, 65483, 65487, 65491, 65494, 65498,
         65501, 65504, 65507, 65510, 65513, 65515, 65518, 65520, 65522, 65524,
         65526, 65527, 65529, 65530, 65531, 65532, 65533, 65534, 65534, 65535,
-        65535 };
+        65535, 65535 };
 
 const char waveform_Names[5][9] = { "OFF", "SINE", "SAW", "SQUARE", "TRIANGLE" };
 
+const char waveSetParamNames[4][11] = { "CURRENT", "VOLTAGE", "RESISTANCE",
+        "POWER" };
+
+uint32_t *waveSetParamPointers[4] = { &load.current, &load.voltage,
+        &load.resistance, &load.power };
 
 void waveform_Init(void) {
     waveform.amplitude = 1000;
     waveform.form = WAVE_NONE;
     waveform.offset = 1000;
-    waveform.param = NULL;
+    waveform.param = &load.current;
+    waveform.paramNum = 0;
     waveform.period = 1000;
 }
 
 void waveform_Update(void) {
-    if (waveform.form != WAVE_NONE)
+    if (waveform.form == WAVE_NONE)
         return;
     uint32_t wavetime = timer.ms % waveform.period;
     wavetime *= 65536;
     wavetime /= waveform.period;
-    *(waveform.param) = waveform_GetValue(wavetime);
+    if (waveform.param) {
+        *(waveform.param) = waveform_GetValue(wavetime);
+    }
 }
 
 int32_t waveform_GetValue(uint16_t wavetime) {
@@ -158,13 +166,13 @@ int32_t waveform_Sine(uint16_t arg) {
     int8_t sign;
     if (arg >= 49152) {
         sign = -1;
-        arg = 65536 - arg;
+        arg = 65535 - arg;
     } else if (arg >= 32768) {
         sign = -1;
         arg = arg - 32768;
     } else if (arg >= 16384) {
         sign = 1;
-        arg = 32768 - arg;
+        arg = 32767 - arg;
     } else {
         sign = 1;
     }
@@ -172,6 +180,7 @@ int32_t waveform_Sine(uint16_t arg) {
     int32_t valueHigh = wave_SineLookup[arg / 16 + 1];
     arg %= 16;
     int32_t retvalue = valueLow * (16 - arg) + valueHigh * arg;
+    retvalue /= 16;
     return retvalue * sign;
 }
 
@@ -202,8 +211,34 @@ void waveform_Menu(void) {
         string_fromUint(waveform.period, value, 6, 3);
         screen_FastString6x8(value, 66, 4);
 
+        screen_FastString6x8("Param:", 6, 5);
+        screen_FastString6x8(waveSetParamNames[waveform.paramNum], 66, 5);
+
         // display selected line
         screen_FastChar6x8(0, selectedRow, 0x1A);
+
+        /*
+         * display waveform in last two rows
+         */
+        // display offset line
+        uint8_t i;
+        for (i = 0; i < 128; i += 2) {
+            screen_SetPixel(i, 55, PIXEL_ON);
+        }
+        // display period lines
+        for (i = 48; i < 64; i += 2) {
+            screen_SetPixel(32, i, PIXEL_ON);
+            screen_SetPixel(96, i, PIXEL_ON);
+        }
+        // display waveform
+        uint8_t y_last = -(waveform_GetValue(32768) - waveform.offset) * 8
+                / waveform.amplitude + 55;
+        for (i = 1; i < 128; i++) {
+            uint8_t y = -(waveform_GetValue(i * 1024 + 32768) - waveform.offset)
+                    * 8 / waveform.amplitude + 55;
+            screen_SetPixel(i, y, PIXEL_ON);
+        }
+
         // wait for user input
         do {
             button = hal_getButton();
@@ -212,7 +247,7 @@ void waveform_Menu(void) {
 
         if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
             // move one entry down (if possible)
-            if (selectedRow < 6)
+            if (selectedRow < 5)
                 selectedRow++;
         }
 
@@ -252,27 +287,23 @@ void waveform_Menu(void) {
             } else if (selectedRow == 4) {
                 // change period
                 uint32_t val;
-                if (menu_getInputValue(&val, "Period[s]:", 0, 1000000, 3)) {
+                if (menu_getInputValue(&val, "Period[s]:", 0, 30000, 3)) {
                     waveform.period = val;
                 }
             } else if (selectedRow == 5) {
-
+                // change set parameter
+                char *itemList[4];
+                uint8_t i;
+                for (i = 0; i < 4; i++) {
+                    itemList[i] = waveSetParamNames[i];
+                }
+                int8_t sel = menu_ItemChooseDialog("Select parameter:",
+                        itemList, EV_NUM_SETPARAMS);
+                if (sel >= 0) {
+                    waveform.paramNum = sel;
+                    waveform.param = waveSetParamPointers[sel];
+                }
             }
-        }
-
-        /*
-         * display waveform in last two rows
-         */
-        // display offset line
-        uint8_t i;
-        for (i = 0; i < 128; i += 2) {
-            screen_SetPixel(i, 56, PIXEL_ON);
-        }
-        // display waveform
-        for (i = 0; i < 128; i++) {
-            screen_SetPixel(i,
-                    (waveform_GetValue(i * 512) - waveform.offset) * 8
-                            / waveform.amplitude, PIXEL_ON);
         }
 
     } while (button != HAL_BUTTON_ESC);
