@@ -120,14 +120,18 @@ void waveform_Init(void) {
     waveform.period = 1000;
 }
 
-void waveform_Update(void) {
-    if (waveform.form == WAVE_NONE)
-        return;
+uint16_t waveform_GetPhase(void) {
     uint32_t wavetime = timer.ms % waveform.period;
     wavetime *= 65536;
     wavetime /= waveform.period;
+    return wavetime;
+}
+
+void waveform_Update(void) {
+    if (waveform.form == WAVE_NONE)
+        return;
     if (waveform.param) {
-        *(waveform.param) = waveform_GetValue(wavetime);
+        *(waveform.param) = waveform_GetValue(waveform_GetPhase());
     }
 }
 

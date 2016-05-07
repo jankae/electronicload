@@ -10,9 +10,9 @@
 #define EV_MAXEVENTS        10
 #define EV_MAXTIMERS        5
 
-#define EV_NUM_SOURCETYPES  6
+#define EV_NUM_SOURCETYPES  7
 #define EV_NUM_DESTTYPES    7
-#define EV_NUM_COMPPARAMS   3
+#define EV_NUM_COMPPARAMS   7
 #define EV_NUM_SETPARAMS    4
 
 #define EV_TIMER_STOPPED    0xffffffff
@@ -23,7 +23,8 @@ typedef enum {
     EV_SRC_TRIG_FALL = 2,
     EV_SRC_PARAM_LOWER = 3,
     EV_SRC_PARAM_HIGHER = 4,
-    EV_SRC_TIM_ZERO = 5
+    EV_SRC_TIM_ZERO = 5,
+    EV_SRC_WAVEFORM_PHASE = 6
 } evSourceType_t;
 typedef enum {
     EV_DEST_TRIG_HIGH = 0,
@@ -65,6 +66,11 @@ struct {
     struct event evlist[EV_MAXEVENTS];
     // 0: no change, 1: rising edge, -1: falling edge
     int8_t triggerInState;
+    /******************************
+     * waveform phase paramters
+     *****************************/
+    uint32_t waveformOldPhase;
+    uint32_t waveformPhase;
 } events;
 
 /**
@@ -100,6 +106,8 @@ void events_triggerEventDestination(uint8_t ev);
  * Should be called each millisecond
  */
 void events_decrementTimers(void);
+
+void events_updateWaveformPhase(void);
 
 /**
  * \brief Constructs a short description of an event

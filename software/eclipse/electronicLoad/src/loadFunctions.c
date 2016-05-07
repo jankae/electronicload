@@ -137,6 +137,7 @@ void load_update(void) {
     load.triggerInOld = triggerIn;
 
     events_decrementTimers();
+    events_updateWaveformPhase();
     events_HandleEvents();
 
     waveform_Update();

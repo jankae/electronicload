@@ -1,7 +1,8 @@
 #include "events.h"
 
 const char eventSrcNames[EV_NUM_SOURCETYPES][21] = { "DISABLED", "TRIGGER RISE",
-        "TRIGGER FALL", "PAR LOWER THAN", "PAR HIGHER THAN", "TIMER ZERO" };
+        "TRIGGER FALL", "PAR LOWER THAN", "PAR HIGHER THAN", "TIMER ZERO",
+        "WAVEFORM PHASE" };
 
 const char eventDestNames[EV_NUM_DESTTYPES][21] = { "TRIGGER HIGH",
         "TRIGGER LOW", "SET PARAMETER", "SET TIMER", "SET LOAD MODE",
@@ -14,10 +15,11 @@ uint32_t *eventSetParamPointers[EV_NUM_SETPARAMS] = { &load.current,
         &load.voltage, &load.resistance, &load.power };
 
 const char eventCompParamNames[EV_NUM_COMPPARAMS][21] = { "CURRENT", "VOLTAGE",
-        "POWER" };
+        "POWER", "SET CURRENT", "SET VOLTAGE", "SET RESIST.", "SET POWER" };
 
 uint32_t *eventCompParamPointers[EV_NUM_COMPPARAMS] = { &load.state.current,
-        &load.state.voltage, &load.state.power };
+        &load.state.voltage, &load.state.power, &load.current, &load.voltage,
+        &load.resistance, &load.power };
 
 void events_Init(void) {
     uint8_t i;
@@ -49,7 +51,7 @@ void events_HandleEvents(void) {
 uint8_t events_isEventSourceTriggered(uint8_t ev) {
     uint8_t triggered = 0;
     if (events.evlist[ev].srcType == EV_SRC_TIM_ZERO) {
-        if (events.evTimers[events.evlist[ev].destTimerNum] == 0)
+        if (events.evTimers[events.evlist[ev].srcTimerNum] == 0)
             triggered = 1;
     }
     if (events.evlist[ev].srcType == EV_SRC_PARAM_HIGHER) {
@@ -68,8 +70,21 @@ uint8_t events_isEventSourceTriggered(uint8_t ev) {
         if (events.triggerInState == 1)
             triggered = 1;
     }
-    if(triggered){
-        uart_writeString("event triggered\n");
+    if (events.evlist[ev].srcType == EV_SRC_WAVEFORM_PHASE
+            && waveform.form != WAVE_NONE) {
+        // check whether phase limit has been passed since last cycle
+        if (events.waveformPhase >= events.waveformOldPhase) {
+            // phase hasn't passed 360°
+            if (events.evlist[ev].srcLimit <= events.waveformPhase
+                    && events.evlist[ev].srcLimit > events.waveformOldPhase) {
+                triggered = 1;
+            }
+        } else {
+            // phase has passed 360°
+            if (events.evlist[ev].srcLimit > events.waveformOldPhase
+                    || events.evlist[ev].srcLimit <= events.waveformPhase)
+                triggered = 1;
+        }
     }
     return triggered;
 }
@@ -112,12 +127,18 @@ void events_decrementTimers(void) {
     }
 }
 
+void events_updateWaveformPhase(void) {
+    events.waveformOldPhase = events.waveformPhase;
+    events.waveformPhase = ((uint64_t) (waveform_GetPhase()) * 360000UL)
+            / 65536;
+}
+
 void events_getDescr(uint8_t ev, char* descr) {
     if (events.evlist[ev].srcType == EV_SRC_DISABLED) {
         string_copy(descr, "DISABLED");
         return;
     }
-    // construct source description
+// construct source description
     switch (events.evlist[ev].srcType) {
     case EV_SRC_PARAM_HIGHER:
         string_copy(descr, "P>:      ");
@@ -140,11 +161,14 @@ void events_getDescr(uint8_t ev, char* descr) {
     case EV_SRC_TRIG_RISE:
         string_copy(descr, "TrigRise\x18");
         break;
+    case EV_SRC_WAVEFORM_PHASE:
+        string_copy(descr, "WavePhase");
+        break;
     }
 
     descr[9] = 0x1A; // right arrow
 
-    // construct destination description
+// construct destination description
     switch (events.evlist[ev].destType) {
     case EV_DEST_LOAD_MODE:
         string_copy(&descr[10], "Mode C ");
@@ -238,6 +262,11 @@ void events_editEventMenu(uint8_t ev) {
             char value[11];
             string_fromUint(events.evlist[ev].srcLimit, value, 9, 3);
             screen_FastString6x8(value, 48, 3);
+        } else if (src == EV_SRC_WAVEFORM_PHASE) {
+            screen_FastString6x8("Phase:", 6, 2);
+            char value[11];
+            string_fromUint(events.evlist[ev].srcLimit, value, 9, 3);
+            screen_FastString6x8(value, 48, 2);
         }
         if (src != EV_SRC_DISABLED) {
             // source is enabled -> we must have a destination
@@ -290,7 +319,8 @@ void events_editEventMenu(uint8_t ev) {
             switch (selectedRow) {
             case 1:
                 if (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER
-                        || src == EV_SRC_TIM_ZERO)
+                        || src == EV_SRC_TIM_ZERO
+                        || src == EV_SRC_WAVEFORM_PHASE)
                     // selected source has settings -> move to first setting
                     selectedRow = 2;
                 else if (src != EV_SRC_DISABLED)
@@ -332,7 +362,7 @@ void events_editEventMenu(uint8_t ev) {
                 // on source setting
                 if (src == EV_SRC_PARAM_LOWER || src == EV_SRC_PARAM_HIGHER)
                     selectedRow = 3;
-                else if (src == EV_SRC_TIM_ZERO)
+                else if (src == EV_SRC_TIM_ZERO || EV_SRC_WAVEFORM_PHASE)
                     selectedRow = 2;
                 else
                     selectedRow = 1;
@@ -351,7 +381,8 @@ void events_editEventMenu(uint8_t ev) {
                     itemList[i] = descr[i];
                 }
                 int8_t sel = menu_ItemChooseDialog("Select event source:",
-                        itemList, EV_NUM_SOURCETYPES);
+                        itemList,
+                        EV_NUM_SOURCETYPES);
                 if (sel >= 0) {
                     events.evlist[ev].srcType = sel;
                 }
@@ -366,7 +397,8 @@ void events_editEventMenu(uint8_t ev) {
                     itemList[i] = descr[i];
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
-                        itemList, EV_NUM_COMPPARAMS);
+                        itemList,
+                        EV_NUM_COMPPARAMS);
                 if (sel >= 0) {
                     events.evlist[ev].srcParamNum = sel;
                     events.evlist[ev].srcParam = eventCompParamPointers[sel];
@@ -385,6 +417,12 @@ void events_editEventMenu(uint8_t ev) {
                 EV_MAXTIMERS - 1, 0)) {
                     events.evlist[ev].srcTimerNum = tim;
                 }
+            } else if (selectedRow == 2 && src == EV_SRC_WAVEFORM_PHASE) {
+                // change phase value
+                uint32_t val;
+                if (menu_getInputValue(&val, "Phase:", 0, 360000, 3)) {
+                    events.evlist[ev].srcLimit = val;
+                }
             } else if (selectedRow == 5) {
                 // change destination settings
                 char descr[EV_NUM_DESTTYPES][21];
@@ -395,7 +433,8 @@ void events_editEventMenu(uint8_t ev) {
                     itemList[i] = descr[i];
                 }
                 int8_t sel = menu_ItemChooseDialog("Select event dest.:",
-                        itemList, EV_NUM_DESTTYPES);
+                        itemList,
+                        EV_NUM_DESTTYPES);
                 if (sel >= 0) {
                     events.evlist[ev].destType = sel;
                 }
@@ -409,7 +448,8 @@ void events_editEventMenu(uint8_t ev) {
                     itemList[i] = descr[i];
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
-                        itemList, EV_NUM_SETPARAMS);
+                        itemList,
+                        EV_NUM_SETPARAMS);
                 if (sel >= 0) {
                     events.evlist[ev].destParamNum = sel;
                     events.evlist[ev].destParam = eventSetParamPointers[sel];

@@ -24,6 +24,8 @@ void waveform_Init(void);
 
 void waveform_Update(void);
 
+uint16_t waveform_GetPhase(void);
+
 int32_t waveform_GetValue(uint16_t wavetime);
 
 int32_t waveform_Sine(uint16_t arg);
