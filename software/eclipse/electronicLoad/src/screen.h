@@ -65,6 +65,18 @@ void screen_VerticalLine(uint8_t x, uint8_t y, uint8_t length);
  */
 void screen_HorizontalLine(uint8_t x, uint8_t y, uint8_t length);
 
+
+/**
+ * \brief Draws an arbitrary line on the screen
+ *
+ * Draws a line using the Bresenham algorithm
+ * \param x0        beginning of the line X-coordinate
+ * \param y0        beginning of the line Y-coordinate
+ * \param x1        end of the line X-coordinate
+ * \param y1        end of the line Y-coordinate
+ */
+void screen_Line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
+
 /**
  * \brief Draws a rectangle on the screen
  *

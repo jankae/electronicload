@@ -1095,6 +1095,27 @@ void screen_HorizontalLine(uint8_t x, uint8_t y, uint8_t length) {
     }
 }
 
+void screen_Line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
+    uint8_t dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    uint8_t dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int8_t err = (dx > dy ? dx : -dy) / 2, e2;
+
+    for (;;) {
+        screen_SetPixel(x0, y0, PIXEL_ON);
+        if (x0 == x1 && y0 == y1)
+            break;
+        e2 = err;
+        if (e2 > -dx) {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dy) {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
 /**
  * \brief Draws a rectangle on the screen
  *
