@@ -141,6 +141,7 @@ void load_update(void) {
     events_HandleEvents();
 
     waveform_Update();
+    characteristic_Update();
     load_ConstrainSettings();
 
     switch (load.mode) {

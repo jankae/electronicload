@@ -42,11 +42,12 @@ int main(int argc, char* argv[]) {
         uart_writeString("calibration loaded\n");
     }
 
-    timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
+    timer_SetupPeriodicFunction(3, MS_TO_TICKS(5), hal_updateDisplay, 12);
 
     // setup main menu
     menu_AddMainMenuEntry("Waveforms", waveform_Menu);
     menu_AddMainMenuEntry("Events", events_menu);
+    menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
     menu_AddMainMenuEntry("Calibration", calibrationProcess);
     menu_AddMainMenuEntry("Statistics", stats_Display);
 

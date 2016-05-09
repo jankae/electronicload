@@ -12,5 +12,6 @@
 #include "uart.h"
 #include "statistics.h"
 #include "communication.h"
+#include "characteristic.h"
 
 #endif
