@@ -6,8 +6,8 @@
 
 struct {
     uint8_t active;
-    uint32_t currentStart;
-    uint32_t currentStop;
+    int32_t currentStart;
+    int32_t currentStop;
     uint32_t abortVoltage;
     uint32_t deltaT;
     uint32_t voltageResponse[120];
