@@ -48,6 +48,8 @@ void hal_frontPanelInit(void) {
     HAL_FRONTPANEL_SWOUT2_HIGH;
     HAL_FRONTPANEL_SWOUT3_HIGH;
 
+    frontpanel.encoderSensitivity = HAL_DEFAULT_ENCODER_SENSITIVITY;
+
     // moved function call into load_update to free timer 4
 //    timer_SetupPeriodicFunction(4, MS_TO_TICKS(1), hal_frontPanelUpdate, 8);
 }
@@ -138,6 +140,12 @@ void hal_frontPanelUpdate(void) {
     frontpanel.encoderCounter -= frontPanel_encoderTable[last];
 }
 
+void hal_setEncoderSensitivity(uint8_t n){
+    if(!n)
+        return;
+    frontpanel.encoderSensitivity = n;
+}
+
 /**
  * \brief Returns the pattern of pressed buttons
  *
@@ -153,7 +161,7 @@ uint32_t hal_getButton(void) {
  * \return encoder steps since last call
  */
 int32_t hal_getEncoderMovement(void) {
-    int32_t buf = frontpanel.encoderCounter / HAL_ENCODER_SENSITIVITY;
-    frontpanel.encoderCounter -= buf * HAL_ENCODER_SENSITIVITY;
+    int32_t buf = frontpanel.encoderCounter / frontpanel.encoderSensitivity;
+    frontpanel.encoderCounter -= buf * frontpanel.encoderSensitivity;
     return buf;
 }

@@ -17,7 +17,7 @@
  * \def HAL_ENCODER_SENSITIVITY
  * Encoder steps needed to inkrement encoder counter by one
  */
-#define HAL_ENCODER_SENSITIVITY     5
+#define HAL_DEFAULT_ENCODER_SENSITIVITY     5
 
 /**
  * \name Macros for the frontpanel switches GPIOs
@@ -76,6 +76,7 @@
 struct {
     uint32_t buttonState;
     int32_t encoderCounter;
+    uint8_t encoderSensitivity;
 } frontpanel;
 
 /**
@@ -96,6 +97,15 @@ void hal_frontPanelInit(void);
  * cycle and handles the encoder counter
  */
 void hal_frontPanelUpdate(void);
+
+/**
+ * \brief Sets a new encoder sensitivity
+ *
+ * Only every nth encoder step is forwarded to higher layers.
+ * Thus, at low values of n, the encoder seems more sensitive
+ * \param n New sensitivity (n=0 doesn't change the sensitivity)
+ */
+void hal_setEncoderSensitivity(uint8_t n);
 
 /**
  * \brief Returns the pattern of pressed buttons
