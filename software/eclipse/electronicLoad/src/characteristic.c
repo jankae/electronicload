@@ -125,7 +125,7 @@ void characteristic_ViewResult(void) {
     int32_t encoder;
     uint32_t minVoltage = UINT32_MAX, maxVoltage = 0;
     uint8_t i;
-    for (i = 0; i < 120; i++) {
+    for (i = 0; i < characteristic.pointCount; i++) {
         if (characteristic.voltageResponse[i] < minVoltage)
             minVoltage = characteristic.voltageResponse[i];
         if (characteristic.voltageResponse[i] > maxVoltage)
@@ -157,7 +157,7 @@ void characteristic_ViewResult(void) {
         uint8_t lastx = 3;
         uint8_t lasty = common_Map(characteristic.voltageResponse[0],
                 minVoltage, maxVoltage, 53, 0);
-        for (i = 1; i < 120; i++) {
+        for (i = 1; i < characteristic.pointCount; i++) {
             uint8_t x = i + 3;
             uint8_t y = common_Map(characteristic.voltageResponse[i],
                     minVoltage, maxVoltage, 53, 0);
@@ -200,8 +200,8 @@ void characteristic_ViewResult(void) {
         // constrain cursor
         if (newCursorX < 0) {
             cursorX = 0;
-        } else if (newCursorX >= 120) {
-            cursorX = 119;
+        } else if (newCursorX >= characteristic.pointCount) {
+            cursorX = characteristic.pointCount - 1;
         } else {
             cursorX = newCursorX;
         }
@@ -224,6 +224,22 @@ void characteristic_Update(void) {
             // save measured voltage
             characteristic.voltageResponse[characteristic.pointCount] =
                     load.state.voltage;
+            // check whether we have crossed the abort voltage
+            if (characteristic.pointCount > 0) {
+                uint32_t lastVol, curVol;
+                lastVol =
+                        characteristic.voltageResponse[characteristic.pointCount
+                                - 1];
+                curVol =
+                        characteristic.voltageResponse[characteristic.pointCount];
+                if ((lastVol <= characteristic.abortVoltage
+                        && curVol >= characteristic.abortVoltage)
+                        || (lastVol >= characteristic.abortVoltage
+                                && curVol <= characteristic.abortVoltage)) {
+                    // crossed the abor voltage -> stop measurement
+                    characteristic.active = 0;
+                }
+            }
             // set the next current
             load.current = characteristic_DatapointToCurrent(
                     characteristic.pointCount);
