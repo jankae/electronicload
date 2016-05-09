@@ -240,7 +240,8 @@ void waveform_Menu(void) {
         for (i = 1; i < 128; i++) {
             uint8_t y = -(waveform_GetValue(i * 1024 + 32768) - waveform.offset)
                     * 8 / waveform.amplitude + 55;
-            screen_SetPixel(i, y, PIXEL_ON);
+            screen_Line(i, y, i - 1, y_last);
+            y_last = y;
         }
 
         // wait for user input
