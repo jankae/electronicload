@@ -6,6 +6,7 @@
 
 struct {
     uint8_t active;
+    uint8_t resultValid;
     int32_t currentStart;
     int32_t currentStop;
     uint32_t abortVoltage;
@@ -20,6 +21,8 @@ void characteristic_Menu(void);
 void characteristic_Run(void);
 
 void characteristic_ViewResult(void);
+
+void characteristic_TransmitResult(void);
 
 void characteristic_Update(void);
 

@@ -31,6 +31,9 @@ void characteristic_Menu(void) {
 
         screen_FastString6x8("START", 6, 5);
 
+        if (characteristic.resultValid)
+            screen_FastString6x8("Transmit results", 6, 6);
+
         // display selected line
         screen_FastChar6x8(0, selectedRow, 0x1A);
 
@@ -42,7 +45,8 @@ void characteristic_Menu(void) {
 
         if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
             // move one entry down (if possible)
-            if (selectedRow < 5)
+            if (selectedRow < 5
+                    || (characteristic.resultValid && selectedRow < 6))
                 selectedRow++;
         }
 
@@ -56,23 +60,34 @@ void characteristic_Menu(void) {
         if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
             switch (selectedRow) {
             case 1:
-                menu_getInputValue(&characteristic.currentStart,
-                        "Start current", 0, LOAD_MAXCURRENT, 3);
+                if (menu_getInputValue(&characteristic.currentStart,
+                        "Start current", 0, LOAD_MAXCURRENT, 3)) {
+                    characteristic.resultValid = 0;
+                }
                 break;
             case 2:
-                menu_getInputValue(&characteristic.currentStop, "Stop current",
-                        0, LOAD_MAXCURRENT, 3);
+                if (menu_getInputValue(&characteristic.currentStop,
+                        "Stop current", 0, LOAD_MAXCURRENT, 3)) {
+                    characteristic.resultValid = 0;
+                }
                 break;
             case 3:
-                menu_getInputValue(&characteristic.abortVoltage,
-                        "Abort voltage", 0, LOAD_MAXCURRENT, 3);
+                if (menu_getInputValue(&characteristic.abortVoltage,
+                        "Abort voltage", 0, LOAD_MAXCURRENT, 3)) {
+                    characteristic.resultValid = 0;
+                }
                 break;
             case 4:
-                menu_getInputValue(&characteristic.deltaT, "Delta T", 0,
-                LOAD_MAXCURRENT, 3);
+                if (menu_getInputValue(&characteristic.deltaT, "Delta T", 0,
+                LOAD_MAXCURRENT, 3)) {
+                    characteristic.resultValid = 0;
+                }
                 break;
             case 5:
                 characteristic_Run();
+                break;
+            case 6:
+                characteristic_TransmitResult();
                 break;
             }
         }
@@ -115,8 +130,45 @@ void characteristic_Run(void) {
         characteristic.active = 0;
         return;
     } else {
+        characteristic.resultValid = 1;
         // display result
         characteristic_ViewResult();
+    }
+}
+
+void characteristic_TransmitResult(void) {
+    // transmit characteristic settings
+    uart_writeString("U/I-characteristic result:\n");
+    uart_writeString("Starting at ");
+    char value[11];
+    string_fromUint(characteristic.currentStart, value, 5, 3);
+    uart_writeString(value);
+    uart_writeString("A\nStopping at ");
+    string_fromUint(characteristic.currentStop, value, 5, 3);
+    uart_writeString(value);
+    uart_writeString("A or ");
+    string_fromUint(characteristic.abortVoltage, value, 6, 3);
+    uart_writeString(value);
+    uart_writeString("V\nTime between datapoints: ");
+    string_fromUint(characteristic.deltaT, value, 6, 3);
+    uart_writeString(value);
+    uart_writeString("s\n\nCaptured ");
+    string_fromUint(characteristic.pointCount, value, 3, 0);
+    uart_writeString(value);
+    uart_writeString(" datapoints\n\ntime[s];current[A];voltage[V]\n");
+
+    // transmit datapoints as ascii-csv
+    uint8_t i;
+    for (i = 0; i < characteristic.pointCount; i++) {
+        string_fromUint(i * characteristic.deltaT, value, 6, 3);
+        uart_writeString(value);
+        uart_writeByte(';');
+        string_fromUint(characteristic_DatapointToCurrent(i), value, 5, 3);
+        uart_writeString(value);
+        uart_writeByte(';');
+        string_fromUint(characteristic.voltageResponse[i], value, 6, 3);
+        uart_writeString(value);
+        uart_writeByte('\n');
     }
 }
 
