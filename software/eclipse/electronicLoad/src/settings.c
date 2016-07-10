@@ -30,6 +30,7 @@ void settings_SelectBaudrate(void) {
     }
     sel = menu_ItemChooseDialog("\xCD\xCD\xCDSELECT BAUDRATE\xCD\xCD\xCD",
             entries, 7);
+    uint32_t baudratebuffer = settings.baudrate;
     switch(sel){
     case 0:
         settings.baudrate = 1200;
@@ -52,5 +53,11 @@ void settings_SelectBaudrate(void) {
     case 6:
         settings.baudrate = 115200;
         break;
+    }
+    if(settings.baudrate != baudratebuffer){
+        // baudrate has changed -> re-init UART
+        // wait for transmission to finish
+        while(uart.busyFlag);
+        uart_Init(settings.baudrate);
     }
 }
