@@ -47,6 +47,7 @@ void uart_writeByte(uint8_t b) {
     } while (freeBufSpace < 2);
     uart.outputBuffer[uart.outWritePos++] = b;
     uart.outWritePos %= UART_BUF_OUT_SIZE;
+    uart.busyFlag = 1;
     USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
 }
 
@@ -67,6 +68,7 @@ void USART2_IRQHandler(void) {
             USART_SendData(USART2, uart.outputBuffer[uart.outReadPos++]);
             uart.outReadPos %= UART_BUF_OUT_SIZE;
         } else {
+            uart.busyFlag = 0;
             USART_ClearITPendingBit(USART2, USART_IT_TXE);
             USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
         }

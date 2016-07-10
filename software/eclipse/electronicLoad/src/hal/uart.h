@@ -18,6 +18,7 @@ struct {
     uint8_t inputBuffer[UART_BUF_IN_SIZE];
     uint8_t inWritePos;
     uint8_t newDataFlag;
+    volatile uint8_t busyFlag;
 } uart;
 
 void uart_Init(uint32_t baud);
