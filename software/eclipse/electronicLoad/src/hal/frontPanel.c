@@ -98,9 +98,9 @@ void hal_frontPanelUpdate(void) {
         if (!HAL_FRONTPANEL_SWIN4)
             state |= HAL_BUTTON_0;
         if (!HAL_FRONTPANEL_SWIN5)
-            state |= HAL_BUTTON_CP;
-        if (!HAL_FRONTPANEL_SWIN6)
             state |= HAL_BUTTON_CR;
+        if (!HAL_FRONTPANEL_SWIN6)
+            state |= HAL_BUTTON_CP;
 
         // third row:
         HAL_FRONTPANEL_SWOUT2_HIGH;
