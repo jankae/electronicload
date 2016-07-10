@@ -50,6 +50,7 @@ int main(int argc, char* argv[]) {
     menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
     menu_AddMainMenuEntry("Calibration", calibrationProcess);
     menu_AddMainMenuEntry("Statistics", stats_Display);
+    menu_AddMainMenuEntry("Settings", settings_Menu);
 
     menu_DefaultScreenHandler();
 }

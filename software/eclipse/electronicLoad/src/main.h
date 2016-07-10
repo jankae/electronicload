@@ -13,5 +13,6 @@
 #include "statistics.h"
 #include "communication.h"
 #include "characteristic.h"
+#include "settings.h"
 
 #endif
