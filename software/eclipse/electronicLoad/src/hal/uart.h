@@ -20,7 +20,7 @@ struct {
     uint8_t newDataFlag;
 } uart;
 
-void uart_Init(void);
+void uart_Init(uint32_t baud);
 
 void uart_writeByte(uint8_t b);
 

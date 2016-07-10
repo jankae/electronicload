@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     hal_displayInit();
     hal_frontPanelInit();
     hal_triggerInit();
-    uart_Init();
+    uart_Init(115200);
     uart_writeString("electronicload\n");
 
     timer_waitms(100);

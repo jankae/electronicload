@@ -4,7 +4,7 @@
  */
 #include "uart.h"
 
-void uart_Init(void) {
+void uart_Init(uint32_t baud) {
     GPIO_InitTypeDef gpio;
     USART_InitTypeDef usart;
     NVIC_InitTypeDef nvic;
@@ -20,7 +20,7 @@ void uart_Init(void) {
     gpio.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOA, &gpio);
 
-    usart.USART_BaudRate = 115200;
+    usart.USART_BaudRate = baud;
     usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     usart.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     usart.USART_Parity = USART_Parity_No;
