@@ -40,20 +40,20 @@ void menu_DefaultScreenHandler(void) {
             string_fromUint(load.current / 10, setValBuf, 5, 2);
             setvalue = &load.current;
             minValue = 0;
-            maxValue = LOAD_MAXCURRENT;
+            maxValue = settings.maxCurrent;
             break;
         case FUNCTION_CV:
             screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
             string_fromUint(load.voltage / 10, setValBuf, 5, 2);
             setvalue = &load.voltage;
             minValue = LOAD_MINVOLTAGE;
-            maxValue = LOAD_MAXVOLTAGE;
+            maxValue = settings.maxVoltage;
             break;
         case FUNCTION_CR:
             screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
             string_fromUint(load.resistance / 10, setValBuf, 5, 2);
             setvalue = &load.resistance;
-            minValue = LOAD_MINRESISTANCE;
+            minValue = settings.minResistance;
             maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
@@ -61,7 +61,7 @@ void menu_DefaultScreenHandler(void) {
             string_fromUint(load.power / 10, setValBuf, 5, 2);
             setvalue = &load.power;
             minValue = 0;
-            maxValue = LOAD_MAXPOWER;
+            maxValue = settings.maxPower;
             break;
         }
         screen_SetDefaultScreenString(setValBuf, 15, 1);
@@ -81,7 +81,7 @@ void menu_DefaultScreenHandler(void) {
          ********************************************************/
         if (button & HAL_BUTTON_CC) {
             if (menu_getInputValue(&load.current, "'load current'", 0,
-            LOAD_MAXCURRENT, 3)) {
+            settings.maxCurrent, 3)) {
                 load.mode = FUNCTION_CC;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -89,7 +89,7 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CV) {
             if (menu_getInputValue(&load.voltage, "'load voltage'", 0,
-            LOAD_MAXVOLTAGE, 3)) {
+            settings.maxVoltage, 3)) {
                 load.mode = FUNCTION_CV;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -97,7 +97,7 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CR) {
             if (menu_getInputValue(&load.resistance, "'load resistance'",
-            LOAD_MINRESISTANCE,
+            settings.minResistance,
             LOAD_MAXRESISTANCE, 3)) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
@@ -106,7 +106,7 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CP) {
             if (menu_getInputValue(&load.power, "'load power'", 0,
-            LOAD_MAXPOWER, 3)) {
+            settings.maxPower, 3)) {
                 load.mode = FUNCTION_CP;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;

@@ -17,7 +17,7 @@
 void load_Init(void) {
     load.mode = FUNCTION_CC;
     load.current = 0;
-    load.voltage = LOAD_MAXVOLTAGE;
+    load.voltage = settings.maxVoltage;
     load.resistance = LOAD_MAXRESISTANCE;
     load.power = 0;
     load.triggerInOld = hal_getTriggerIn();
@@ -80,23 +80,23 @@ void load_setMode(loadMode_t mode) {
 void load_ConstrainSettings(void) {
     if (load.current < 0)
         load.current = 0;
-    else if (load.current > LOAD_MAXCURRENT)
-        load.current = LOAD_MAXCURRENT;
+    else if (load.current > settings.maxCurrent)
+        load.current = settings.maxCurrent;
 
     if (load.voltage < LOAD_MINVOLTAGE)
         load.voltage = LOAD_MINVOLTAGE;
-    else if (load.voltage > LOAD_MAXVOLTAGE)
-        load.voltage = LOAD_MAXVOLTAGE;
+    else if (load.voltage > settings.maxVoltage)
+        load.voltage = settings.maxVoltage;
 
-    if (load.resistance < LOAD_MINRESISTANCE)
-        load.resistance = LOAD_MINRESISTANCE;
+    if (load.resistance < settings.minResistance)
+        load.resistance = settings.minResistance;
     else if (load.resistance > LOAD_MAXRESISTANCE)
         load.resistance = LOAD_MAXRESISTANCE;
 
     if (load.power < 0)
         load.power = 0;
-    else if (load.power > LOAD_MAXPOWER)
-        load.power = LOAD_MAXPOWER;
+    else if (load.power > settings.maxPower)
+        load.power = settings.maxPower;
 }
 
 /**
@@ -144,21 +144,30 @@ void load_update(void) {
     characteristic_Update();
     load_ConstrainSettings();
 
+    uint32_t currentLimit = (settings.maxPower * 1000) / load.state.voltage;
+
     switch (load.mode) {
     case FUNCTION_CC:
-        current = load.current;
+        if (load.current > currentLimit)
+            current = currentLimit;
+        else
+            current = load.current;
         break;
     case FUNCTION_CV:
         //TODO
         break;
     case FUNCTION_CR:
         current = (load.state.voltage * 1000) / load.resistance;
+        if (current > currentLimit)
+            current = currentLimit;
         break;
     case FUNCTION_CP:
-        if (load.state.voltage > 0)
+        if (load.state.voltage > 0) {
             current = (load.power * 1000) / load.state.voltage;
-        else
-            current = MAX_CURRENT;
+            if (current > settings.maxCurrent)
+                current = settings.maxCurrent;
+        } else
+            current = settings.maxCurrent;
         break;
     }
     if (load.powerOn && highTemp <= LOAD_MAX_TEMP

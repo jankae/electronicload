@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
 // (nothing so far)
 
 // Software inits
+    settings_Init();
     events_Init();
     waveform_Init();
     load_Init();
