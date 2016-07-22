@@ -154,6 +154,9 @@ void calibrationProcess(void) {
     uint16_t adc12V_lowRange;
     uint16_t adc12V_highRange;
     uint16_t adc30V;
+    uint32_t voltage1V;
+    uint32_t voltage12V;
+    uint32_t voltage30V;
 
     uint32_t button = 0;
 
@@ -282,24 +285,28 @@ void calibrationProcess(void) {
     /*
      * Step 3: calibrating low voltage range
      */
-    hal_setVoltageGain(1);
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString6x8("Apply exactly 1V.", 0, 2);
-    screen_FastString6x8("ESC: Abort", 0, 6);
-    screen_FastString6x8("Enter: Continue", 0, 7);
-
+    char input[] = "Actual voltage";
     do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    if (button & HAL_BUTTON_ESC) {
-        calibration.active = 0;
-        return;
-    }
+        hal_setVoltageGain(1);
+        screen_Clear();
+        screen_FastString12x16("Cal", 0, 0);
+        screen_FastChar12x16(33, 0, 'i');
+        screen_FastString12x16("brat", 43, 0);
+        screen_FastChar12x16(89, 0, 'i');
+        screen_FastString12x16("on", 99, 0);
+        screen_FastString6x8("Apply about 1V.", 0, 2);
+        screen_FastString6x8("ESC: Abort", 0, 6);
+        screen_FastString6x8("Enter: Continue", 0, 7);
+
+        do {
+            button = hal_getButton();
+        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+        if (button & HAL_BUTTON_ESC) {
+            calibration.active = 0;
+            return;
+        }
+
+    } while (menu_getInputValue(&voltage1V, input, 500, 1500, 3));
 
     // save calibration values
     adc1V = cal_sampleADC(ADC_VOLTAGE_SENSE);
@@ -307,23 +314,26 @@ void calibrationProcess(void) {
     while (hal_getButton())
         ;
 
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString6x8("Apply exactly 12V.", 0, 2);
-    screen_FastString6x8("ESC: Abort", 0, 6);
-    screen_FastString6x8("Enter: Continue", 0, 7);
-
     do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    if (button & HAL_BUTTON_ESC) {
-        calibration.active = 0;
-        return;
-    }
+        screen_Clear();
+        screen_FastString12x16("Cal", 0, 0);
+        screen_FastChar12x16(33, 0, 'i');
+        screen_FastString12x16("brat", 43, 0);
+        screen_FastChar12x16(89, 0, 'i');
+        screen_FastString12x16("on", 99, 0);
+        screen_FastString6x8("Apply exactly 12V.", 0, 2);
+        screen_FastString6x8("ESC: Abort", 0, 6);
+        screen_FastString6x8("Enter: Continue", 0, 7);
+
+        do {
+            button = hal_getButton();
+        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+        if (button & HAL_BUTTON_ESC) {
+            calibration.active = 0;
+            return;
+        }
+
+    } while (menu_getInputValue(&voltage12V, input, 11500, 12500, 3));
 
     // save calibration values
     adc12V_lowRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
@@ -337,24 +347,26 @@ void calibrationProcess(void) {
     /*
      * Step 4: calibrating high voltage range
      */
-    hal_setVoltageGain(0);
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString6x8("Apply exactly 30V.", 0, 2);
-    screen_FastString6x8("ESC: Abort", 0, 6);
-    screen_FastString6x8("Enter: Continue", 0, 7);
-
     do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    if (button & HAL_BUTTON_ESC) {
-        calibration.active = 0;
-        return;
-    }
+        hal_setVoltageGain(0);
+        screen_Clear();
+        screen_FastString12x16("Cal", 0, 0);
+        screen_FastChar12x16(33, 0, 'i');
+        screen_FastString12x16("brat", 43, 0);
+        screen_FastChar12x16(89, 0, 'i');
+        screen_FastString12x16("on", 99, 0);
+        screen_FastString6x8("Apply exactly 30V.", 0, 2);
+        screen_FastString6x8("ESC: Abort", 0, 6);
+        screen_FastString6x8("Enter: Continue", 0, 7);
+
+        do {
+            button = hal_getButton();
+        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+        if (button & HAL_BUTTON_ESC) {
+            calibration.active = 0;
+            return;
+        }
+    } while (menu_getInputValue(&voltage30V, input, 29000, 31000, 3));
 
     // save calibration values
     adc30V = cal_sampleADC(ADC_VOLTAGE_SENSE);
@@ -400,12 +412,12 @@ void calibrationProcess(void) {
     calibration.currentSenseOffsetHighRange = adc2A_highRange
             - 2000 / calibration.currentSenseScaleHighRange;
 
-    calibration.voltageSenseScaleLowRange = (float) (12000 - 1000)
+    calibration.voltageSenseScaleLowRange = (float) (voltage12V - voltage1V)
             / (adc12V_lowRange - adc1V);
     calibration.voltageSenseOffsetLowRange = adc1V
             - 1000 / calibration.voltageSenseScaleLowRange;
 
-    calibration.voltageSenseScaleHighRange = (float) (30000 - 12000)
+    calibration.voltageSenseScaleHighRange = (float) (voltage30V - voltage12V)
             / (adc30V - adc12V_highRange);
     calibration.voltageSenseOffsetHighRange = adc12V_highRange
             - 12000 / calibration.voltageSenseScaleHighRange;
