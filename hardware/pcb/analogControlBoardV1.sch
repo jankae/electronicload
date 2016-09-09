@@ -16924,6 +16924,8 @@ Based on the following sources:
 <part name="P+9" library="supply1" deviceset="+15V" device=""/>
 <part name="P-9" library="supply1" deviceset="-15V" device=""/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
+<part name="TRIM" library="pinhead" deviceset="PINHD-1X2" device=""/>
+<part name="GND17" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -17082,6 +17084,8 @@ Based on the following sources:
 <instance part="P+9" gate="1" x="205.74" y="426.72" rot="MR0"/>
 <instance part="P-9" gate="1" x="215.9" y="426.72" rot="MR180"/>
 <instance part="GND13" gate="1" x="205.74" y="406.4"/>
+<instance part="TRIM" gate="G$1" x="355.6" y="254" rot="MR180"/>
+<instance part="GND17" gate="1" x="345.44" y="246.38"/>
 </instances>
 <busses>
 </busses>
@@ -17429,6 +17433,12 @@ Based on the following sources:
 <wire x1="205.74" y1="411.48" x2="215.9" y2="411.48" width="0.1524" layer="91"/>
 <wire x1="215.9" y1="411.48" x2="215.9" y2="414.02" width="0.1524" layer="91"/>
 <junction x="205.74" y="411.48"/>
+</segment>
+<segment>
+<pinref part="TRIM" gate="G$1" pin="1"/>
+<wire x1="353.06" y1="251.46" x2="345.44" y2="251.46" width="0.1524" layer="91"/>
+<wire x1="345.44" y1="251.46" x2="345.44" y2="248.92" width="0.1524" layer="91"/>
+<pinref part="GND17" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="+5V" class="0">
@@ -17876,6 +17886,11 @@ Based on the following sources:
 <pinref part="M_OUT" gate="G$1" pin="TP"/>
 <wire x1="281.94" y1="287.02" x2="281.94" y2="289.56" width="0.1524" layer="91"/>
 <junction x="281.94" y="287.02"/>
+</segment>
+<segment>
+<pinref part="TRIM" gate="G$1" pin="2"/>
+<wire x1="353.06" y1="254" x2="345.44" y2="254" width="0.1524" layer="91"/>
+<label x="345.44" y="254" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="N$38" class="0">
