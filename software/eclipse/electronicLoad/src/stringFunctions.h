@@ -24,6 +24,27 @@
 void string_fromUint(uint32_t value, char *dest, uint8_t digits, uint8_t dot);
 
 /**
+ * \brief Creates a string from an unsigned integer and includes the unit
+ *
+ * The string be will be created without leading zeros
+ * and an optional fixed decimal point which might be shifted to get
+ * optimal results. In this case a prefix is automatically added to the baseUnit
+ * \param value     Integer value which will be written to string
+ * \param dest      Pointer to char array. The array must be at least digits+4 long
+ *                  (1 decimal point/space holder + 1 prefix/spaceholder + baseUnit
+ *                  + string terminator)
+ * \param digits    Number of displayed digits (not counting the decimal point).
+ *                  If value has more digits than specified only the first digits
+ *                  will displayed. If value has less digits the first characters
+ *                  will be left blank
+ * \param dot       Number of digits behind decimal point at baseUnit
+ *                  (e.g. if 10000 denotes 10A, with A being the baseUnit,
+ *                  dot has to be 3)
+ */
+void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
+        char baseUnit);
+
+/**
  * \brief copies a string from the FLASH into a char array
  *
  * Copies bytes from src to dest until it reaches a string terminator (the terminator

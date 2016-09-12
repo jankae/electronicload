@@ -35,6 +35,57 @@ void string_fromUint(uint32_t value, char *dest, uint8_t digits, uint8_t dot) {
     *dest = 0;
 }
 
+void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
+        char baseUnit) {
+    // find position of first digit
+    uint32_t divider = 1000000000UL;
+    int8_t firstDigit = 10;
+    for (; divider > 0; divider /= 10) {
+        if (value / divider > 0)
+            break;
+        firstDigit--;
+    }
+    char prefix = ' ';
+    if (baseUnit) {
+        // calculate prefix
+        if (firstDigit > dot + 3) {
+            dot += 3;
+            prefix = 'k';
+        } else if (firstDigit <= dot - 3 && dot >= 6) {
+            dot -= 6;
+            prefix = 'u';
+        } else if (firstDigit <= dot && dot >= 3) {
+            dot -= 3;
+            prefix = 'm';
+        }
+    }
+    // display value
+    for (; firstDigit < digits; digits--) {
+        *dest++ = ' ';
+    }
+    if (firstDigit < dot || dot <= firstDigit - digits) {
+        *dest++ = ' ';
+    }
+    for (; firstDigit > 0; firstDigit--) {
+        if (!digits)
+            break;
+        if (firstDigit == dot) {
+            *dest++ = '.';
+        }
+        *dest = value / divider;
+        value -= *dest * divider;
+        divider /= 10;
+        *dest++ += '0';
+        digits--;
+    }
+    if (baseUnit) {
+        // display Unit
+        *dest++ = prefix;
+        *dest++ = baseUnit;
+    }
+    *dest = 0;
+}
+
 void string_copy(char *dest, const char *src) {
     while (*src) {
         *dest++ = *src++;
