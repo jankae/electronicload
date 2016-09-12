@@ -1116,6 +1116,39 @@ void screen_Line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
     }
 }
 
+void screen_Circle(int x0, int y0, int radius) {
+    int f = 1 - radius;
+    int ddF_x = 0;
+    int ddF_y = -2 * radius;
+    int x = 0;
+    int y = radius;
+
+    screen_SetPixel(x0, y0 + radius, PIXEL_ON);
+    screen_SetPixel(x0, y0 - radius, PIXEL_ON);
+    screen_SetPixel(x0 + radius, y0, PIXEL_ON);
+    screen_SetPixel(x0 - radius, y0, PIXEL_ON);
+
+    while (x < y) {
+        if (f >= 0) {
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x++;
+        ddF_x += 2;
+        f += ddF_x + 1;
+
+        screen_SetPixel(x0 + x, y0 + y, PIXEL_ON);
+        screen_SetPixel(x0 - x, y0 + y, PIXEL_ON);
+        screen_SetPixel(x0 + x, y0 - y, PIXEL_ON);
+        screen_SetPixel(x0 - x, y0 - y, PIXEL_ON);
+        screen_SetPixel(x0 + y, y0 + x, PIXEL_ON);
+        screen_SetPixel(x0 - y, y0 + x, PIXEL_ON);
+        screen_SetPixel(x0 + y, y0 - x, PIXEL_ON);
+        screen_SetPixel(x0 - y, y0 - x, PIXEL_ON);
+    }
+}
+
 /**
  * \brief Draws a rectangle on the screen
  *
@@ -1207,6 +1240,21 @@ void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage) {
         screen_FastChar6x8(x, ypage, *src++);
         x += 6;
     }
+}
+
+void screen_SetSoftButton(const char *descr, uint8_t num) {
+    // calculate descr length to center text (up to 6 chars)
+    uint8_t length;
+    for (length = 0; descr[length] != 0; length++)
+        ;
+    // calculate text start
+    uint8_t start = 20 + 44 * num - length * 6 / 2;
+    // draw box outline
+    screen_VerticalLine(44 * num, 55, 9);
+    screen_VerticalLine(44 * num + 39, 55, 9);
+    screen_HorizontalLine(44 * num + 1, 54, 38);
+    // set text
+    screen_FastString6x8(descr, start, 7);
 }
 
 /**

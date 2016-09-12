@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
     hal_displayInit();
     hal_frontPanelInit();
     hal_triggerInit();
+    multimeter_Init();
     uart_Init(115200);
     uart_writeString("electronicload\n");
 
@@ -49,7 +50,7 @@ int main(int argc, char* argv[]) {
     menu_AddMainMenuEntry("Waveforms", waveform_Menu);
     menu_AddMainMenuEntry("Events", events_menu);
     menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
-    menu_AddMainMenuEntry("Calibration", calibrationProcess);
+    menu_AddMainMenuEntry("Calibration", calibrationMenu);
     menu_AddMainMenuEntry("Statistics", stats_Display);
     menu_AddMainMenuEntry("Settings", settings_Menu);
 

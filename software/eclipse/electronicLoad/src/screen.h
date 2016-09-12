@@ -77,6 +77,8 @@ void screen_HorizontalLine(uint8_t x, uint8_t y, uint8_t length);
  */
 void screen_Line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 
+void screen_Circle(int x0, int y0, int radius);
+
 /**
  * \brief Draws a rectangle on the screen
  *
@@ -134,6 +136,15 @@ void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage);
  * \param ypage Y-coordinate (up = 0, down = 7)
  */
 void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage);
+
+
+/**
+ * \brief Displays a soft button
+ *
+ * \param descr Name of the soft button (up to 6 characters)
+ * \num Number (and thus also position) of the button (0-2)
+ */
+void screen_SetSoftButton(const char *descr, uint8_t num);
 
 /**
  * \brief Copies a char array into the default screen

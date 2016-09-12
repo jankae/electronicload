@@ -11,6 +11,7 @@
 #include <screen.h>
 #include "currentSink.h"
 #include "frontPanel.h"
+#include "multimeter.h"
 
 #define LM35_ADC_TO_TEMP(adc)		((adc*3300)/4096)
 
@@ -89,6 +90,10 @@ uint32_t cal_sampleADC(uint8_t channel);
  */
 void cal_setDefaultCalibration(void);
 
+void calibrationMenu(void);
+
+void calibrationProcessAutomatic(void);
+
 /**
  * \brief Starts and executes the calibration process.
  *
@@ -97,7 +102,9 @@ void cal_setDefaultCalibration(void);
  * IMPORTANT: disable all functions dealing with the DAC, this is all
  * done internally in this function
  */
-void calibrationProcess(void);
+void calibrationProcessManual(void);
+
+void calibrationDisplayMultimeterInfo(void);
 
 /**
  * \brief Sets the 'should be'-current
@@ -119,6 +126,9 @@ int32_t cal_getCurrent(void);
  * \return Voltage in mV
  */
 int32_t cal_getVoltage(void);
+
+int32_t cal_getUncalibVoltage(void);
+int32_t cal_getUncalibCurrent(void);
 
 /**
  * \brief Returns the temperature at heatsink1

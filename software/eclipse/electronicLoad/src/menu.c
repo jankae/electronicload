@@ -81,7 +81,7 @@ void menu_DefaultScreenHandler(void) {
          ********************************************************/
         if (button & HAL_BUTTON_CC) {
             if (menu_getInputValue(&load.current, "'load current'", 0,
-            settings.maxCurrent, 3)) {
+                    settings.maxCurrent, "mA", "A", NULL)) {
                 load.mode = FUNCTION_CC;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -89,7 +89,7 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CV) {
             if (menu_getInputValue(&load.voltage, "'load voltage'", 0,
-            settings.maxVoltage, 3)) {
+                    settings.maxVoltage, "mV", "V", NULL)) {
                 load.mode = FUNCTION_CV;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -97,8 +97,8 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CR) {
             if (menu_getInputValue(&load.resistance, "'load resistance'",
-            settings.minResistance,
-            LOAD_MAXRESISTANCE, 3)) {
+                    settings.minResistance,
+                    LOAD_MAXRESISTANCE, "mOhm", "Ohm", NULL)) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -106,7 +106,7 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CP) {
             if (menu_getInputValue(&load.power, "'load power'", 0,
-            settings.maxPower, 3)) {
+                    settings.maxPower, "mW", "W", NULL)) {
                 load.mode = FUNCTION_CP;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -228,7 +228,7 @@ void menu_AddMainMenuEntry(char *descr, void (*menuFunction)()) {
  *
  * This function handles the parameter input by the user.
  * It displays the input dialog and handles every button
- * press. Furthermore, it checks the inputvalue against
+ * press. Furthermore, it checks the input value against
  * boundaries. If it does not meet these boundaries an
  * error message is displayed and the input process is
  * repeated until a valid value has been set or the user
@@ -240,25 +240,36 @@ void menu_AddMainMenuEntry(char *descr, void (*menuFunction)()) {
  *                  (up to 21 characters)
  * \param min       Lower boundary for input value
  * \param max       Upper boundary for input value
- * \param ndot      Number of digits behind decimal point (fixed integer input)
+ * \param unit1e0   Base Unit number (e.g. uA), can also be NULL
+ * \param unit1e3   1000*base unit (e.g. mA), can also be NULL
+ * \param unit1e6   1000000*base unit (e.g. A), can also be NULL
  * \return 0: input process aborted, 1: input parameter set
  */
 uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
-        uint32_t max, uint8_t ndot) {
-    uint32_t inputValue;
+        uint32_t max, const char *unit1e0, const char *unit1e3,
+        const char *unit1e6) {
+    uint64_t inputValue;
     uint8_t valueValid = 0;
     do {
         while (hal_getButton())
             ;
         // display input mask
         screen_Clear();
-        screen_FastString6x8("Input parameter:", 0, 0);
-        screen_FastString6x8(descr, 0, 1);
-        screen_Rectangle(1, 21, 126, 42);
-        screen_Rectangle(2, 22, 125, 41);
-        screen_FastString6x8("ESC: Abort", 0, 6);
-        screen_FastString6x8("Enter: set parameter", 0, 7);
+        screen_FastString6x8(descr, 0, 0);
+        screen_Rectangle(1, 13, 126, 34);
+        screen_Rectangle(2, 14, 125, 33);
+        // set unit buttons
+        if (unit1e0) {
+            screen_SetSoftButton(unit1e0, 0);
+        }
+        if (unit1e3) {
+            screen_SetSoftButton(unit1e3, 1);
+        }
+        if (unit1e6) {
+            screen_SetSoftButton(unit1e6, 2);
+        }
         uint32_t button;
+        uint32_t mult;
         // current input position (in input array)
         uint8_t inputPosition = 0;
         // position of dot (0xff = no dot set)
@@ -274,47 +285,54 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
             while (!(button = hal_getButton()))
                 ;
             if (inputPosition < 10) {
-                // room left for input
-                if ((dotPosition == 0xff
-                        || inputPosition - dotPosition < ndot + 1)) {
-                    // digits after dot not completely filled
-                    // -> can get new input
-                    if (button & HAL_BUTTON_ISDIGIT) {
-                        // a digit button has been pressed
-                        if (button & HAL_BUTTON_0)
-                            input[inputPosition++] = '0';
-                        if (button & HAL_BUTTON_1)
-                            input[inputPosition++] = '1';
-                        if (button & HAL_BUTTON_2)
-                            input[inputPosition++] = '2';
-                        if (button & HAL_BUTTON_3)
-                            input[inputPosition++] = '3';
-                        if (button & HAL_BUTTON_4)
-                            input[inputPosition++] = '4';
-                        if (button & HAL_BUTTON_5)
-                            input[inputPosition++] = '5';
-                        if (button & HAL_BUTTON_6)
-                            input[inputPosition++] = '6';
-                        if (button & HAL_BUTTON_7)
-                            input[inputPosition++] = '7';
-                        if (button & HAL_BUTTON_8)
-                            input[inputPosition++] = '8';
-                        if (button & HAL_BUTTON_9)
-                            input[inputPosition++] = '9';
-                        while (hal_getButton())
-                            ;
-                    } else if ((button & HAL_BUTTON_DOT) && dotPosition == 0xff
-                            && ndot > 0) {
-                        // dot button pressed and dot not set yet
-                        dotPosition = inputPosition;
-                        input[inputPosition++] = '.';
-                        while (hal_getButton())
-                            ;
-                    }
+                // digits after dot not completely filled
+                // -> can get new input
+                if (button & HAL_BUTTON_ISDIGIT) {
+                    // a digit button has been pressed
+                    if (button & HAL_BUTTON_0)
+                        input[inputPosition++] = '0';
+                    if (button & HAL_BUTTON_1)
+                        input[inputPosition++] = '1';
+                    if (button & HAL_BUTTON_2)
+                        input[inputPosition++] = '2';
+                    if (button & HAL_BUTTON_3)
+                        input[inputPosition++] = '3';
+                    if (button & HAL_BUTTON_4)
+                        input[inputPosition++] = '4';
+                    if (button & HAL_BUTTON_5)
+                        input[inputPosition++] = '5';
+                    if (button & HAL_BUTTON_6)
+                        input[inputPosition++] = '6';
+                    if (button & HAL_BUTTON_7)
+                        input[inputPosition++] = '7';
+                    if (button & HAL_BUTTON_8)
+                        input[inputPosition++] = '8';
+                    if (button & HAL_BUTTON_9)
+                        input[inputPosition++] = '9';
+                    while (hal_getButton())
+                        ;
+                } else if ((button & HAL_BUTTON_DOT) && dotPosition == 0xff) {
+                    // dot button pressed and dot not set yet
+                    dotPosition = inputPosition;
+                    input[inputPosition++] = '.';
+                    while (hal_getButton())
+                        ;
                 }
             }
-            screen_FastString12x16(input, 4, 3);
-        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+            screen_FastString12x16(input, 4, 2);
+            if (unit1e0 && (button & HAL_BUTTON_SOFT0)) {
+                mult = 1;
+                break;
+            }
+            if (unit1e3 && (button & HAL_BUTTON_SOFT1)) {
+                mult = 1000;
+                break;
+            }
+            if (unit1e6 && (button & HAL_BUTTON_SOFT2)) {
+                mult = 1000000;
+                break;
+            }
+        } while (!(button & HAL_BUTTON_ESC));
         if (button & HAL_BUTTON_ESC)
             return 0;
         while (hal_getButton())
@@ -322,41 +340,38 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
         // input buffer has been filled
         // -> transform to integer
         inputValue = 0;
-        for (i = 0; i < 10; i++) {
-            if (input[i] == 0) {
-                // found end of input buffer
-                if (ndot) {
-                    // value is a fixed point integer
-                    // calculate digits after dot in input
-                    uint8_t afterDot = 0;
-                    if (dotPosition != 0xff) {
-                        afterDot = i - dotPosition - 1;
-                    }
-                    // shift value by remaining digits
-                    uint8_t j;
-                    for (j = 0; j < (ndot - afterDot); j++)
-                        inputValue *= 10;
-                }
-                break;
-            }
+        for (i = 0; i < 10 && input[i] != 0; i++) {
             if (input[i] >= '0' && input[i] <= '9') {
                 // found a digit
                 inputValue *= 10;
                 inputValue += input[i] - '0';
             }
         }
+        inputValue = inputValue * mult;
+        if (dotPosition != 0xff) {
+            // dot set
+            for (; i - dotPosition > 1; i--) {
+                inputValue /= 10;
+            }
+        }
+
         // check input value for boundaries
         if (inputValue > max || inputValue < min) {
+            uint8_t dot = 0;
+            if (mult == 1000)
+                dot = 3;
+            else if (mult == 1000000)
+                dot = 6;
             // value outside of boundaries
             // display error message
             screen_Clear();
             screen_FastString12x16("ERROR", 0, 0);
             screen_FastString6x8("Min. parameter:", 0, 2);
             char buf[11];
-            string_fromUint(min, buf, 9, ndot);
+            string_fromUint(min, buf, 9, dot);
             screen_FastString12x16(buf, 0, 3);
             screen_FastString6x8("Max. parameter:", 0, 5);
-            string_fromUint(max, buf, 9, ndot);
+            string_fromUint(max, buf, 9, dot);
             screen_FastString12x16(buf, 0, 6);
             uint32_t timeout = timer_SetTimeout(6000);
             // display error message for 3 seconds

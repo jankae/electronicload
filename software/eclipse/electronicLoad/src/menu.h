@@ -56,7 +56,7 @@ void menu_AddMainMenuEntry(char *descr, void (*menuFunction)());
  *
  * This function handles the parameter input by the user.
  * It displays the input dialog and handles every button
- * press. Furthermore, it checks the inputvalue against
+ * press. Furthermore, it checks the input value against
  * boundaries. If it does not meet these boundaries an
  * error message is displayed and the input process is
  * repeated until a valid value has been set or the user
@@ -68,11 +68,10 @@ void menu_AddMainMenuEntry(char *descr, void (*menuFunction)());
  *                  (up to 21 characters)
  * \param min       Lower boundary for input value
  * \param max       Upper boundary for input value
- * \param ndot      Number of digits behind decimal point (fixed integer input)
  * \return 0: input process aborted, 1: input parameter set
  */
-uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
-        uint32_t max, uint8_t ndot);
+uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min, uint32_t max,
+        const char *unit1e0, const char *unit1e3, const char *unit1e6);
 
 /**
  * \brief Allows the user to choose an item out of a list

@@ -407,20 +407,20 @@ void events_editEventMenu(uint8_t ev) {
                     && (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)) {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param limit", 0, 1000000, 3)) {
+                if (menu_getInputValue(&val, "param limit", 0, 1000000, "mX", "X", NULL)) {
                     events.evlist[ev].srcLimit = val;
                 }
             } else if (selectedRow == 2 && src == EV_SRC_TIM_ZERO) {
                 // select timer
                 uint32_t tim;
                 if (menu_getInputValue(&tim, "timer number", 0,
-                EV_MAXTIMERS - 1, 0)) {
+                EV_MAXTIMERS - 1, "Timer", NULL, NULL)) {
                     events.evlist[ev].srcTimerNum = tim;
                 }
             } else if (selectedRow == 2 && src == EV_SRC_WAVEFORM_PHASE) {
                 // change phase value
                 uint32_t val;
-                if (menu_getInputValue(&val, "Phase:", 0, 360000, 3)) {
+                if (menu_getInputValue(&val, "Phase:", 0, 360000, "mDeg", "Degree", NULL)) {
                     events.evlist[ev].srcLimit = val;
                 }
             } else if (selectedRow == 5) {
@@ -457,20 +457,20 @@ void events_editEventMenu(uint8_t ev) {
             } else if (selectedRow == 7 && dest == EV_DEST_SET_PARAM) {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param value", 0, 1000000, 3)) {
+                if (menu_getInputValue(&val, "param value", 0, 1000000, "mX", "X", NULL)) {
                     events.evlist[ev].destSetValue = val;
                 }
             } else if (selectedRow == 6 && dest == EV_DEST_SET_TIMER) {
                 // select timer
                 uint32_t tim;
                 if (menu_getInputValue(&tim, "timer number", 0,
-                EV_MAXTIMERS - 1, 0)) {
+                EV_MAXTIMERS - 1, "Timer", NULL, NULL)) {
                     events.evlist[ev].destTimerNum = tim;
                 }
             } else if (selectedRow == 7 && dest == EV_DEST_SET_TIMER) {
                 // change timer start value
                 uint32_t time;
-                if (menu_getInputValue(&time, "time", 0, 3600000, 3)) {
+                if (menu_getInputValue(&time, "time", 0, 3600000, "ms", "s", NULL)) {
                     events.evlist[ev].destTimerValue = time;
                 }
             } else if (selectedRow == 6 && dest == EV_DEST_LOAD_MODE) {

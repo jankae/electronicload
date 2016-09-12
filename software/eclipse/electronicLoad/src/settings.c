@@ -42,20 +42,20 @@ void settings_Menu(void) {
                 break;
             case 1:
                 menu_getInputValue(&settings.maxCurrent, maxCurrent, 0,
-                LOAD_MAXCURRENT, 3);
+                LOAD_MAXCURRENT, "mA", "A", NULL);
                 break;
             case 2:
                 menu_getInputValue(&settings.maxPower, maxPower, 0,
-                LOAD_MAXPOWER, 3);
+                LOAD_MAXPOWER, "mW", "W", NULL);
                 break;
             case 3:
                 menu_getInputValue(&settings.maxVoltage, maxVoltage, LOAD_MINVOLTAGE,
-                LOAD_MAXVOLTAGE, 3);
+                LOAD_MAXVOLTAGE, "mV", "V", NULL);
                 break;
             case 4:
                 menu_getInputValue(&settings.minResistance, minResist,
                         LOAD_MINRESISTANCE,
-                        LOAD_MAXRESISTANCE, 3);
+                        LOAD_MAXRESISTANCE, "mOhm", "Ohm", NULL);
                 break;
             }
         }

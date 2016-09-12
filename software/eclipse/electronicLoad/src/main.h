@@ -14,5 +14,6 @@
 #include "communication.h"
 #include "characteristic.h"
 #include "settings.h"
+#include "multimeter.h"
 
 #endif

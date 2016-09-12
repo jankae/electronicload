@@ -288,21 +288,21 @@ void waveform_Menu(void) {
             } else if (selectedRow == 2) {
                 // change amplitude
                 uint32_t val;
-                if (menu_getInputValue(&val, "Amplitude:", 0, 1000000, 3)) {
+                if (menu_getInputValue(&val, "Amplitude:", 0, 1000000, "mX", "X", NULL)) {
                     waveform.amplitude = val;
                     load.powerOn = 0;
                 }
             } else if (selectedRow == 3) {
                 // change offset
                 uint32_t val;
-                if (menu_getInputValue(&val, "Offset:", 0, 1000000, 3)) {
+                if (menu_getInputValue(&val, "Offset:", 0, 1000000, "mX", "X", NULL)) {
                     waveform.offset = val;
                     load.powerOn = 0;
                 }
             } else if (selectedRow == 4) {
                 // change period
                 uint32_t val;
-                if (menu_getInputValue(&val, "Period[s]:", 0, 30000, 3)) {
+                if (menu_getInputValue(&val, "Period:", 0, 30000, "ms", "s", NULL)) {
                     waveform.period = val;
                     load.powerOn = 0;
                 }

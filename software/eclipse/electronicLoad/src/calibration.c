@@ -130,6 +130,111 @@ void cal_setDefaultCalibration(void) {
     calibration.currentSetScaleHighRange = CAL_DEF_CURSET_SCALE_HIGH;
 }
 
+void calibrationMenu(void) {
+    char *entries[3];
+    int8_t sel;
+    do {
+        char automatic[21] = "Automatic Cal.";
+        entries[0] = automatic;
+
+        char manual[21] = "Manual Cal.";
+        entries[1] = manual;
+
+        char info[21] = "Multimeter info";
+        entries[2] = info;
+
+        sel = menu_ItemChooseDialog("\xCD\xCD" "CALIBRATIONS MENU\xCD\xCD",
+                entries, 3);
+        switch (sel) {
+        case 0:
+            calibrationProcessAutomatic();
+            break;
+        case 1:
+            calibrationProcessManual();
+            break;
+        case 2:
+            calibrationDisplayMultimeterInfo();
+            break;
+        }
+    } while (sel >= 0);
+}
+
+void calibrationProcessAutomatic(void) {
+    uint32_t button;
+    uint8_t setupOK;
+    while (hal_getButton())
+        ;
+    calibration.active = 1;
+
+    // low range current calibration
+    // show setup
+    screen_Clear();
+    screen_FastString6x8("Connect like this:", 0, 0);
+    // load
+    screen_Rectangle(0, 14, 40, 25);
+    screen_Rectangle(2, 16, 14, 23);
+    // power supply
+    screen_Rectangle(75, 14, 96, 25);
+    screen_FastString6x8("PSU", 77, 2);
+    screen_FastString6x8("10V", 98, 2);
+    screen_FastString6x8("300mA", 98, 3);
+    // meter
+    screen_FastChar6x8(57, 4, 'A');
+    screen_Circle(60, 36, 6);
+    // leads
+    screen_VerticalLine(37, 22, 6);
+    screen_VerticalLine(82, 25, 3);
+    screen_HorizontalLine(37, 28, 46);
+
+    screen_VerticalLine(30, 22, 14);
+    screen_VerticalLine(89, 25, 11);
+    screen_HorizontalLine(30, 36, 24);
+    screen_HorizontalLine(66, 36, 24);
+
+    screen_SetSoftButton("Abort", 0);
+
+    do {
+        button = hal_getButton();
+        if (button & HAL_BUTTON_ESC) {
+            calibration.active = 0;
+            return;
+        }
+        setupOK = 1;
+        if (!timer_TimeoutElapsed(meter.timeout)) {
+            int32_t voltage = cal_getUncalibVoltage();
+            if (meter.function != UT61E_FUNCTION_CURRENT_MA) {
+                screen_FastString6x8("!Switch to mA range!", 0, 5);
+                setupOK = 0;
+            } else if (!meter.DC) {
+                screen_FastString6x8("!Switch to DC!      ", 0, 5);
+                setupOK = 0;
+            } else if (!meter.AUTO) {
+                screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
+                setupOK = 0;
+            } else if (voltage > 11000 || voltage < 9000) {
+                screen_FastString6x8("!Apply 10V!         ", 0, 5);
+                setupOK = 0;
+            }
+        } else {
+            // no meter connected
+            screen_FastString6x8("!No meter connected!", 0, 5);
+            setupOK = 0;
+        }
+        if (setupOK) {
+            screen_SetSoftButton("Start", 2);
+        }
+        timer_waitms(100);
+    } while (!(button & HAL_BUTTON_ENTER) || !setupOK);
+
+//    // save calibration values in FLASH
+//    cal_writeToFlash();
+
+    while (hal_getButton())
+        ;
+
+    calibration.active = 0;
+}
+
 /**
  * \brief Starts and executes the calibration process.
  *
@@ -138,7 +243,7 @@ void cal_setDefaultCalibration(void) {
  * IMPORTANT: disable all functions dealing with the DAC, this is all
  * done internally in this function
  */
-void calibrationProcess(void) {
+void calibrationProcessManual(void) {
     while (hal_getButton())
         ;
     calibration.active = 1;
@@ -306,7 +411,7 @@ void calibrationProcess(void) {
             return;
         }
 
-    } while (menu_getInputValue(&voltage1V, input, 500, 1500, 3));
+    } while (menu_getInputValue(&voltage1V, input, 500, 1500, "mV", "V", NULL));
 
     // save calibration values
     adc1V = cal_sampleADC(ADC_VOLTAGE_SENSE);
@@ -333,7 +438,8 @@ void calibrationProcess(void) {
             return;
         }
 
-    } while (menu_getInputValue(&voltage12V, input, 11500, 12500, 3));
+    } while (menu_getInputValue(&voltage12V, input, 11500, 12500, "mV", "V",
+            NULL));
 
     // save calibration values
     adc12V_lowRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
@@ -366,7 +472,7 @@ void calibrationProcess(void) {
             calibration.active = 0;
             return;
         }
-    } while (menu_getInputValue(&voltage30V, input, 29000, 31000, 3));
+    } while (menu_getInputValue(&voltage30V, input, 29000, 31000, "mV", "V", NULL));
 
     // save calibration values
     adc30V = cal_sampleADC(ADC_VOLTAGE_SENSE);
@@ -429,6 +535,66 @@ void calibrationProcess(void) {
         ;
 
     calibration.active = 0;
+}
+
+void calibrationDisplayMultimeterInfo(void) {
+    // loop while ESC is not pressed
+    do {
+        screen_Clear();
+        screen_FastString6x8("\xCD\xCD\xCDMULTIMETER INFO\xCD\xCD\xCD", 0, 0);
+        if (timer_TimeoutElapsed(meter.timeout)) {
+            // no data received for at least one second
+            screen_FastString6x8("No Meter detected", 6, 2);
+        } else {
+            screen_FastString6x8("Meter detected:", 6, 1);
+            screen_FastString6x8("Chipset: ES51922", 6, 2);
+            screen_FastString6x8("Mode:", 6, 3);
+            uint8_t validMode = 1;
+            switch (meter.function) {
+            case UT61E_FUNCTION_VOLTAGE:
+                screen_FastString6x8("Voltage", 42, 3);
+                break;
+            case UT61E_FUNCTION_CURRENT_UA:
+                screen_FastString6x8("Current uA", 42, 3);
+                break;
+            case UT61E_FUNCTION_CURRENT_MA:
+                screen_FastString6x8("Current mA", 42, 3);
+                break;
+            case UT61E_FUNCTION_CURRENT_A:
+                screen_FastString6x8("Current A", 42, 3);
+                break;
+            default:
+                screen_FastString6x8("Unknown", 42, 3);
+                validMode = 0;
+                break;
+            }
+            if (validMode) {
+                if (meter.DC) {
+                    screen_FastString6x8("DC", 6, 4);
+                } else {
+                    screen_FastString6x8("AC", 6, 4);
+                }
+                if (meter.AUTO) {
+                    screen_FastString6x8("Auto", 60, 4);
+                } else {
+                    screen_FastString6x8("Manual", 60, 4);
+                }
+                char buf[11];
+                uint32_t value = meter.value > 0 ? meter.value : -meter.value;
+                string_fromUint(value, buf, 9, 6);
+                screen_FastString12x16(buf, 8, 5);
+                if (meter.value < 0) {
+                    screen_HorizontalLine(0, 46, 7);
+                    screen_HorizontalLine(0, 47, 7);
+                }
+            }
+            screen_FastString6x8("ESC: Back", 0, 7);
+        }
+        timer_waitms(100);
+    } while (!(hal_getButton() & HAL_BUTTON_ESC));
+    // wait for all buttons to be released
+    while (hal_getButton())
+        ;
 }
 
 /**
@@ -503,6 +669,49 @@ int32_t cal_getVoltage(void) {
     } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
         // high range is near limit -> switch to low range
         hal_setVoltageGain(1);
+    }
+    if (ret < 0)
+        ret = 0;
+    return ret;
+}
+
+int32_t cal_getUncalibVoltage(void) {
+    uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
+    int32_t ret = 0;
+    if (hal.voltageRange == RANGE_LOW) {
+        int16_t unbiased = biased - CAL_DEF_VOLSENS_OFFSET_LOW;
+        ret = unbiased * CAL_DEF_VOLSENS_SCALE_LOW;
+    } else {
+        int16_t unbiased = biased - CAL_DEF_VOLSENS_OFFSET_HIGH;
+        ret = unbiased * CAL_DEF_VOLSENS_SCALE_HIGH;
+    }
+    if (biased >= 3500 && hal.voltageRange == RANGE_LOW) {
+        // low range is near limit -> switch to high range
+        hal_setVoltageGain(0);
+    } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
+        // high range is near limit -> switch to low range
+        hal_setVoltageGain(1);
+    }
+    if (ret < 0)
+        ret = 0;
+    return ret;
+}
+int32_t cal_getUncalibCurrent(void) {
+    uint16_t biased = hal_getADC(ADC_CURRENT_SENSE, 1);
+    int32_t ret = 0;
+    if (hal.currentRange == RANGE_LOW) {
+        int16_t unbiased = biased - CAL_DEF_CURSENS_OFFSET_LOW;
+        ret = unbiased * CAL_DEF_CURSENS_SCALE_LOW;
+    } else {
+        int16_t unbiased = biased - CAL_DEF_CURSENS_OFFSET_HIGH;
+        ret = unbiased * CAL_DEF_CURSENS_SCALE_HIGH;
+    }
+    if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
+        // low range is near limit -> switch to high range
+        hal_setCurrentGain(0);
+    } else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
+        // high range is near limit -> switch to low range
+        hal_setCurrentGain(1);
     }
     if (ret < 0)
         ret = 0;

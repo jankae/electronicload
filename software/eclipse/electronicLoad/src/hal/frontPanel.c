@@ -32,7 +32,7 @@ void hal_frontPanelInit(void) {
     GPIO_Init(GPIOB, &gpio);
     gpio.GPIO_Mode = GPIO_Mode_IPU;
     gpio.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_6
-            | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9;
+            | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_13;
     GPIO_Init(GPIOB, &gpio);
 
     // PORT C
@@ -85,6 +85,8 @@ void hal_frontPanelUpdate(void) {
             state |= HAL_BUTTON_CC;
         if (!HAL_FRONTPANEL_SWIN6)
             state |= HAL_BUTTON_CV;
+        if (!HAL_FRONTPANEL_SWINSOFT)
+            state |= HAL_BUTTON_SOFT0;
         // second row:
         HAL_FRONTPANEL_SWOUT1_HIGH;
         HAL_FRONTPANEL_SWOUT2_LOW;
@@ -101,6 +103,8 @@ void hal_frontPanelUpdate(void) {
             state |= HAL_BUTTON_CR;
         if (!HAL_FRONTPANEL_SWIN6)
             state |= HAL_BUTTON_CP;
+        if (!HAL_FRONTPANEL_SWINSOFT)
+            state |= HAL_BUTTON_SOFT1;
 
         // third row:
         HAL_FRONTPANEL_SWOUT2_HIGH;
@@ -118,6 +122,8 @@ void hal_frontPanelUpdate(void) {
             state |= HAL_BUTTON_ENTER;
         if (!HAL_FRONTPANEL_SWIN6)
             state |= HAL_BUTTON_ONOFF;
+        if (!HAL_FRONTPANEL_SWINSOFT)
+            state |= HAL_BUTTON_SOFT2;
 
         HAL_FRONTPANEL_SWOUT3_HIGH;
 
