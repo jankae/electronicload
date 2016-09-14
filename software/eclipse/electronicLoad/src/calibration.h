@@ -104,6 +104,8 @@ void calibrationProcessAutomatic(void);
  */
 void calibrationProcessManual(void);
 
+void calibrationProcessHardware(void);
+
 void calibrationDisplayMultimeterInfo(void);
 
 /**

@@ -131,7 +131,7 @@ void cal_setDefaultCalibration(void) {
 }
 
 void calibrationMenu(void) {
-    char *entries[3];
+    char *entries[4];
     int8_t sel;
     do {
         char automatic[21] = "Automatic Cal.";
@@ -143,8 +143,11 @@ void calibrationMenu(void) {
         char info[21] = "Multimeter info";
         entries[2] = info;
 
+        char hardware[21] = "Hardware Cal.";
+        entries[3] = hardware;
+
         sel = menu_ItemChooseDialog("\xCD\xCD" "CALIBRATIONS MENU\xCD\xCD",
-                entries, 3);
+                entries, 4);
         switch (sel) {
         case 0:
             calibrationProcessAutomatic();
@@ -154,6 +157,9 @@ void calibrationMenu(void) {
             break;
         case 2:
             calibrationDisplayMultimeterInfo();
+            break;
+        case 3:
+            calibrationProcessHardware();
             break;
         }
     } while (sel >= 0);
@@ -535,6 +541,124 @@ void calibrationProcessManual(void) {
 //        ;
 //
 //    calibration.active = 0;
+}
+
+void calibrationProcessHardware(void) {
+    calibration.active = 1;
+    uint32_t button;
+    while (hal_getButton())
+        ;
+    // TODO set load to CC mode with current = 0A
+    // and use the 1Ohm shunt
+    /****************************************
+     * Step 1: Preparation
+     ***************************************/
+    screen_Clear();
+    screen_FastString6x8("Disconnect everything", 0, 0);
+    screen_FastString6x8("from the input and", 0, 1);
+    screen_FastString6x8("open the top cover.", 0, 2);
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("OK", 2);
+    do {
+        button = hal_getButton();
+        if (button & HAL_BUTTON_SOFT0)
+            return;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+    /****************************************
+     * Step 2: Mosfet driver bias current
+     ***************************************/
+    screen_Clear();
+    screen_FastString6x8("Adjust R11 for 10mV", 0, 0);
+    screen_FastString6x8("across TRIM header on", 0, 1);
+    screen_FastString6x8("analogBoard.", 0, 2);
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("OK", 2);
+    do {
+        button = hal_getButton();
+        if (button & HAL_BUTTON_SOFT0)
+            return;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+    /****************************************
+     * Step 3: Offset voltage of control amp
+     ***************************************/
+    screen_Clear();
+    screen_FastString6x8("Adjust R26 on", 0, 0);
+    screen_FastString6x8("analogControlBoard", 0, 1);
+    screen_FastString6x8("for 0V at TRIM header", 0, 2);
+    screen_FastString6x8("on analogBoard with", 0, 3);
+    screen_FastString6x8("respect to ground.", 0, 4);
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("OK", 2);
+    do {
+        button = hal_getButton();
+        if (button & HAL_BUTTON_SOFT0)
+            return;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+    /****************************************
+     * Step 4: Offset Y at multiplier
+     ***************************************/
+    screen_Clear();
+    screen_FastString6x8("Adjust R18 on", 0, 0);
+    screen_FastString6x8("analogControlBoard", 0, 1);
+    screen_FastString6x8("for minimal Vpp at", 0, 2);
+    screen_FastString6x8("M_OUT on", 0, 3);
+    screen_FastString6x8("analogControlBoard.", 0, 4);
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("OK", 2);
+    do {
+        // TODO generate DAC sweeping signal
+        // and set mode to resistance
+        button = hal_getButton();
+        if (button & HAL_BUTTON_SOFT0)
+            return;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+    /****************************************
+     * Step 5: Offset X at multiplier
+     ***************************************/
+    screen_Clear();
+    screen_FastString6x8("Apply a signal at the", 0, 0);
+    screen_FastString6x8("input with a large", 0, 1);
+    screen_FastString6x8("Vpp. Adjust R2 on the", 0, 2);
+    screen_FastString6x8("analogControlBoard", 0, 3);
+    screen_FastString6x8("for minimal Vpp at", 0, 4);
+    screen_FastString6x8("M_OUT.", 0, 4);
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("OK", 2);
+    do {
+        button = hal_getButton();
+        if (button & HAL_BUTTON_SOFT0)
+            return;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+    /****************************************
+     * Step 6: Offset Z at multiplier
+     ***************************************/
+    screen_Clear();
+    screen_FastString6x8("Adjust R25 on", 0, 0);
+    screen_FastString6x8("analogControlBoard", 0, 1);
+    screen_FastString6x8("for minimal voltage", 0, 2);
+    screen_FastString6x8("at M_OUT with", 0, 3);
+    screen_FastString6x8("respect to ground.", 0, 4);
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("OK", 2);
+    do {
+        // TODO generate DAC sweeping signal
+        // and set mode to resistance
+        button = hal_getButton();
+        if (button & HAL_BUTTON_SOFT0)
+            return;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
 }
 
 void calibrationDisplayMultimeterInfo(void) {
