@@ -40,12 +40,12 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
     // find position of first digit
     uint32_t divider = 1000000000UL;
     int8_t firstDigit = 10;
-    for (; divider > 0; divider /= 10) {
+    for (; divider > 1; divider /= 10) {
         if (value / divider > 0)
             break;
         firstDigit--;
     }
-    char prefix = ' ';
+    char prefix = 0;
     if (baseUnit) {
         // calculate prefix
         if (firstDigit > dot + 3) {
@@ -66,6 +66,9 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
     if (firstDigit < dot || dot <= firstDigit - digits) {
         *dest++ = ' ';
     }
+    if(baseUnit && !prefix){
+        *dest++ = ' ';
+    }
     for (; firstDigit > 0; firstDigit--) {
         if (!digits)
             break;
@@ -80,7 +83,8 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
     }
     if (baseUnit) {
         // display Unit
-        *dest++ = prefix;
+        if (prefix)
+            *dest++ = prefix;
         *dest++ = baseUnit;
     }
     *dest = 0;
