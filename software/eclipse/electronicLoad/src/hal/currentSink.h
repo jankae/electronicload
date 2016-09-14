@@ -33,9 +33,30 @@
 #define HAL_CS_ADC          2
 #define HAL_CS_AVR          3
 
+#define HAL_GPIO_SHUNT_EN2  1
+#define HAL_GPIO_SHUNT_EN1  2
+#define HAL_GPIO_SHUNTSEL   4
+#define HAL_GPIO3           8
+#define HAL_MODE_A          16
+#define HAL_MODE_B          32
+#define HAL_ANALOG_MUX      64
+
+#define HAL_AVR_ADC_TEMP1   6
+#define HAL_AVR_ADC_TEMP2   0
+#define HAL_AVR_ADC_P15V    4
+#define HAL_AVR_ADC_N15V    3
+#define HAL_AVR_ADC_P5V     8
+
+#define HAL_TEMP1           0
+#define HAL_TEMP2           1
+
+#define HAL_RAIL_P5V        0
+#define HAL_RAIL_P15V       1
+#define HAL_RAIL_N15V       2
+
 struct {
     uint8_t ADCchannel;
-    volatile uint16_t rawADC[4];
+    uint8_t AVRgpio;
 } hal;
 
 /**
@@ -46,7 +67,57 @@ struct {
  */
 void hal_currentSinkInit(void);
 
+/**
+ * \brief Selects the chip to communicate with
+ *
+ * \param cs Chip select line that will be driven low
+ */
 void hal_SetChipSelect(uint8_t cs);
+
+/**
+ * \brief Sets one or multiple of the control pins on the analog board
+ *
+ * Changes are only internal, hal_UpdateAVRGPIOs should be called afterwards
+ */
+void hal_SetAVRGPIO(uint8_t gpio);
+
+/**
+ * \brief Clears one or multiple of the control pins on the analog board
+ *
+ * Changes are only internal, hal_UpdateAVRGPIOs should be called afterwards
+ */
+void hal_ClearAVRGPIO(uint8_t gpio);
+
+/**
+ * \brief Synchronizes the AVR pins with hal.AVRgpio
+ */
+void hal_UpdateAVRGPIOs(void);
+
+
+/**
+ * \brief Retrieves an ADC result from the AVR
+ *
+ * \param channel ADC channel
+ * \return 10bit ADC result
+ */
+uint16_t hal_ReadAVRADC(uint8_t channel);
+
+/**
+ * \brief Reads the corresponding ADC channel and does the temperature conversion
+ *
+ * \param temp Temperature sensor to read from
+ * \return temperature in °C
+ */
+uint8_t hal_ReadTemperature(uint8_t temp);
+
+
+/**
+ * \brief Reads the corresponding ADC channel and does the voltage conversion
+ *
+ * \param rail Rail to read from
+ * \return voltage in mV
+ */
+int16_t halReadVoltageRail(uint8_t rail);
 
 /**
  * \brief Sends a value to the DAC on the analog board
