@@ -5,7 +5,7 @@
 #include <avr/interrupt.h>
 
 struct {
-    uint16_t channels[8];
+    uint16_t channels[9];
     uint8_t currentChannel;
 } adc;
 

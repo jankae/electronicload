@@ -13,7 +13,7 @@ ISR(SPI_STC_vect) {
         // request ADC/read ADC
         if (byte & 0x40) {
             // latch requested ADC channel
-            uint16_t result = adc.channels[byte & 0x07];
+            uint16_t result = adc.channels[byte & 0x0F];
             // transmit MSB of ADC result
             SPDR = result >> 8;
             spi.ADCbuffer = result & 0xff;

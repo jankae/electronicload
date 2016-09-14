@@ -17,6 +17,12 @@ ISR(ADC_vect) {
     // store measured value
     adc.channels[adc.currentChannel] = ADC;
     ADMUX &= ~0x0F;
-    adc.currentChannel = (adc.currentChannel + 1) % 8;
-    ADMUX |= (adc.currentChannel + 1) % 8;
+    adc.currentChannel = (adc.currentChannel + 1) % 9;
+    if (adc.currentChannel != 7) {
+        // select next channel
+        ADMUX |= (adc.currentChannel + 1) % 9;
+    } else {
+        // select 1.1V bandgap as eighth channel
+        ADMUX |= 0x0E;
+    }
 }
