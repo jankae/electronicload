@@ -122,7 +122,7 @@ uint8_t hal_ReadTemperature(uint8_t temp) {
     return raw & 0xFF;
 }
 
-int16_t halReadVoltageRail(uint8_t rail) {
+int16_t hal_ReadVoltageRail(uint8_t rail) {
     int32_t result;
     switch (rail) {
     case HAL_RAIL_P5V:

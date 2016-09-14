@@ -117,7 +117,7 @@ uint8_t hal_ReadTemperature(uint8_t temp);
  * \param rail Rail to read from
  * \return voltage in mV
  */
-int16_t halReadVoltageRail(uint8_t rail);
+int16_t hal_ReadVoltageRail(uint8_t rail);
 
 /**
  * \brief Sends a value to the DAC on the analog board
