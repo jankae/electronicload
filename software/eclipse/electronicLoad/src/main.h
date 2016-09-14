@@ -15,5 +15,6 @@
 #include "characteristic.h"
 #include "settings.h"
 #include "multimeter.h"
+#include "selftest.h"
 
 #endif

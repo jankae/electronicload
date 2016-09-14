@@ -36,15 +36,25 @@ int main(int argc, char* argv[]) {
     com_Init();
     stats_Reset();
 
+    timer_SetupPeriodicFunction(3, MS_TO_TICKS(5), hal_updateDisplay, 12);
+
+    selftest_Run();
+
     if (cal_readFromFlash()) {
         // no valid calibration data available
         cal_setDefaultCalibration();
         uart_writeString("WARNING: not calibrated\n");
+        screen_Clear();
+        screen_FastString12x16("WARNING", 22, 0);
+        screen_FastString6x8("Not calibrated.", 0, 2);
+        screen_FastString6x8("Continue anyway?", 0, 3);
+        screen_SetSoftButton("Yes", 2);
+        while (!(hal_getButton() & HAL_BUTTON_SOFT2))
+            ;
+        while(hal_getButton());
     } else {
         uart_writeString("calibration loaded\n");
     }
-
-    timer_SetupPeriodicFunction(3, MS_TO_TICKS(5), hal_updateDisplay, 12);
 
     // setup main menu
     menu_AddMainMenuEntry("Waveforms", waveform_Menu);
