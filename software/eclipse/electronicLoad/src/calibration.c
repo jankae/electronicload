@@ -90,19 +90,19 @@ void cal_writeToFlash(void) {
 }
 
 uint32_t cal_sampleADC(uint8_t channel) {
-    screen_Clear();
-    screen_FastString12x16("Sampling..", 0, 0);
-    screen_Rectangle(12, 21, 115, 42);
-    screen_Rectangle(13, 22, 114, 41);
-    uint32_t sum = 0;
-    uint16_t cnt;
-    for (cnt = 0; cnt < 500; cnt++) {
-        sum += hal_getADC(channel, 1);
-        if (cnt % 5 == 0)
-            screen_VerticalLine(13 + cnt / 5, 23, 18);
-        timer_waitms(10);
-    }
-    return sum /= 500;
+//    screen_Clear();
+//    screen_FastString12x16("Sampling..", 0, 0);
+//    screen_Rectangle(12, 21, 115, 42);
+//    screen_Rectangle(13, 22, 114, 41);
+//    uint32_t sum = 0;
+//    uint16_t cnt;
+//    for (cnt = 0; cnt < 500; cnt++) {
+//        sum += hal_getADC(channel, 1);
+//        if (cnt % 5 == 0)
+//            screen_VerticalLine(13 + cnt / 5, 23, 18);
+//        timer_waitms(10);
+//    }
+//    return sum /= 500;
 }
 
 /**
@@ -244,297 +244,297 @@ void calibrationProcessAutomatic(void) {
  * done internally in this function
  */
 void calibrationProcessManual(void) {
-    while (hal_getButton())
-        ;
-    calibration.active = 1;
-
-    uint16_t adc100mA;
-    uint16_t adc2A_lowRange;
-    uint16_t adc2A_highRange;
-    uint16_t adc10A;
-    uint16_t dac100mA;
-    uint16_t dac10A;
-
-    uint16_t adc1V;
-    uint16_t adc12V_lowRange;
-    uint16_t adc12V_highRange;
-    uint16_t adc30V;
-    uint32_t voltage1V;
-    uint32_t voltage12V;
-    uint32_t voltage30V;
-
-    uint32_t button = 0;
-
-    /*
-     * Step 2: calibrating low current range
-     */
-    hal_setGain(0);
-    hal_setCurrentGain(1);
-    hal_setDAC(0);
-
-    int32_t defaultValue100mA = 20;
-    int32_t defaultValue5A = 1000;
-    int32_t defaultValue2A = 400;
-    int32_t defaultValue10A = 2000;
-
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString6x8("Apply about 5V. Turn", 0, 2);
-    screen_FastString6x8("knob until load draws", 0, 3);
-    screen_FastString6x8("100mA", 0, 4);
-    screen_FastString6x8("ESC: Abort", 0, 6);
-    screen_FastString6x8("Enter: Continue", 0, 7);
-
-    do {
-        hal_setDAC(defaultValue100mA);
-        defaultValue100mA += hal_getEncoderMovement();
-        if (defaultValue100mA < 0)
-            defaultValue100mA = 0;
-        else if (defaultValue100mA > 4096)
-            defaultValue100mA = 4096;
-        button = hal_getButton();
-        timer_waitms(20);
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    if (button & HAL_BUTTON_ESC) {
-        hal_setDAC(0);
-        calibration.active = 0;
-        return;
-    }
-
-    // save calibration values
-    dac100mA = defaultValue100mA;
-    adc100mA = cal_sampleADC(ADC_CURRENT_SENSE);
-    hal_setDAC(0);
-
-    while (hal_getButton())
-        ;
-
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString6x8("Apply about 5V. Turn", 0, 2);
-    screen_FastString6x8("knob until load draws", 0, 3);
-    screen_FastString6x8("2A", 0, 4);
-    screen_FastString6x8("ESC: Abort", 0, 6);
-    screen_FastString6x8("Enter: Continue", 0, 7);
-
-    do {
-        hal_setDAC(defaultValue2A);
-        defaultValue2A += hal_getEncoderMovement();
-        if (defaultValue2A < 0)
-            defaultValue2A = 0;
-        else if (defaultValue2A > 4096)
-            defaultValue2A = 4096;
-        button = hal_getButton();
-        timer_waitms(20);
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    if (button & HAL_BUTTON_ESC) {
-        hal_setDAC(0);
-        calibration.active = 0;
-        return;
-    }
-
-    // save calibration values
-    adc2A_lowRange = cal_sampleADC(ADC_CURRENT_SENSE);
-    hal_setCurrentGain(0);
-    timer_waitms(20);
-    adc2A_highRange = cal_sampleADC(ADC_CURRENT_SENSE);
-    hal_setDAC(0);
-
-    while (hal_getButton())
-        ;
-
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString6x8("Apply about 5V. Turn", 0, 2);
-    screen_FastString6x8("knob until load draws", 0, 3);
-    screen_FastString6x8("10A", 0, 4);
-    screen_FastString6x8("ESC: Abort", 0, 6);
-    screen_FastString6x8("Enter: Continue", 0, 7);
-
-    do {
-        hal_setDAC(defaultValue10A);
-        defaultValue10A += hal_getEncoderMovement();
-        if (defaultValue10A < 0)
-            defaultValue10A = 0;
-        else if (defaultValue10A > 4096)
-            defaultValue10A = 4096;
-        button = hal_getButton();
-        timer_waitms(20);
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    if (button & HAL_BUTTON_ESC) {
-        hal_setDAC(0);
-        calibration.active = 0;
-        return;
-    }
-
-    // save calibration values
-    dac10A = defaultValue10A;
-    adc10A = cal_sampleADC(ADC_CURRENT_SENSE);
-    hal_setDAC(0);
-
-    while (hal_getButton())
-        ;
-
-    /*
-     * Step 3: calibrating low voltage range
-     */
-    char input[] = "Actual voltage";
-    do {
-        hal_setVoltageGain(1);
-        screen_Clear();
-        screen_FastString12x16("Cal", 0, 0);
-        screen_FastChar12x16(33, 0, 'i');
-        screen_FastString12x16("brat", 43, 0);
-        screen_FastChar12x16(89, 0, 'i');
-        screen_FastString12x16("on", 99, 0);
-        screen_FastString6x8("Apply about 1V.", 0, 2);
-        screen_FastString6x8("ESC: Abort", 0, 6);
-        screen_FastString6x8("Enter: Continue", 0, 7);
-
-        do {
-            button = hal_getButton();
-        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-        if (button & HAL_BUTTON_ESC) {
-            calibration.active = 0;
-            return;
-        }
-
-    } while (menu_getInputValue(&voltage1V, input, 500, 1500, "mV", "V", NULL));
-
-    // save calibration values
-    adc1V = cal_sampleADC(ADC_VOLTAGE_SENSE);
-
-    while (hal_getButton())
-        ;
-
-    do {
-        screen_Clear();
-        screen_FastString12x16("Cal", 0, 0);
-        screen_FastChar12x16(33, 0, 'i');
-        screen_FastString12x16("brat", 43, 0);
-        screen_FastChar12x16(89, 0, 'i');
-        screen_FastString12x16("on", 99, 0);
-        screen_FastString6x8("Apply exactly 12V.", 0, 2);
-        screen_FastString6x8("ESC: Abort", 0, 6);
-        screen_FastString6x8("Enter: Continue", 0, 7);
-
-        do {
-            button = hal_getButton();
-        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-        if (button & HAL_BUTTON_ESC) {
-            calibration.active = 0;
-            return;
-        }
-
-    } while (menu_getInputValue(&voltage12V, input, 11500, 12500, "mV", "V",
-            NULL));
-
-    // save calibration values
-    adc12V_lowRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
-    hal_setVoltageGain(0);
-    timer_waitms(20);
-    adc12V_highRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
-
-    while (hal_getButton())
-        ;
-
-    /*
-     * Step 4: calibrating high voltage range
-     */
-    do {
-        hal_setVoltageGain(0);
-        screen_Clear();
-        screen_FastString12x16("Cal", 0, 0);
-        screen_FastChar12x16(33, 0, 'i');
-        screen_FastString12x16("brat", 43, 0);
-        screen_FastChar12x16(89, 0, 'i');
-        screen_FastString12x16("on", 99, 0);
-        screen_FastString6x8("Apply exactly 30V.", 0, 2);
-        screen_FastString6x8("ESC: Abort", 0, 6);
-        screen_FastString6x8("Enter: Continue", 0, 7);
-
-        do {
-            button = hal_getButton();
-        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-        if (button & HAL_BUTTON_ESC) {
-            calibration.active = 0;
-            return;
-        }
-    } while (menu_getInputValue(&voltage30V, input, 29000, 31000, "mV", "V", NULL));
-
-    // save calibration values
-    adc30V = cal_sampleADC(ADC_VOLTAGE_SENSE);
-
-    while (hal_getButton())
-        ;
-
-    /*
-     * Step 5: all done!
-     */
-
-    screen_Clear();
-    screen_FastString12x16("Cal", 0, 0);
-    screen_FastChar12x16(33, 0, 'i');
-    screen_FastString12x16("brat", 43, 0);
-    screen_FastChar12x16(89, 0, 'i');
-    screen_FastString12x16("on", 99, 0);
-    screen_FastString12x16("completed", 0, 2);
-    screen_FastString6x8("ESC: Discard", 0, 6);
-    screen_FastString6x8("Enter: Save", 0, 7);
-    do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
-    screen_Clear();
-    if (button & HAL_BUTTON_ESC) {
-        calibration.active = 0;
-        return;
-    }
-
-    // calculate calibration values
-    calibration.currentSetScaleLowRange = (float) (dac10A - dac100mA)
-            / (10000 - 100);
-    calibration.currentSetOffsetLowRange = dac100mA
-            - 100 * calibration.currentSetScaleLowRange;
-
-    calibration.currentSenseScaleLowRange = (float) (2000 - 100)
-            / (adc2A_lowRange - adc100mA);
-    calibration.currentSenseOffsetLowRange = adc100mA
-            - 100 / calibration.currentSenseScaleLowRange;
-
-    calibration.currentSenseScaleHighRange = (float) (10000 - 2000)
-            / (adc10A - adc2A_highRange);
-    calibration.currentSenseOffsetHighRange = adc2A_highRange
-            - 2000 / calibration.currentSenseScaleHighRange;
-
-    calibration.voltageSenseScaleLowRange = (float) (voltage12V - voltage1V)
-            / (adc12V_lowRange - adc1V);
-    calibration.voltageSenseOffsetLowRange = adc1V
-            - 1000 / calibration.voltageSenseScaleLowRange;
-
-    calibration.voltageSenseScaleHighRange = (float) (voltage30V - voltage12V)
-            / (adc30V - adc12V_highRange);
-    calibration.voltageSenseOffsetHighRange = adc12V_highRange
-            - 12000 / calibration.voltageSenseScaleHighRange;
-
-    // save calibration values in FLASH
-    cal_writeToFlash();
-
-    while (hal_getButton())
-        ;
-
-    calibration.active = 0;
+//    while (hal_getButton())
+//        ;
+//    calibration.active = 1;
+//
+//    uint16_t adc100mA;
+//    uint16_t adc2A_lowRange;
+//    uint16_t adc2A_highRange;
+//    uint16_t adc10A;
+//    uint16_t dac100mA;
+//    uint16_t dac10A;
+//
+//    uint16_t adc1V;
+//    uint16_t adc12V_lowRange;
+//    uint16_t adc12V_highRange;
+//    uint16_t adc30V;
+//    uint32_t voltage1V;
+//    uint32_t voltage12V;
+//    uint32_t voltage30V;
+//
+//    uint32_t button = 0;
+//
+//    /*
+//     * Step 2: calibrating low current range
+//     */
+//    hal_setGain(0);
+//    hal_setCurrentGain(1);
+//    hal_setDAC(0);
+//
+//    int32_t defaultValue100mA = 20;
+//    int32_t defaultValue5A = 1000;
+//    int32_t defaultValue2A = 400;
+//    int32_t defaultValue10A = 2000;
+//
+//    screen_Clear();
+//    screen_FastString12x16("Cal", 0, 0);
+//    screen_FastChar12x16(33, 0, 'i');
+//    screen_FastString12x16("brat", 43, 0);
+//    screen_FastChar12x16(89, 0, 'i');
+//    screen_FastString12x16("on", 99, 0);
+//    screen_FastString6x8("Apply about 5V. Turn", 0, 2);
+//    screen_FastString6x8("knob until load draws", 0, 3);
+//    screen_FastString6x8("100mA", 0, 4);
+//    screen_FastString6x8("ESC: Abort", 0, 6);
+//    screen_FastString6x8("Enter: Continue", 0, 7);
+//
+//    do {
+//        hal_setDAC(defaultValue100mA);
+//        defaultValue100mA += hal_getEncoderMovement();
+//        if (defaultValue100mA < 0)
+//            defaultValue100mA = 0;
+//        else if (defaultValue100mA > 4096)
+//            defaultValue100mA = 4096;
+//        button = hal_getButton();
+//        timer_waitms(20);
+//    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//    if (button & HAL_BUTTON_ESC) {
+//        hal_setDAC(0);
+//        calibration.active = 0;
+//        return;
+//    }
+//
+//    // save calibration values
+//    dac100mA = defaultValue100mA;
+//    adc100mA = cal_sampleADC(ADC_CURRENT_SENSE);
+//    hal_setDAC(0);
+//
+//    while (hal_getButton())
+//        ;
+//
+//    screen_Clear();
+//    screen_FastString12x16("Cal", 0, 0);
+//    screen_FastChar12x16(33, 0, 'i');
+//    screen_FastString12x16("brat", 43, 0);
+//    screen_FastChar12x16(89, 0, 'i');
+//    screen_FastString12x16("on", 99, 0);
+//    screen_FastString6x8("Apply about 5V. Turn", 0, 2);
+//    screen_FastString6x8("knob until load draws", 0, 3);
+//    screen_FastString6x8("2A", 0, 4);
+//    screen_FastString6x8("ESC: Abort", 0, 6);
+//    screen_FastString6x8("Enter: Continue", 0, 7);
+//
+//    do {
+//        hal_setDAC(defaultValue2A);
+//        defaultValue2A += hal_getEncoderMovement();
+//        if (defaultValue2A < 0)
+//            defaultValue2A = 0;
+//        else if (defaultValue2A > 4096)
+//            defaultValue2A = 4096;
+//        button = hal_getButton();
+//        timer_waitms(20);
+//    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//    if (button & HAL_BUTTON_ESC) {
+//        hal_setDAC(0);
+//        calibration.active = 0;
+//        return;
+//    }
+//
+//    // save calibration values
+//    adc2A_lowRange = cal_sampleADC(ADC_CURRENT_SENSE);
+//    hal_setCurrentGain(0);
+//    timer_waitms(20);
+//    adc2A_highRange = cal_sampleADC(ADC_CURRENT_SENSE);
+//    hal_setDAC(0);
+//
+//    while (hal_getButton())
+//        ;
+//
+//    screen_Clear();
+//    screen_FastString12x16("Cal", 0, 0);
+//    screen_FastChar12x16(33, 0, 'i');
+//    screen_FastString12x16("brat", 43, 0);
+//    screen_FastChar12x16(89, 0, 'i');
+//    screen_FastString12x16("on", 99, 0);
+//    screen_FastString6x8("Apply about 5V. Turn", 0, 2);
+//    screen_FastString6x8("knob until load draws", 0, 3);
+//    screen_FastString6x8("10A", 0, 4);
+//    screen_FastString6x8("ESC: Abort", 0, 6);
+//    screen_FastString6x8("Enter: Continue", 0, 7);
+//
+//    do {
+//        hal_setDAC(defaultValue10A);
+//        defaultValue10A += hal_getEncoderMovement();
+//        if (defaultValue10A < 0)
+//            defaultValue10A = 0;
+//        else if (defaultValue10A > 4096)
+//            defaultValue10A = 4096;
+//        button = hal_getButton();
+//        timer_waitms(20);
+//    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//    if (button & HAL_BUTTON_ESC) {
+//        hal_setDAC(0);
+//        calibration.active = 0;
+//        return;
+//    }
+//
+//    // save calibration values
+//    dac10A = defaultValue10A;
+//    adc10A = cal_sampleADC(ADC_CURRENT_SENSE);
+//    hal_setDAC(0);
+//
+//    while (hal_getButton())
+//        ;
+//
+//    /*
+//     * Step 3: calibrating low voltage range
+//     */
+//    char input[] = "Actual voltage";
+//    do {
+//        hal_setVoltageGain(1);
+//        screen_Clear();
+//        screen_FastString12x16("Cal", 0, 0);
+//        screen_FastChar12x16(33, 0, 'i');
+//        screen_FastString12x16("brat", 43, 0);
+//        screen_FastChar12x16(89, 0, 'i');
+//        screen_FastString12x16("on", 99, 0);
+//        screen_FastString6x8("Apply about 1V.", 0, 2);
+//        screen_FastString6x8("ESC: Abort", 0, 6);
+//        screen_FastString6x8("Enter: Continue", 0, 7);
+//
+//        do {
+//            button = hal_getButton();
+//        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//        if (button & HAL_BUTTON_ESC) {
+//            calibration.active = 0;
+//            return;
+//        }
+//
+//    } while (menu_getInputValue(&voltage1V, input, 500, 1500, "mV", "V", NULL));
+//
+//    // save calibration values
+//    adc1V = cal_sampleADC(ADC_VOLTAGE_SENSE);
+//
+//    while (hal_getButton())
+//        ;
+//
+//    do {
+//        screen_Clear();
+//        screen_FastString12x16("Cal", 0, 0);
+//        screen_FastChar12x16(33, 0, 'i');
+//        screen_FastString12x16("brat", 43, 0);
+//        screen_FastChar12x16(89, 0, 'i');
+//        screen_FastString12x16("on", 99, 0);
+//        screen_FastString6x8("Apply exactly 12V.", 0, 2);
+//        screen_FastString6x8("ESC: Abort", 0, 6);
+//        screen_FastString6x8("Enter: Continue", 0, 7);
+//
+//        do {
+//            button = hal_getButton();
+//        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//        if (button & HAL_BUTTON_ESC) {
+//            calibration.active = 0;
+//            return;
+//        }
+//
+//    } while (menu_getInputValue(&voltage12V, input, 11500, 12500, "mV", "V",
+//            NULL));
+//
+//    // save calibration values
+//    adc12V_lowRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
+//    hal_setVoltageGain(0);
+//    timer_waitms(20);
+//    adc12V_highRange = cal_sampleADC(ADC_VOLTAGE_SENSE);
+//
+//    while (hal_getButton())
+//        ;
+//
+//    /*
+//     * Step 4: calibrating high voltage range
+//     */
+//    do {
+//        hal_setVoltageGain(0);
+//        screen_Clear();
+//        screen_FastString12x16("Cal", 0, 0);
+//        screen_FastChar12x16(33, 0, 'i');
+//        screen_FastString12x16("brat", 43, 0);
+//        screen_FastChar12x16(89, 0, 'i');
+//        screen_FastString12x16("on", 99, 0);
+//        screen_FastString6x8("Apply exactly 30V.", 0, 2);
+//        screen_FastString6x8("ESC: Abort", 0, 6);
+//        screen_FastString6x8("Enter: Continue", 0, 7);
+//
+//        do {
+//            button = hal_getButton();
+//        } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//        if (button & HAL_BUTTON_ESC) {
+//            calibration.active = 0;
+//            return;
+//        }
+//    } while (menu_getInputValue(&voltage30V, input, 29000, 31000, "mV", "V", NULL));
+//
+//    // save calibration values
+//    adc30V = cal_sampleADC(ADC_VOLTAGE_SENSE);
+//
+//    while (hal_getButton())
+//        ;
+//
+//    /*
+//     * Step 5: all done!
+//     */
+//
+//    screen_Clear();
+//    screen_FastString12x16("Cal", 0, 0);
+//    screen_FastChar12x16(33, 0, 'i');
+//    screen_FastString12x16("brat", 43, 0);
+//    screen_FastChar12x16(89, 0, 'i');
+//    screen_FastString12x16("on", 99, 0);
+//    screen_FastString12x16("completed", 0, 2);
+//    screen_FastString6x8("ESC: Discard", 0, 6);
+//    screen_FastString6x8("Enter: Save", 0, 7);
+//    do {
+//        button = hal_getButton();
+//    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_ENTER)));
+//    screen_Clear();
+//    if (button & HAL_BUTTON_ESC) {
+//        calibration.active = 0;
+//        return;
+//    }
+//
+//    // calculate calibration values
+//    calibration.currentSetScaleLowRange = (float) (dac10A - dac100mA)
+//            / (10000 - 100);
+//    calibration.currentSetOffsetLowRange = dac100mA
+//            - 100 * calibration.currentSetScaleLowRange;
+//
+//    calibration.currentSenseScaleLowRange = (float) (2000 - 100)
+//            / (adc2A_lowRange - adc100mA);
+//    calibration.currentSenseOffsetLowRange = adc100mA
+//            - 100 / calibration.currentSenseScaleLowRange;
+//
+//    calibration.currentSenseScaleHighRange = (float) (10000 - 2000)
+//            / (adc10A - adc2A_highRange);
+//    calibration.currentSenseOffsetHighRange = adc2A_highRange
+//            - 2000 / calibration.currentSenseScaleHighRange;
+//
+//    calibration.voltageSenseScaleLowRange = (float) (voltage12V - voltage1V)
+//            / (adc12V_lowRange - adc1V);
+//    calibration.voltageSenseOffsetLowRange = adc1V
+//            - 1000 / calibration.voltageSenseScaleLowRange;
+//
+//    calibration.voltageSenseScaleHighRange = (float) (voltage30V - voltage12V)
+//            / (adc30V - adc12V_highRange);
+//    calibration.voltageSenseOffsetHighRange = adc12V_highRange
+//            - 12000 / calibration.voltageSenseScaleHighRange;
+//
+//    // save calibration values in FLASH
+//    cal_writeToFlash();
+//
+//    while (hal_getButton())
+//        ;
+//
+//    calibration.active = 0;
 }
 
 void calibrationDisplayMultimeterInfo(void) {
@@ -603,22 +603,22 @@ void calibrationDisplayMultimeterInfo(void) {
  * \param mA Current the load should draw
  */
 void cal_setCurrent(uint32_t mA) {
-    if ((mA <= 20000 && hal.setRange == RANGE_LOW) || mA <= 15000) {
-        // use low range (0-20A)
-        hal_setGain(0);
-        int16_t dacValue = mA * calibration.currentSetScaleLowRange
-                + calibration.currentSetOffsetLowRange;
-        if (dacValue < 0)
-            dacValue = 0;
-        else if (dacValue > 0x0fff)
-            dacValue = 0x0fff;
-        hal_setDAC(dacValue);
-    } else {
-        // use high range (0-200A)
-        hal_setGain(1);
-        // TODO add calibration
-        hal_setDAC(mA / 50);
-    }
+//    if ((mA <= 20000 && hal.setRange == RANGE_LOW) || mA <= 15000) {
+//        // use low range (0-20A)
+//        hal_setGain(0);
+//        int16_t dacValue = mA * calibration.currentSetScaleLowRange
+//                + calibration.currentSetOffsetLowRange;
+//        if (dacValue < 0)
+//            dacValue = 0;
+//        else if (dacValue > 0x0fff)
+//            dacValue = 0x0fff;
+//        hal_setDAC(dacValue);
+//    } else {
+//        // use high range (0-200A)
+//        hal_setGain(1);
+//        // TODO add calibration
+//        hal_setDAC(mA / 50);
+//    }
 }
 
 /**
@@ -627,25 +627,25 @@ void cal_setCurrent(uint32_t mA) {
  * \return Current in mA
  */
 int32_t cal_getCurrent(void) {
-    uint16_t biased = hal_getADC(ADC_CURRENT_SENSE, 1);
-    int32_t ret = 0;
-    if (hal.currentRange == RANGE_LOW) {
-        int16_t unbiased = biased - calibration.currentSenseOffsetLowRange;
-        ret = unbiased * calibration.currentSenseScaleLowRange;
-    } else {
-        int16_t unbiased = biased - calibration.currentSenseOffsetHighRange;
-        ret = unbiased * calibration.currentSenseScaleHighRange;
-    }
-    if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
-        // low range is near limit -> switch to high range
-        hal_setCurrentGain(0);
-    } else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
-        // high range is near limit -> switch to low range
-        hal_setCurrentGain(1);
-    }
-    if (ret < 0)
-        ret = 0;
-    return ret;
+//    uint16_t biased = hal_getADC(ADC_CURRENT_SENSE, 1);
+//    int32_t ret = 0;
+//    if (hal.currentRange == RANGE_LOW) {
+//        int16_t unbiased = biased - calibration.currentSenseOffsetLowRange;
+//        ret = unbiased * calibration.currentSenseScaleLowRange;
+//    } else {
+//        int16_t unbiased = biased - calibration.currentSenseOffsetHighRange;
+//        ret = unbiased * calibration.currentSenseScaleHighRange;
+//    }
+//    if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
+//        // low range is near limit -> switch to high range
+//        hal_setCurrentGain(0);
+//    } else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
+//        // high range is near limit -> switch to low range
+//        hal_setCurrentGain(1);
+//    }
+//    if (ret < 0)
+//        ret = 0;
+//    return ret;
 }
 
 /**
@@ -654,68 +654,68 @@ int32_t cal_getCurrent(void) {
  * \return Voltage in mV
  */
 int32_t cal_getVoltage(void) {
-    uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
-    int32_t ret = 0;
-    if (hal.voltageRange == RANGE_LOW) {
-        int16_t unbiased = biased - calibration.voltageSenseOffsetLowRange;
-        ret = unbiased * calibration.voltageSenseScaleLowRange;
-    } else {
-        int16_t unbiased = biased - calibration.voltageSenseOffsetHighRange;
-        ret = unbiased * calibration.voltageSenseScaleHighRange;
-    }
-    if (biased >= 3500 && hal.voltageRange == RANGE_LOW) {
-        // low range is near limit -> switch to high range
-        hal_setVoltageGain(0);
-    } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
-        // high range is near limit -> switch to low range
-        hal_setVoltageGain(1);
-    }
-    if (ret < 0)
-        ret = 0;
-    return ret;
+//    uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
+//    int32_t ret = 0;
+//    if (hal.voltageRange == RANGE_LOW) {
+//        int16_t unbiased = biased - calibration.voltageSenseOffsetLowRange;
+//        ret = unbiased * calibration.voltageSenseScaleLowRange;
+//    } else {
+//        int16_t unbiased = biased - calibration.voltageSenseOffsetHighRange;
+//        ret = unbiased * calibration.voltageSenseScaleHighRange;
+//    }
+//    if (biased >= 3500 && hal.voltageRange == RANGE_LOW) {
+//        // low range is near limit -> switch to high range
+//        hal_setVoltageGain(0);
+//    } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
+//        // high range is near limit -> switch to low range
+//        hal_setVoltageGain(1);
+//    }
+//    if (ret < 0)
+//        ret = 0;
+//    return ret;
 }
 
 int32_t cal_getUncalibVoltage(void) {
-    uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
-    int32_t ret = 0;
-    if (hal.voltageRange == RANGE_LOW) {
-        int16_t unbiased = biased - CAL_DEF_VOLSENS_OFFSET_LOW;
-        ret = unbiased * CAL_DEF_VOLSENS_SCALE_LOW;
-    } else {
-        int16_t unbiased = biased - CAL_DEF_VOLSENS_OFFSET_HIGH;
-        ret = unbiased * CAL_DEF_VOLSENS_SCALE_HIGH;
-    }
-    if (biased >= 3500 && hal.voltageRange == RANGE_LOW) {
-        // low range is near limit -> switch to high range
-        hal_setVoltageGain(0);
-    } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
-        // high range is near limit -> switch to low range
-        hal_setVoltageGain(1);
-    }
-    if (ret < 0)
-        ret = 0;
-    return ret;
+//    uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
+//    int32_t ret = 0;
+//    if (hal.voltageRange == RANGE_LOW) {
+//        int16_t unbiased = biased - CAL_DEF_VOLSENS_OFFSET_LOW;
+//        ret = unbiased * CAL_DEF_VOLSENS_SCALE_LOW;
+//    } else {
+//        int16_t unbiased = biased - CAL_DEF_VOLSENS_OFFSET_HIGH;
+//        ret = unbiased * CAL_DEF_VOLSENS_SCALE_HIGH;
+//    }
+//    if (biased >= 3500 && hal.voltageRange == RANGE_LOW) {
+//        // low range is near limit -> switch to high range
+//        hal_setVoltageGain(0);
+//    } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
+//        // high range is near limit -> switch to low range
+//        hal_setVoltageGain(1);
+//    }
+//    if (ret < 0)
+//        ret = 0;
+//    return ret;
 }
 int32_t cal_getUncalibCurrent(void) {
-    uint16_t biased = hal_getADC(ADC_CURRENT_SENSE, 1);
-    int32_t ret = 0;
-    if (hal.currentRange == RANGE_LOW) {
-        int16_t unbiased = biased - CAL_DEF_CURSENS_OFFSET_LOW;
-        ret = unbiased * CAL_DEF_CURSENS_SCALE_LOW;
-    } else {
-        int16_t unbiased = biased - CAL_DEF_CURSENS_OFFSET_HIGH;
-        ret = unbiased * CAL_DEF_CURSENS_SCALE_HIGH;
-    }
-    if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
-        // low range is near limit -> switch to high range
-        hal_setCurrentGain(0);
-    } else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
-        // high range is near limit -> switch to low range
-        hal_setCurrentGain(1);
-    }
-    if (ret < 0)
-        ret = 0;
-    return ret;
+//    uint16_t biased = hal_getADC(ADC_CURRENT_SENSE, 1);
+//    int32_t ret = 0;
+//    if (hal.currentRange == RANGE_LOW) {
+//        int16_t unbiased = biased - CAL_DEF_CURSENS_OFFSET_LOW;
+//        ret = unbiased * CAL_DEF_CURSENS_SCALE_LOW;
+//    } else {
+//        int16_t unbiased = biased - CAL_DEF_CURSENS_OFFSET_HIGH;
+//        ret = unbiased * CAL_DEF_CURSENS_SCALE_HIGH;
+//    }
+//    if (biased >= 3500 && hal.currentRange == RANGE_LOW) {
+//        // low range is near limit -> switch to high range
+//        hal_setCurrentGain(0);
+//    } else if (biased <= 300 && hal.currentRange == RANGE_HIGH) {
+//        // high range is near limit -> switch to low range
+//        hal_setCurrentGain(1);
+//    }
+//    if (ret < 0)
+//        ret = 0;
+//    return ret;
 }
 
 /**
@@ -724,7 +724,7 @@ int32_t cal_getUncalibCurrent(void) {
  * \return Temperature in 0.1°C
  */
 uint16_t cal_getTemp1(void) {
-    return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE1, 1));
+//    return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE1, 1));
 }
 
 /**
@@ -733,5 +733,5 @@ uint16_t cal_getTemp1(void) {
  * \return Temperature in 0.1°C
  */
 uint16_t cal_getTemp2(void) {
-    return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE2, 1));
+//    return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE2, 1));
 }
