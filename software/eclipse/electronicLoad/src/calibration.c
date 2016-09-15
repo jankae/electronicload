@@ -629,7 +629,7 @@ void calibrationProcessHardware(void) {
     screen_FastString6x8("Vpp. Adjust R2 on the", 0, 2);
     screen_FastString6x8("analogControlBoard", 0, 3);
     screen_FastString6x8("for minimal Vpp at", 0, 4);
-    screen_FastString6x8("M_OUT.", 0, 4);
+    screen_FastString6x8("M_OUT.", 0, 5);
     screen_SetSoftButton("Abort", 0);
     screen_SetSoftButton("OK", 2);
     do {
@@ -770,6 +770,7 @@ int32_t cal_getCurrent(void) {
 //    if (ret < 0)
 //        ret = 0;
 //    return ret;
+    return 2000000UL;
 }
 
 /**
@@ -797,6 +798,7 @@ int32_t cal_getVoltage(void) {
 //    if (ret < 0)
 //        ret = 0;
 //    return ret;
+    return 10000000UL;
 }
 
 int32_t cal_getUncalibVoltage(void) {
