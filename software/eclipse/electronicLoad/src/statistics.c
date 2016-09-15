@@ -42,50 +42,84 @@ void stats_Update(void) {
 
 void stats_Display(void) {
     uint32_t button;
+    // 0: max
+    // 1: min
+    // 2: average
+    // 3: Energy consumed
+    uint8_t mode = 0;
     do {
-        char voltageString[22];
-        char currentString[22];
-        char powerString[22];
-        char energyString[9];
-
-        string_fromUint(stats.voltage.min, &voltageString[0], 5, 3);
-        voltageString[6] = '/';
-        string_fromUint(stats.voltage.avg, &voltageString[7], 5, 3);
-        voltageString[13] = '/';
-        string_fromUint(stats.voltage.max, &voltageString[14], 5, 3);
-
-        string_fromUint(stats.current.min, &currentString[0], 5, 3);
-        currentString[6] = '/';
-        string_fromUint(stats.current.avg, &currentString[7], 5, 3);
-        currentString[13] = '/';
-        string_fromUint(stats.current.max, &currentString[14], 5, 3);
-
-        string_fromUint(stats.power.min / 10, &powerString[0], 5, 2);
-        powerString[6] = '/';
-        string_fromUint(stats.power.avg / 10, &powerString[7], 5, 2);
-        powerString[13] = '/';
-        string_fromUint(stats.power.max / 10, &powerString[14], 5, 2);
-
-        string_fromUint(stats.energyConsumed, energyString, 7, 3);
-
+        // display statistic information
         screen_Clear();
-        screen_FastString6x8("Voltage(min/avg/max):", 0, 0);
-        screen_FastString6x8(voltageString, 0, 1);
-        screen_FastString6x8("Current(min/avg/max):", 0, 2);
-        screen_FastString6x8(currentString, 0, 3);
-        screen_FastString6x8("Power(min/avg/max):", 0, 4);
-        screen_FastString6x8(powerString, 0, 5);
-        screen_FastString6x8("Energy[Wh]:", 0, 6);
-        screen_FastString6x8(energyString, 66, 6);
+        screen_SetSoftButton("Reset", 1);
+        if (mode < 3) {
+            uint32_t voltage;
+            uint32_t current;
+            uint32_t power;
+            switch (mode) {
+            case 0:
+                voltage = stats.voltage.max;
+                current = stats.current.max;
+                power = stats.power.max;
+                screen_SetSoftButton("Min", 0);
+                screen_FastString6x8("Max.", 0, 0);
+                break;
+            case 1:
+                voltage = stats.voltage.min;
+                current = stats.current.min;
+                power = stats.power.min;
+                screen_SetSoftButton("Avg", 0);
+                screen_FastString6x8("Min.", 0, 0);
+                break;
+            case 2:
+                voltage = stats.voltage.avg;
+                current = stats.current.avg;
+                power = stats.power.avg;
+                screen_SetSoftButton("Max", 0);
+                screen_FastString6x8("Avg.", 0, 0);
+                break;
+            }
+            screen_FastString6x8("value", 0, 1);
+            char buf[15];
+            string_fromUintUnit(voltage, buf, 4, 6, 'V');
+            screen_FastString12x16(buf, 40, 0);
+            string_fromUintUnit(current, buf, 4, 6, 'A');
+            screen_FastString12x16(buf, 40, 2);
+            string_fromUintUnit(power, buf, 4, 6, 'W');
+            screen_FastString12x16(buf, 40, 4);
+            screen_SetSoftButton("Wh", 2);
+        } else {
+            char buf[15];
+            string_fromUintUnit(stats.energyConsumed, buf, 6, 6, 'W');
+            screen_FastString6x8("Consumed energy:", 0, 0);
+            screen_FastString12x16(buf, 0, 1);
+            screen_FastChar12x16(108, 1, 'h');
+            screen_SetSoftButton("Max", 0);
+        }
 
-        screen_FastString6x8("CC: reset stats", 6, 7);
-
-        uint32_t time = timer_SetTimeout(1000);
-        do {
+        while(hal_getButton());
+        // wait for 500ms or until a button is pressed
+        uint8_t i;
+        for (i = 0; i < 50; i++) {
+            timer_waitms(10);
             button = hal_getButton();
-        } while (!button && !timer_TimeoutElapsed(time));
-        if(button&HAL_BUTTON_CC)
-            stats_Reset();
-
+            if (button & HAL_BUTTON_ESC) {
+                break;
+            }
+            if (button & HAL_BUTTON_SOFT1) {
+                stats_Reset();
+                break;
+            }
+            if ((button & HAL_BUTTON_SOFT2) && mode < 3) {
+                mode = 3;
+                break;
+            }
+            if (button & HAL_BUTTON_SOFT0) {
+                if (mode == 3)
+                    mode = 0;
+                else
+                    mode = (mode + 1) % 3;
+                break;
+            }
+        }
     } while (!(button & HAL_BUTTON_ESC));
 }
