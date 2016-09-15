@@ -40,9 +40,9 @@ void menu_DefaultScreenHandler(void) {
         char smallUnit2[8];
         switch (load.mode) {
         case FUNCTION_CC:
-            string_fromUintUnit(load.state.current, bigUnit, 4, 3, 'A');
-            string_fromUintUnit(load.state.voltage, smallUnit1, 4, 3, 'V');
-            string_fromUintUnit(load.state.power, smallUnit2, 4, 3, 'W');
+            string_fromUintUnit(load.state.current, bigUnit, 4, 6, 'A');
+            string_fromUintUnit(load.state.voltage, smallUnit1, 4, 6, 'V');
+            string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
             screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
             string_fromUint(load.current / 10, setValBuf, 5, 2);
@@ -51,9 +51,9 @@ void menu_DefaultScreenHandler(void) {
             maxValue = settings.maxCurrent;
             break;
         case FUNCTION_CV:
-            string_fromUintUnit(load.state.current, smallUnit1, 4, 3, 'A');
-            string_fromUintUnit(load.state.voltage, bigUnit, 4, 3, 'V');
-            string_fromUintUnit(load.state.power, smallUnit2, 4, 3, 'W');
+            string_fromUintUnit(load.state.current, smallUnit1, 4, 6, 'A');
+            string_fromUintUnit(load.state.voltage, bigUnit, 4, 6, 'V');
+            string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
             screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
             string_fromUint(load.voltage / 10, setValBuf, 5, 2);
@@ -62,9 +62,9 @@ void menu_DefaultScreenHandler(void) {
             maxValue = settings.maxVoltage;
             break;
         case FUNCTION_CR:
-            string_fromUintUnit(load.state.current, bigUnit, 4, 3, 'A');
-            string_fromUintUnit(load.state.voltage, smallUnit1, 4, 3, 'V');
-            string_fromUintUnit(load.state.power, smallUnit2, 4, 3, 'W');
+            string_fromUintUnit(load.state.current, bigUnit, 4, 6, 'A');
+            string_fromUintUnit(load.state.voltage, smallUnit1, 4, 6, 'V');
+            string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
             screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
             string_fromUint(load.resistance / 10, setValBuf, 5, 2);
@@ -73,9 +73,9 @@ void menu_DefaultScreenHandler(void) {
             maxValue = LOAD_MAXRESISTANCE;
             break;
         case FUNCTION_CP:
-            string_fromUintUnit(load.state.current, smallUnit1, 4, 3, 'A');
-            string_fromUintUnit(load.state.voltage, smallUnit2, 4, 3, 'V');
-            string_fromUintUnit(load.state.power, bigUnit, 4, 3, 'W');
+            string_fromUintUnit(load.state.current, smallUnit1, 4, 6, 'A');
+            string_fromUintUnit(load.state.voltage, smallUnit2, 4, 6, 'V');
+            string_fromUintUnit(load.state.power, bigUnit, 4, 6, 'W');
 
             screen_SetDefaultScreenString("CP-Mode [W]:  ", 0, 1);
             string_fromUint(load.power / 10, setValBuf, 5, 2);

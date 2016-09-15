@@ -110,7 +110,8 @@ void load_update(void) {
         return;
     load.state.voltage = cal_getVoltage();
     load.state.current = cal_getCurrent();
-    load.state.power = load.state.voltage * load.state.current / 1000;
+    load.state.power = (uint64_t) load.state.voltage * load.state.current
+            / 1000000UL;
     load.state.voltageSum += load.state.voltage;
     load.state.currentSum += load.state.current;
     load.state.powerSum += load.state.power;
