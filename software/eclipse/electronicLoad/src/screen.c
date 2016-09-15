@@ -1208,6 +1208,16 @@ void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
     }
 }
 
+void screen_InvertChar6x8(uint8_t x, uint8_t ypage) {
+    if (x >= 128 || ypage >= 8)
+        return;
+    uint8_t i;
+    for (i = 0; i < 6; i++) {
+        display.buffer[x + i + ypage * 128] ^= 0xFF;
+        display.updateTime = timer_SetTimeout(2);
+    }
+}
+
 /**
  * \brief Writes a 12x16 string into the display data buffer
  *
@@ -1257,67 +1267,3 @@ void screen_SetSoftButton(const char *descr, uint8_t num) {
     screen_FastString6x8(descr, start, 7);
 }
 
-/**
- * \brief Copies a char array into the default screen
- *
- * \param *src      Pointer to the array to be read from
- * \param x         Startposition in the default screen line
- * \param line      Choose between line 0 and 1 of the default screen
- */
-void screen_SetDefaultScreenString(const char *src, uint8_t x, uint8_t line) {
-    if (line > 1)
-        return;
-    while (*src && x < 21) {
-        screen.defScreen[line][x++] = *src++;
-    }
-}
-
-/**
- * \brief Fills the display with the default screen
- *
- * The first three lines consist of the measured
- * voltage, current and power currently sinked.
- * In the last to lines the content of screen.defscreen
- * will be displayed
- */
-void screen_UpdateDefaultScreen(void) {
-    uint32_t avgVoltage, avgCurrent, avgPower;
-    avgVoltage = load.state.voltageSum / load.state.nsamples;
-    avgCurrent = load.state.currentSum / load.state.nsamples;
-    avgPower = load.state.powerSum / load.state.nsamples;
-    load.state.currentSum = 0;
-    load.state.voltageSum = 0;
-    load.state.powerSum = 0;
-    load.state.nsamples = 0;
-//    char buffer[12];
-
-//    string_fromUint(avgVoltage / 10, buffer, 5, 2);
-//    buffer[6] = 'V';
-//    buffer[7] = 0;
-//    screen_FastString12x16(buffer, 12, 0);
-//
-//    string_fromUint(avgCurrent / 10, buffer, 5, 2);
-//    buffer[6] = 'A';
-//    buffer[7] = 0;
-//    screen_FastString12x16(buffer, 12, 2);
-//
-//    string_fromUint(avgPower, buffer, 6, 3);
-//    buffer[7] = 'W';
-//    buffer[8] = 0;
-//    screen_FastString12x16(buffer, 0, 4);
-
-//    string_fromUint(load.state.temp1 / 10, buffer, 2, 0);
-//    buffer[2] = 0xf8;
-//    buffer[3] = 'C';
-//    buffer[4] = 0;
-//    screen_FastString6x8(buffer, 104, 0);
-//    string_fromUint(load.state.temp2 / 10, buffer, 2, 0);
-//    buffer[2] = 0xf8;
-//    screen_FastString6x8(buffer, 104, 1);
-
-    uint8_t i;
-    for (i = 0; i < 21; i++) {
-        screen_FastChar6x8(i * 6, 6, screen.defScreen[0][i]);
-        screen_FastChar6x8(i * 6, 7, screen.defScreen[1][i]);
-    }
-}

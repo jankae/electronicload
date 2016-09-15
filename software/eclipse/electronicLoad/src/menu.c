@@ -18,22 +18,22 @@ void menu_DefaultScreenHandler(void) {
     int32_t *setvalue;
     int32_t minValue;
     int32_t maxValue;
-    uint8_t encoderIndicator = 20;
-    uint32_t encoderInkrement = 10;
+    uint8_t encoderPosition = 0;
+    uint32_t baseInkrement;
+    uint8_t dotPosition;
+    uint8_t maxEncoderPosition;
     while (1) {
         // wait for all buttons to be released
         while (hal_getButton())
             ;
         // set default screen entries
         screen_Clear();
-        char setValBuf[11];
-        screen_SetDefaultScreenString("                     ", 0, 0);
+        char buf[11];
         if (!load.powerOn) {
-            screen_SetDefaultScreenString("!INPUT OFF!", 0, 0);
+            screen_FastString12x16("INPUT OFF", 10, 4);
         } else if (waveform.form != WAVE_NONE) {
-            screen_SetDefaultScreenString("!WAVEFORM ON!", 0, 0);
+            screen_FastString12x16("WAVE ON", 22, 4);
         }
-        screen_SetDefaultScreenString("\x19", encoderIndicator, 0);
 
         char bigUnit[8];
         char smallUnit1[8];
@@ -44,8 +44,21 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.voltage, smallUnit1, 4, 6, 'V');
             string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
-            screen_SetDefaultScreenString("CC-Mode [A]:  ", 0, 1);
-            string_fromUint(load.current / 10, setValBuf, 5, 2);
+            screen_FastString6x8("CC-Mode:", 0, 3);
+            if (load.highPower) {
+                string_fromUint(load.current / 1000, buf, 5, 3);
+                screen_FastChar6x8(114, 3, 'A');
+                baseInkrement = 1000;
+                dotPosition = 3;
+                maxEncoderPosition = 5;
+            } else {
+                string_fromUint(load.current / 10, buf, 5, 2);
+                screen_FastString6x8("mA", 114, 3);
+                baseInkrement = 10;
+                dotPosition = 2;
+                maxEncoderPosition = 5;
+            }
+            screen_FastString6x8(buf, 78, 3);
             setvalue = &load.current;
             minValue = 0;
             maxValue = settings.maxCurrent;
@@ -55,8 +68,14 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.voltage, bigUnit, 4, 6, 'V');
             string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
-            screen_SetDefaultScreenString("CV-Mode [V]:  ", 0, 1);
-            string_fromUint(load.voltage / 10, setValBuf, 5, 2);
+            screen_FastString6x8("CV-Mode:", 0, 3);
+            string_fromUint(load.voltage / 10000, buf, 5, 2);
+            screen_FastChar6x8(114, 3, 'V');
+            baseInkrement = 10000;
+            dotPosition = 2;
+            maxEncoderPosition = 5;
+
+            screen_FastString6x8(buf, 78, 3);
             setvalue = &load.voltage;
             minValue = LOAD_MINVOLTAGE;
             maxValue = settings.maxVoltage;
@@ -66,8 +85,22 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.voltage, smallUnit1, 4, 6, 'V');
             string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
-            screen_SetDefaultScreenString("CR-Mode [Ohm]:", 0, 1);
-            string_fromUint(load.resistance / 10, setValBuf, 5, 2);
+            screen_FastString6x8("CR-Mode:", 0, 3);
+            if (load.highPower) {
+                string_fromUint(load.resistance / 10, buf, 5, 2);
+                screen_FastChar6x8(114, 3, 'R');
+                baseInkrement = 10;
+                dotPosition = 2;
+                maxEncoderPosition = 5;
+            } else {
+                string_fromUint(load.resistance / 1000, buf, 5, 3);
+                screen_FastString6x8("kR", 114, 3);
+                baseInkrement = 1000;
+                dotPosition = 3;
+                maxEncoderPosition = 5;
+            }
+            screen_FastString6x8(buf, 78, 3);
+
             setvalue = &load.resistance;
             minValue = settings.minResistance;
             maxValue = LOAD_MAXRESISTANCE;
@@ -77,8 +110,22 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.voltage, smallUnit2, 4, 6, 'V');
             string_fromUintUnit(load.state.power, bigUnit, 4, 6, 'W');
 
-            screen_SetDefaultScreenString("CP-Mode [W]:  ", 0, 1);
-            string_fromUint(load.power / 10, setValBuf, 5, 2);
+            screen_FastString6x8("CP-Mode:", 0, 3);
+            if (load.highPower) {
+                string_fromUint(load.power / 10000, buf, 5, 2);
+                screen_FastChar6x8(114, 3, 'W');
+                baseInkrement = 10000;
+                dotPosition = 2;
+                maxEncoderPosition = 5;
+            } else {
+                string_fromUint(load.power / 100, buf, 5, 1);
+                screen_FastString6x8("mW", 114, 3);
+                baseInkrement = 100;
+                dotPosition = 1;
+                maxEncoderPosition = 5;
+            }
+            screen_FastString6x8(buf, 78, 3);
+
             setvalue = &load.power;
             minValue = 0;
             maxValue = settings.maxPower;
@@ -87,8 +134,13 @@ void menu_DefaultScreenHandler(void) {
         screen_FastString12x16(bigUnit, 0, 0);
         screen_FastString6x8(smallUnit1, 86, 0);
         screen_FastString6x8(smallUnit2, 86, 1);
-        screen_SetDefaultScreenString(setValBuf, 15, 1);
-        screen_UpdateDefaultScreen();
+
+        screen_InvertChar6x8(108 - encoderPosition * 6, 3);
+
+        screen_SetSoftButton("\x1b", 0);
+        screen_SetSoftButton("\x1a", 1);
+        screen_SetSoftButton("Menu", 2);
+
         uint32_t button;
         int32_t encoder;
         uint32_t wait = timer_SetTimeout(300);
@@ -104,18 +156,20 @@ void menu_DefaultScreenHandler(void) {
          ********************************************************/
         if (button & HAL_BUTTON_CC) {
             if (menu_getInputValue(&load.current, "'load current'", 0,
-                    settings.maxCurrent, "mA", "A", NULL)) {
+                    settings.maxCurrent, NULL, "mA", "A")) {
                 load.mode = FUNCTION_CC;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
+                encoderPosition = 0;
             }
         }
         if (button & HAL_BUTTON_CV) {
             if (menu_getInputValue(&load.voltage, "'load voltage'", 0,
-                    settings.maxVoltage, "mV", "V", NULL)) {
+                    settings.maxVoltage, NULL, "mV", "V")) {
                 load.mode = FUNCTION_CV;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
+                encoderPosition = 0;
             }
         }
         if (button & HAL_BUTTON_CR) {
@@ -125,14 +179,16 @@ void menu_DefaultScreenHandler(void) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
+                encoderPosition = 0;
             }
         }
         if (button & HAL_BUTTON_CP) {
             if (menu_getInputValue(&load.power, "'load power'", 0,
-                    settings.maxPower, "mW", "W", NULL)) {
+                    settings.maxPower, NULL, "mW", "W")) {
                 load.mode = FUNCTION_CP;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
+                encoderPosition = 0;
             }
         }
         /*********************************************************
@@ -145,46 +201,36 @@ void menu_DefaultScreenHandler(void) {
         /*********************************************************
          * encoder inkrement setting
          ********************************************************/
-        if (button & HAL_BUTTON_LEFT) {
+        if (button & HAL_BUTTON_SOFT0) {
             // move inkrement one position to the left, skip dot
-            if (encoderIndicator > 15) {
-                // encoder inkrement is not all the way to the left
-                // -> move it
-                encoderIndicator--;
-                if (encoderIndicator == 18) {
-                    // set indicator to dot position
-                    // -> move one position further
-                    encoderIndicator--;
-                }
-                encoderInkrement *= 10;
+            encoderPosition++;
+            if (encoderPosition == dotPosition) {
+                encoderPosition++;
             }
+            if (encoderPosition > maxEncoderPosition)
+                encoderPosition = maxEncoderPosition;
         }
-        if (button & HAL_BUTTON_RIGHT) {
+        if (button & HAL_BUTTON_SOFT1) {
             // move inkrement one position to the right, skip dot
-            if (encoderIndicator < 20) {
-                // encoder inkrement is not all the way to the right
-                // -> move it
-                encoderIndicator++;
-                if (encoderIndicator == 18) {
-                    // set indicator to dot position
-                    // -> move one position further
-                    encoderIndicator++;
+            if (encoderPosition > 0) {
+                encoderPosition--;
+                if (encoderPosition == dotPosition) {
+                    encoderPosition--;
                 }
-                encoderInkrement /= 10;
             }
         }
         /*********************************************************
          * encoder inkrement handling
          ********************************************************/
-        if (button & HAL_BUTTON_UP) {
-            // move inkrement one position to the right, skip dot
-            *setvalue += encoderInkrement;
+        if (encoder) {
+            uint32_t inkrement = 1;
+            uint8_t j;
+            for (j = 0; j < encoderPosition; j++) {
+                if (j != dotPosition)
+                    inkrement *= 10;
+            }
+            *setvalue += encoder * inkrement * baseInkrement;
         }
-        if (button & HAL_BUTTON_DOWN) {
-            // move inkrement one position to the right, skip dot
-            *setvalue -= encoderInkrement;
-        }
-        *setvalue += encoder * encoderInkrement;
         if (*setvalue < minValue)
             *setvalue = minValue;
         if (*setvalue > maxValue)
@@ -192,7 +238,7 @@ void menu_DefaultScreenHandler(void) {
         /*********************************************************
          * enter main menu
          ********************************************************/
-        if (button & HAL_BUTTON_ENTER) {
+        if (button & HAL_BUTTON_SOFT2) {
             menu_MainMenu();
         }
     }

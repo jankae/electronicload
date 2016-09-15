@@ -19,11 +19,6 @@ typedef enum {
     PIXEL_OFF, PIXEL_ON
 } PixelState_t;
 
-struct {
-    // buffer for the two lines of the default screen
-    char defScreen[2][21];
-} screen;
-
 /**
  * \brief Clears the entire display
  */
@@ -113,6 +108,8 @@ void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c);
  */
 void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c);
 
+void screen_InvertChar6x8(uint8_t x,uint8_t ypage);
+
 /**
  * \brief Writes a 12x16 string into the display data buffer
  *
@@ -137,7 +134,6 @@ void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage);
  */
 void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage);
 
-
 /**
  * \brief Displays a soft button
  *
@@ -145,24 +141,5 @@ void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage);
  * \num Number (and thus also position) of the button (0-2)
  */
 void screen_SetSoftButton(const char *descr, uint8_t num);
-
-/**
- * \brief Copies a char array into the default screen
- *
- * \param *src      Pointer to the array to be read from
- * \param x         Startposition in the default screen line
- * \param line      Choose between line 0 and 1 of the default screen
- */
-void screen_SetDefaultScreenString(const char *src, uint8_t x, uint8_t line);
-
-/**
- * \brief Fills the display with the default screen
- *
- * The first three lines consist of the measured
- * voltage, current and power currently sinked.
- * In the last to lines the content of screen.defscreen
- * will be displayed
- */
-void screen_UpdateDefaultScreen(void);
 
 #endif

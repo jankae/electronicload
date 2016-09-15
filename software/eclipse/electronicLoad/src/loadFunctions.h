@@ -26,6 +26,7 @@ typedef enum {
 #include "events.h"
 
 struct {
+    uint8_t highPower;
     loadMode_t mode;
     // values for the different modes
     // constant current in mA
