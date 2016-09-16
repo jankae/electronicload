@@ -202,17 +202,67 @@ void waveform_Menu(void) {
         screen_FastString6x8("Waveform:", 6, 1);
         screen_FastString6x8(waveform_Names[waveform.form], 66, 1);
 
+        char baseUnit;
+        uint8_t dotPosition;
+        uint32_t maxValue;
+        uint32_t minValue;
+        char unit0_s[5];
+        char unit3_s[5];
+        char unit6_s[5];
+        char *unit0 = unit0_s;
+        char *unit3 = unit3_s;
+        char *unit6 = unit6_s;
+        switch (waveform.paramNum) {
+        case 0:
+            baseUnit = 'A';
+            dotPosition = 6;
+            maxValue = settings.maxCurrent[settings.powerMode];
+            minValue = 0;
+            unit0 = NULL;
+            strcpy(unit3_s, "mA");
+            strcpy(unit6_s, "A");
+            break;
+        case 1:
+            baseUnit = 'V';
+            dotPosition = 6;
+            maxValue = settings.maxVoltage[settings.powerMode];
+            minValue = settings.minVoltage[settings.powerMode];
+            unit0 = NULL;
+            strcpy(unit3_s, "mV");
+            strcpy(unit6_s, "V");
+            break;
+        case 2:
+            baseUnit = 'R';
+            dotPosition = 3;
+            maxValue = settings.maxResistance[settings.powerMode];
+            minValue = settings.minResistance[settings.powerMode];
+            strcpy(unit0_s, "mOhm");
+            strcpy(unit3_s, "Ohm");
+            strcpy(unit6_s, "kOhm");
+            break;
+        case 3:
+            baseUnit = 'W';
+            dotPosition = 6;
+            maxValue = settings.maxPower[settings.powerMode];
+            minValue = 0;
+            unit0 = NULL;
+            strcpy(unit3, "mW");
+            strcpy(unit6, "W");
+            break;
+        }
+
         screen_FastString6x8("Amplitude:", 6, 2);
         char value[11];
-        string_fromUint(waveform.amplitude, value, 6, 3);
+        string_fromUintUnit(waveform.amplitude, value, 4, dotPosition,
+                baseUnit);
         screen_FastString6x8(value, 66, 2);
 
         screen_FastString6x8("Offset:", 6, 3);
-        string_fromUint(waveform.offset, value, 6, 3);
+        string_fromUintUnit(waveform.offset, value, 4, dotPosition, baseUnit);
         screen_FastString6x8(value, 66, 3);
 
         screen_FastString6x8("Period:", 6, 4);
-        string_fromUint(waveform.period, value, 6, 3);
+        string_fromUintUnit(waveform.period, value, 4, 3, 's');
         screen_FastString6x8(value, 66, 4);
 
         screen_FastString6x8("Param:", 6, 5);
@@ -288,21 +338,24 @@ void waveform_Menu(void) {
             } else if (selectedRow == 2) {
                 // change amplitude
                 uint32_t val;
-                if (menu_getInputValue(&val, "Amplitude:", 0, 1000000, "mX", "X", NULL)) {
+                if (menu_getInputValue(&val, "Amplitude:", minValue, maxValue,
+                        unit0, unit3, unit6)) {
                     waveform.amplitude = val;
                     load.powerOn = 0;
                 }
             } else if (selectedRow == 3) {
                 // change offset
                 uint32_t val;
-                if (menu_getInputValue(&val, "Offset:", 0, 1000000, "mX", "X", NULL)) {
+                if (menu_getInputValue(&val, "Offset:", minValue, maxValue,
+                        unit0, unit3, unit6)) {
                     waveform.offset = val;
                     load.powerOn = 0;
                 }
             } else if (selectedRow == 4) {
                 // change period
                 uint32_t val;
-                if (menu_getInputValue(&val, "Period:", 0, 30000, "ms", "s", NULL)) {
+                if (menu_getInputValue(&val, "Period:", 0, 30000, "ms", "s",
+                NULL)) {
                     waveform.period = val;
                     load.powerOn = 0;
                 }

@@ -12,21 +12,21 @@ void characteristic_Menu(void) {
         // create menu display
         screen_Clear();
         screen_FastString6x8("\xCDU/I-Characteristics\xCD", 0, 0);
-        screen_FastString6x8("I_Start[A]:", 6, 1);
+        screen_FastString6x8("I_Start:", 6, 1);
         char value[11];
-        string_fromUint(characteristic.currentStart, value, 6, 3);
+        string_fromUintUnit(characteristic.currentStart, value, 4, 6, 'A');
         screen_FastString6x8(value, 84, 1);
 
-        screen_FastString6x8("I_Stop[A]:", 6, 2);
-        string_fromUint(characteristic.currentStop, value, 6, 3);
+        screen_FastString6x8("I_Stop:", 6, 2);
+        string_fromUintUnit(characteristic.currentStop, value, 4, 6, 'A');
         screen_FastString6x8(value, 84, 2);
 
-        screen_FastString6x8("U_Abort[V]:", 6, 3);
-        string_fromUint(characteristic.abortVoltage, value, 6, 3);
+        screen_FastString6x8("U_Abort:", 6, 3);
+        string_fromUintUnit(characteristic.abortVoltage, value, 4, 6, 'V');
         screen_FastString6x8(value, 84, 3);
 
-        screen_FastString6x8("Delta T[s]:", 6, 4);
-        string_fromUint(characteristic.deltaT, value, 6, 3);
+        screen_FastString6x8("Delta T:", 6, 4);
+        string_fromUintUnit(characteristic.deltaT, value, 4, 3, 's');
         screen_FastString6x8(value, 84, 4);
 
         screen_FastString6x8("START", 6, 5);
@@ -61,22 +61,25 @@ void characteristic_Menu(void) {
             switch (selectedRow) {
             case 1:
                 if (menu_getInputValue(&characteristic.currentStart,
-                        "Start current", 0, settings.maxCurrent[settings.powerMode], "mA", "A",
-                        NULL)) {
+                        "Start current", 0,
+                        settings.maxCurrent[settings.powerMode], NULL, "mA",
+                        "A")) {
                     characteristic.resultValid = 0;
                 }
                 break;
             case 2:
                 if (menu_getInputValue(&characteristic.currentStop,
-                        "Stop current", 0, settings.maxCurrent[settings.powerMode], "mA", "A",
-                        NULL)) {
+                        "Stop current", 0,
+                        settings.maxCurrent[settings.powerMode], NULL, "mA",
+                        "A")) {
                     characteristic.resultValid = 0;
                 }
                 break;
             case 3:
                 if (menu_getInputValue(&characteristic.abortVoltage,
-                        "Abort voltage", 0, settings.maxVoltage[settings.powerMode], "mV", "V",
-                        NULL)) {
+                        "Abort voltage", 0,
+                        settings.maxVoltage[settings.powerMode], NULL, "mV",
+                        "V")) {
                     characteristic.resultValid = 0;
                 }
                 break;
@@ -166,10 +169,10 @@ void characteristic_TransmitResult(void) {
         string_fromUint(i * characteristic.deltaT, value, 6, 3);
         uart_writeString(value);
         uart_writeByte(';');
-        string_fromUint(characteristic_DatapointToCurrent(i), value, 5, 3);
+        string_fromUint(characteristic_DatapointToCurrent(i), value, 8, 6);
         uart_writeString(value);
         uart_writeByte(';');
-        string_fromUint(characteristic.voltageResponse[i], value, 6, 3);
+        string_fromUint(characteristic.voltageResponse[i], value, 9, 6);
         uart_writeString(value);
         uart_writeByte('\n');
     }
@@ -305,7 +308,7 @@ void characteristic_Update(void) {
 
 uint32_t characteristic_DatapointToCurrent(uint8_t point) {
     uint32_t current = characteristic.currentStart;
-    current += ((characteristic.currentStop - characteristic.currentStart)
-            * point) / 119;
+    current += ((int64_t) (characteristic.currentStop
+            - characteristic.currentStart) * point) / 119;
     return current;
 }
