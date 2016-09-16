@@ -122,8 +122,6 @@ void load_update(void) {
     uint16_t highTemp = load.state.temp1;
     if (load.state.temp2 > load.state.temp1)
         highTemp = load.state.temp2;
-    // convert to °C
-    highTemp /= 10;
 
     // switch fan
     if (highTemp >= LOAD_FANON_TEMP)
@@ -166,10 +164,10 @@ void load_update(void) {
     case FUNCTION_CP:
         if (load.state.voltage > 0) {
             current = (load.power * 1000) / load.state.voltage;
-            if (current > settings.maxCurrent)
-                current = settings.maxCurrent;
+            if (current > settings.maxCurrent[settings.powerMode])
+                current = settings.maxCurrent[settings.powerMode];
         } else
-            current = settings.maxCurrent;
+            current = settings.maxCurrent[settings.powerMode];
         break;
     }
     if (load.powerOn && highTemp <= LOAD_MAX_TEMP

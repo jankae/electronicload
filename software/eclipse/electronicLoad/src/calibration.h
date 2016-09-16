@@ -13,45 +13,8 @@
 #include "frontPanel.h"
 #include "multimeter.h"
 
-#define LM35_ADC_TO_TEMP(adc)		((adc*3300)/4096)
-
-// default calibration values (assuming perfect parts and resistor values)
-#define CAL_DEF_CURSENS_OFFSET_LOW	0
-#define CAL_DEF_CURSENS_SCALE_LOW	0.500 // TODO adjust to shunt
-
-#define CAL_DEF_CURSENS_OFFSET_HIGH	0
-#define CAL_DEF_CURSENS_SCALE_HIGH	5.00 // TODO adjust to shunt
-
-#define CAL_DEF_VOLSENS_OFFSET_LOW	0
-#define CAL_DEF_VOLSENS_SCALE_LOW	3.4375
-
-#define CAL_DEF_VOLSENS_OFFSET_HIGH	0
-#define CAL_DEF_VOLSENS_SCALE_HIGH	34.375
-
-#define CAL_DEF_CURSET_OFFSET_LOW	0
-#define CAL_DEF_CURSET_SCALE_LOW	0.2
-
-#define CAL_DEF_CURSET_OFFSET_HIGH	0
-#define CAL_DEF_CURSET_SCALE_HIGH	0.02
 
 struct {
-    int16_t currentSenseOffsetLowRange;
-    float currentSenseScaleLowRange;
-
-    int16_t currentSenseOffsetHighRange;
-    float currentSenseScaleHighRange;
-
-    int16_t voltageSenseOffsetLowRange;
-    float voltageSenseScaleLowRange;
-
-    int16_t voltageSenseOffsetHighRange;
-    float voltageSenseScaleHighRange;
-
-    int16_t currentSetOffsetLowRange;
-    float currentSetScaleLowRange;
-
-    int16_t currentSetOffsetHighRange;
-    float currentSetScaleHighRange;
 
     uint8_t active;
 } calibration;
@@ -135,16 +98,16 @@ int32_t cal_getUncalibCurrent(void);
 /**
  * \brief Returns the temperature at heatsink1
  *
- * \return Temperature in 0.1°C
+ * \return Temperature in °C
  */
-uint16_t cal_getTemp1(void);
+uint8_t cal_getTemp1(void);
 
 /**
  * \brief Returns the temperature at heatsink2
  *
- * \return Temperature in 0.1°C
+ * \return Temperature in °C
  */
-uint16_t cal_getTemp2(void);
+uint8_t cal_getTemp2(void);
 
 
 

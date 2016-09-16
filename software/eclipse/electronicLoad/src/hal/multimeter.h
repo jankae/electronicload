@@ -10,6 +10,7 @@
 
 #include "stm32f10x.h"
 #include "stm32f10x_conf.h"
+#include "timer.h"
 
 #define UT61E_FUNCTION_VOLTAGE      0x3B
 #define UT61E_FUNCTION_CURRENT_UA   0x3D

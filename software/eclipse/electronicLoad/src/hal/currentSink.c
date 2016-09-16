@@ -64,23 +64,28 @@ void hal_ClearAVRGPIO(uint8_t gpio) {
 }
 
 void hal_UpdateAVRGPIOs(void) {
-    HAL_CLK_LOW;
-    hal_SetChipSelect(HAL_CS_AVR);
-    uint8_t word = hal.AVRgpio & 0x7F;
-    uint8_t i;
-    for (i = 0; i < 8; i++) {
-        if (word & 0x80) {
-            HAL_DIN_HIGH;
-        } else {
-            HAL_DIN_LOW;
-        }
-        // generate clock pulse
-        HAL_CLK_HIGH;
-        // TODO add delay
+    static uint8_t oldGPIOs = 0;
+    if (hal.AVRgpio != oldGPIOs) {
+        // only update when the is actually a pinchange
+        oldGPIOs = hal.AVRgpio;
         HAL_CLK_LOW;
-        word <<= 1;
+        hal_SetChipSelect(HAL_CS_AVR);
+        uint8_t word = hal.AVRgpio & 0x7F;
+        uint8_t i;
+        for (i = 0; i < 8; i++) {
+            if (word & 0x80) {
+                HAL_DIN_HIGH;
+            } else {
+                HAL_DIN_LOW;
+            }
+            // generate clock pulse
+            HAL_CLK_HIGH;
+            // TODO add delay
+            HAL_CLK_LOW;
+            word <<= 1;
+        }
+        hal_SetChipSelect(HAL_CS_NONE);
     }
-    hal_SetChipSelect(HAL_CS_NONE);
 }
 
 uint16_t hal_ReadAVRADC(uint8_t channel) {
@@ -199,4 +204,59 @@ uint16_t hal_getADC(uint8_t nsamples) {
         buf += adc;
     }
     return buf /= nsamples;
+}
+
+void hal_SetControlMode(uint8_t mode) {
+    switch (mode) {
+    case HAL_MODE_CC:
+        hal_ClearAVRGPIO(HAL_GPIO_MODE_A);
+        hal_ClearAVRGPIO(HAL_GPIO_MODE_B);
+        break;
+    case HAL_MODE_CV:
+        hal_SetAVRGPIO(HAL_GPIO_MODE_A);
+        hal_ClearAVRGPIO(HAL_GPIO_MODE_B);
+        break;
+    case HAL_MODE_CR:
+        hal_SetAVRGPIO(HAL_GPIO_MODE_A);
+        hal_SetAVRGPIO(HAL_GPIO_MODE_B);
+        break;
+    case HAL_MODE_CP:
+        hal_ClearAVRGPIO(HAL_GPIO_MODE_A);
+        hal_SetAVRGPIO(HAL_GPIO_MODE_B);
+        break;
+    }
+    hal_UpdateAVRGPIOs();
+}
+
+void hal_SelectShunt(uint8_t shunt) {
+    switch (shunt) {
+    case HAL_SHUNT_NONE:
+        hal_SetAVRGPIO(HAL_GPIO_SHUNT_EN1);
+        hal_SetAVRGPIO(HAL_GPIO_SHUNT_EN2);
+        hal_SetAVRGPIO(HAL_GPIO_SHUNTSEL);
+        break;
+    case HAL_SHUNT_R01:
+        hal_ClearAVRGPIO(HAL_GPIO_SHUNT_EN1);
+        hal_SetAVRGPIO(HAL_GPIO_SHUNT_EN2);
+        hal_SetAVRGPIO(HAL_GPIO_SHUNTSEL);
+        break;
+    case HAL_SHUNT_1R:
+        hal_SetAVRGPIO(HAL_GPIO_SHUNT_EN1);
+        hal_ClearAVRGPIO(HAL_GPIO_SHUNT_EN2);
+        hal_ClearAVRGPIO(HAL_GPIO_SHUNTSEL);
+        break;
+    }
+    hal_UpdateAVRGPIOs();
+}
+
+void hal_SelectADCChannel(uint8_t channel) {
+    switch (channel) {
+    case HAL_ADC_CURRENT:
+        hal_ClearAVRGPIO(HAL_GPIO_ANALOG_MUX);
+        break;
+    case HAL_ADC_VOLTAGE:
+        hal_SetAVRGPIO(HAL_GPIO_ANALOG_MUX);
+        break;
+    }
+    hal_UpdateAVRGPIOs();
 }

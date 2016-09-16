@@ -31,9 +31,9 @@
 #define HAL_GPIO_SHUNT_EN1  2
 #define HAL_GPIO_SHUNTSEL   4
 #define HAL_GPIO3           8
-#define HAL_MODE_A          16
-#define HAL_MODE_B          32
-#define HAL_ANALOG_MUX      64
+#define HAL_GPIO_MODE_A     16
+#define HAL_GPIO_MODE_B     32
+#define HAL_GPIO_ANALOG_MUX 64
 
 #define HAL_AVR_ADC_TEMP1   6
 #define HAL_AVR_ADC_TEMP2   0
@@ -47,6 +47,18 @@
 #define HAL_RAIL_P5V        0
 #define HAL_RAIL_P15V       1
 #define HAL_RAIL_N15V       2
+
+#define HAL_MODE_CC         0
+#define HAL_MODE_CV         1
+#define HAL_MODE_CR         2
+#define HAL_MODE_CP         3
+
+#define HAL_SHUNT_NONE      0
+#define HAL_SHUNT_R01       1
+#define HAL_SHUNT_1R        2
+
+#define HAL_ADC_CURRENT     0
+#define HAL_ADC_VOLTAGE     1
 
 struct {
     uint8_t ADCchannel;
@@ -134,5 +146,16 @@ void hal_setFan(uint8_t en);
  * \return 16-Bit ADC value
  */
 uint16_t hal_getADC(uint8_t nsamples);
+
+/**
+ * \brief Sets the mux at the op-amp to a specific control mode
+ *
+ * \param mode New control mode (0=CC, 1=CV, 2=CR, 3=CP)
+ */
+void hal_SetControlMode(uint8_t mode);
+
+void hal_SelectShunt(uint8_t shunt);
+
+void hal_SelectADCChannel(uint8_t channel);
 
 #endif

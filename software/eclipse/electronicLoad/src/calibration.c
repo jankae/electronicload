@@ -111,23 +111,7 @@ uint32_t cal_sampleADC(uint8_t channel) {
  * Should be used in case of missing calibration data.
  */
 void cal_setDefaultCalibration(void) {
-    calibration.currentSenseOffsetLowRange = CAL_DEF_CURSENS_OFFSET_LOW;
-    calibration.currentSenseScaleLowRange = CAL_DEF_CURSENS_SCALE_LOW;
 
-    calibration.currentSenseOffsetHighRange = CAL_DEF_CURSENS_OFFSET_HIGH;
-    calibration.currentSenseScaleHighRange = CAL_DEF_CURSENS_SCALE_HIGH;
-
-    calibration.voltageSenseOffsetLowRange = CAL_DEF_VOLSENS_OFFSET_LOW;
-    calibration.voltageSenseScaleLowRange = CAL_DEF_VOLSENS_SCALE_LOW;
-
-    calibration.voltageSenseOffsetHighRange = CAL_DEF_VOLSENS_OFFSET_HIGH;
-    calibration.voltageSenseScaleHighRange = CAL_DEF_VOLSENS_SCALE_HIGH;
-
-    calibration.currentSetOffsetLowRange = CAL_DEF_CURSET_OFFSET_LOW;
-    calibration.currentSetScaleLowRange = CAL_DEF_CURSET_SCALE_LOW;
-
-    calibration.currentSetOffsetHighRange = CAL_DEF_CURSET_OFFSET_HIGH;
-    calibration.currentSetScaleHighRange = CAL_DEF_CURSET_SCALE_HIGH;
 }
 
 void calibrationMenu(void) {
@@ -844,20 +828,10 @@ int32_t cal_getUncalibCurrent(void) {
 //    return ret;
 }
 
-/**
- * \brief Returns the temperature at heatsink1
- *
- * \return Temperature in 0.1°C
- */
-uint16_t cal_getTemp1(void) {
-//    return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE1, 1));
+uint8_t cal_getTemp1(void) {
+    return hal_ReadTemperature(HAL_TEMP1);
 }
 
-/**
- * \brief Returns the temperature at heatsink2
- *
- * \return Temperature in 0.1°C
- */
-uint16_t cal_getTemp2(void) {
-//    return LM35_ADC_TO_TEMP(hal_getADC(ADC_TEMPERATURE2, 1));
+uint8_t cal_getTemp2(void) {
+    return hal_ReadTemperature(HAL_TEMP2);
 }
