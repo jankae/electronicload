@@ -45,7 +45,7 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
             screen_FastString6x8("CC-Mode:", 0, 3);
-            if (load.highPower) {
+            if (settings.powerMode) {
                 string_fromUint(load.current / 1000, buf, 5, 3);
                 screen_FastChar6x8(114, 3, 'A');
                 baseInkrement = 1000;
@@ -61,7 +61,7 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString6x8(buf, 78, 3);
             setvalue = &load.current;
             minValue = 0;
-            maxValue = settings.maxCurrent;
+            maxValue = settings.maxCurrent[settings.powerMode];
             break;
         case FUNCTION_CV:
             string_fromUintUnit(load.state.current, smallUnit1, 4, 6, 'A');
@@ -77,8 +77,8 @@ void menu_DefaultScreenHandler(void) {
 
             screen_FastString6x8(buf, 78, 3);
             setvalue = &load.voltage;
-            minValue = LOAD_MINVOLTAGE;
-            maxValue = settings.maxVoltage;
+            minValue = settings.minVoltage[settings.powerMode];
+            maxValue = settings.maxVoltage[settings.powerMode];
             break;
         case FUNCTION_CR:
             string_fromUintUnit(load.state.current, bigUnit, 4, 6, 'A');
@@ -86,7 +86,7 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.power, smallUnit2, 4, 6, 'W');
 
             screen_FastString6x8("CR-Mode:", 0, 3);
-            if (load.highPower) {
+            if (settings.powerMode) {
                 string_fromUint(load.resistance / 10, buf, 5, 2);
                 screen_FastChar6x8(114, 3, 'R');
                 baseInkrement = 10;
@@ -102,8 +102,8 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString6x8(buf, 78, 3);
 
             setvalue = &load.resistance;
-            minValue = settings.minResistance;
-            maxValue = LOAD_MAXRESISTANCE;
+            minValue = settings.minResistance[settings.powerMode];
+            maxValue = settings.maxResistance[settings.powerMode];
             break;
         case FUNCTION_CP:
             string_fromUintUnit(load.state.current, smallUnit1, 4, 6, 'A');
@@ -111,7 +111,7 @@ void menu_DefaultScreenHandler(void) {
             string_fromUintUnit(load.state.power, bigUnit, 4, 6, 'W');
 
             screen_FastString6x8("CP-Mode:", 0, 3);
-            if (load.highPower) {
+            if (settings.powerMode) {
                 string_fromUint(load.power / 10000, buf, 5, 2);
                 screen_FastChar6x8(114, 3, 'W');
                 baseInkrement = 10000;
@@ -128,7 +128,7 @@ void menu_DefaultScreenHandler(void) {
 
             setvalue = &load.power;
             minValue = 0;
-            maxValue = settings.maxPower;
+            maxValue = settings.maxPower[settings.powerMode];
             break;
         }
         screen_FastString12x16(bigUnit, 0, 0);
@@ -156,7 +156,7 @@ void menu_DefaultScreenHandler(void) {
          ********************************************************/
         if (button & HAL_BUTTON_CC) {
             if (menu_getInputValue(&load.current, "'load current'", 0,
-                    settings.maxCurrent, NULL, "mA", "A")) {
+                    settings.maxCurrent[settings.powerMode], NULL, "mA", "A")) {
                 load.mode = FUNCTION_CC;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -164,8 +164,9 @@ void menu_DefaultScreenHandler(void) {
             }
         }
         if (button & HAL_BUTTON_CV) {
-            if (menu_getInputValue(&load.voltage, "'load voltage'", 0,
-                    settings.maxVoltage, NULL, "mV", "V")) {
+            if (menu_getInputValue(&load.voltage, "'load voltage'",
+                    settings.minVoltage[settings.powerMode],
+                    settings.maxVoltage[settings.powerMode], NULL, "mV", "V")) {
                 load.mode = FUNCTION_CV;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -174,8 +175,9 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CR) {
             if (menu_getInputValue(&load.resistance, "'load resistance'",
-                    settings.minResistance,
-                    LOAD_MAXRESISTANCE, "mOhm", "Ohm", NULL)) {
+                    settings.minResistance[settings.powerMode],
+                    settings.maxResistance[settings.powerMode], "mOhm", "Ohm",
+                    NULL)) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -184,7 +186,7 @@ void menu_DefaultScreenHandler(void) {
         }
         if (button & HAL_BUTTON_CP) {
             if (menu_getInputValue(&load.power, "'load power'", 0,
-                    settings.maxPower, NULL, "mW", "W")) {
+                    settings.maxPower[settings.powerMode], NULL, "mW", "W")) {
                 load.mode = FUNCTION_CP;
                 load.powerOn = 0;
                 waveform.form = WAVE_NONE;
@@ -472,10 +474,10 @@ int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
         // display menu surroundings
         screen_Clear();
         screen_FastString6x8(title, 0, 0);
-        screen_FastString6x8("Use \x18,\x19,ESC and Enter", 0, 7);
+//        screen_FastString6x8("Use \x18,\x19,ESC and Enter", 0, 7);
         // display menu entries
         uint8_t i;
-        for (i = 0; i < 6 && i + firstDisplayedItem < nitems; i++) {
+        for (i = 0; i < 7 && i + firstDisplayedItem < nitems; i++) {
             screen_FastString6x8(items[i + firstDisplayedItem], 6, i + 1);
         }
         // display arrow at selected menu entry
@@ -507,8 +509,8 @@ int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
             if (selectedItem < nitems - 1) {
                 selectedItem++;
                 // scroll if necessary
-                if (selectedItem > firstDisplayedItem + 5)
-                    firstDisplayedItem = selectedItem - 5;
+                if (selectedItem > firstDisplayedItem + 6)
+                    firstDisplayedItem = selectedItem - 6;
             }
         }
         /*********************************************************

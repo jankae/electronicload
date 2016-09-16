@@ -61,21 +61,21 @@ void characteristic_Menu(void) {
             switch (selectedRow) {
             case 1:
                 if (menu_getInputValue(&characteristic.currentStart,
-                        "Start current", 0, settings.maxCurrent, "mA", "A",
+                        "Start current", 0, settings.maxCurrent[settings.powerMode], "mA", "A",
                         NULL)) {
                     characteristic.resultValid = 0;
                 }
                 break;
             case 2:
                 if (menu_getInputValue(&characteristic.currentStop,
-                        "Stop current", 0, settings.maxCurrent, "mA", "A",
+                        "Stop current", 0, settings.maxCurrent[settings.powerMode], "mA", "A",
                         NULL)) {
                     characteristic.resultValid = 0;
                 }
                 break;
             case 3:
                 if (menu_getInputValue(&characteristic.abortVoltage,
-                        "Abort voltage", 0, settings.maxVoltage, "mV", "V",
+                        "Abort voltage", 0, settings.maxVoltage[settings.powerMode], "mV", "V",
                         NULL)) {
                     characteristic.resultValid = 0;
                 }
