@@ -236,13 +236,12 @@ void characteristic_ViewResult(void) {
         screen_FastString6x8("I:", 0, 7);
         screen_FastString6x8("U:", 64, 7);
         char value[11];
-        string_fromUint(characteristic_DatapointToCurrent(cursorX), value, 5,
-                3);
+        string_fromUintUnit(characteristic_DatapointToCurrent(cursorX), value,
+                4, 6, 'A');
         screen_FastString6x8(value, 12, 7);
-        string_fromUint(characteristic.voltageResponse[cursorX], value, 6, 3);
+        string_fromUintUnit(characteristic.voltageResponse[cursorX], value, 4,
+                6, 'V');
         screen_FastString6x8(value, 76, 7);
-        screen_FastChar6x8(50, 7, 'A');
-        screen_FastChar6x8(120, 7, 'V');
         // wait for user input
         do {
             button = hal_getButton();
