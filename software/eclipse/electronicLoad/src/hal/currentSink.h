@@ -11,12 +11,6 @@
 #include <stdint.h>
 #include "stm32f10x_conf.h"
 
-/**
- * \def MAX_CURRENT
- * maximum settable current in mA
- */
-#define MAX_CURRENT		20000
-
 #define HAL_CS_A_LOW        (GPIOA->BRR = GPIO_Pin_5)
 #define HAL_CS_A_HIGH       (GPIOA->BSRR = GPIO_Pin_5)
 #define HAL_CS_B_LOW        (GPIOA->BRR = GPIO_Pin_7)
