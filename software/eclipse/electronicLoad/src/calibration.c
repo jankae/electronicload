@@ -127,7 +127,27 @@ int32_t cal_sampleMeter(uint8_t samples) {
  * Should be used in case of missing calibration data.
  */
 void cal_setDefaultCalibration(void) {
+    calibration.currentSetTable[0][0] = 0;
+    calibration.currentSetTable[0][1] = 0;
+    calibration.currentSetTable[1][0] = 65536;
+    calibration.currentSetTable[1][1] = 204088;
 
+    calibration.currentSenseTable[0][0] = 0;
+    calibration.currentSenseTable[0][1] = 0;
+    calibration.currentSenseTable[1][0] = 65536;
+    calibration.currentSenseTable[1][1] = 198759;
+
+    calibration.voltageSetTable[0][0] = 0;
+    calibration.voltageSetTable[0][1] = 0;
+    calibration.voltageSetTable[1][0] = 65535;
+    calibration.voltageSetTable[1][1] = 105025641; //4.096V/(3.9V/100V)
+
+    calibration.voltageSenseTable[0][0] = 0;
+    calibration.voltageSenseTable[0][1] = 0;
+    calibration.voltageSenseTable[1][0] = 65535;
+    calibration.voltageSenseTable[1][1] = 105025641; //4.096V/(3.9V/100V)
+
+    calibration.shuntFactor = 10000;
 }
 
 void calibrationMenu(void) {
