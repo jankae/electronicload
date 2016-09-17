@@ -31,7 +31,7 @@ void multimeter_Init() {
     USART_Cmd(USART3, ENABLE);
 }
 
-void multimeter_EvaluateDate() {
+void multimeter_EvaluateData() {
     meter.function = meter.data[6];
     if (meter.data[10] & 0x02)
         meter.AUTO = 1;
@@ -94,7 +94,7 @@ void multimeter_EvaluateDate() {
         value *= -1;
     }
     meter.value = value;
-    meter.timeout = timer_SetTimeout(1000);
+    meter.timeout = timer_SetTimeout(2000);
 }
 
 void USART3_IRQHandler(void) {
@@ -109,7 +109,7 @@ void USART3_IRQHandler(void) {
             if (meter.bytecount == 13) {
                 // string is complete
                 // -> evaluate
-                multimeter_EvaluateDate();
+                multimeter_EvaluateData();
             }
             meter.bytecount = 0;
         } else {

@@ -13,8 +13,30 @@
 #include "frontPanel.h"
 #include "multimeter.h"
 
+#define FLASH_CALIBRATION_DATA      0x0801F004
+#define FLASH_VALID_CALIB_INDICATOR 0x0801F000
 
+#define CAL_INDICATOR               0x02
+
+#define CAL_POINTS_FULLSCALE        20
+
+#define CAL_ERROR_METER_MONOTONIC   1
+#define CAL_ERROR_ADC_MONOTONIC     2
+
+/*
+ * This section must fit into four flash pages and thus
+ * NEVER exceed 4kB
+ */
 struct {
+    // ADC value[0] -> actual current[1]
+    int32_t currentSenseTableLow[CAL_POINTS_FULLSCALE + 1][2];
+    // DAC value[0] -> actual current[1]
+    int32_t currentSetTableLow[CAL_POINTS_FULLSCALE + 1][2];
+
+    // ADC value[0] -> actual current[1]
+    int32_t currentSenseTableHigh[CAL_POINTS_FULLSCALE + 1][2];
+    // DAC value[0] -> actual current[1]
+    int32_t currentSetTableHigh[CAL_POINTS_FULLSCALE + 1][2];
 
     uint8_t active;
 } calibration;
@@ -35,16 +57,7 @@ uint8_t cal_readFromFlash(void);
  */
 void cal_writeToFlash(void);
 
-/**
- * \brief Samples an ADC channel
- *
- * The specified channel is sampled 200 times, averaged and returned.
- * Additionally, this function displays a progress bar.
- *
- * \param channel   ADC channel to be sampled
- * \return          averaged ADC channel value
- */
-uint32_t cal_sampleADC(uint8_t channel);
+int32_t cal_sampleMeter(uint8_t samples);
 
 /**
  * \brief Sets the calibration values to the default values.
@@ -56,6 +69,8 @@ void cal_setDefaultCalibration(void);
 void calibrationMenu(void);
 
 void calibrationProcessAutomatic(void);
+
+void cal_DisplayError(uint8_t error);
 
 /**
  * \brief Starts and executes the calibration process.
@@ -74,9 +89,9 @@ void calibrationDisplayMultimeterInfo(void);
 /**
  * \brief Sets the 'should be'-current
  *
- * \param mA Current the load should draw
+ * \param uA Current the load should draw
  */
-void cal_setCurrent(uint32_t mA);
+void cal_setCurrent(uint32_t uA);
 
 /**
  * \brief Returns the current being drawn
@@ -108,7 +123,5 @@ uint8_t cal_getTemp1(void);
  * \return Temperature in °C
  */
 uint8_t cal_getTemp2(void);
-
-
 
 #endif

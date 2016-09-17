@@ -30,6 +30,6 @@ struct {
 
 void multimeter_Init();
 
-void multimeter_EvaluateDate();
+void multimeter_EvaluateData();
 
 #endif /* HAL_MULTIMETER_H_ */

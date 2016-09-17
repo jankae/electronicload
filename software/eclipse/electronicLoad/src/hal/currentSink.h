@@ -60,6 +60,8 @@
 #define HAL_ADC_CURRENT     0
 #define HAL_ADC_VOLTAGE     1
 
+#define HAL_DAC_MAX         0xffff
+
 struct {
     uint8_t ADCchannel;
     uint8_t AVRgpio;
