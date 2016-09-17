@@ -176,7 +176,7 @@ void calibrationProcessAutomatic(void) {
 
     /****************************************
      * Step 1: low range current calibration
-     * Step through current range, calibrate
+     * Two point calibration, calibrate
      * ADC + DAC by comparing with multimeter
      ***************************************/
     do {
@@ -185,27 +185,10 @@ void calibrationProcessAutomatic(void) {
         hal_setDAC(0);
         // show setup
         screen_Clear();
-        screen_FastString6x8("Connect like this:", 0, 0);
-        // load
-        screen_Rectangle(0, 14, 40, 25);
-        screen_Rectangle(2, 16, 14, 23);
-        // power supply
-        screen_Rectangle(75, 14, 96, 25);
-        screen_FastString6x8("PSU", 77, 2);
-        screen_FastString6x8("10V", 98, 2);
-        screen_FastString6x8("300mA", 98, 3);
-        // meter
-        screen_FastChar6x8(57, 4, 'A');
-        screen_Circle(60, 36, 6);
-        // leads
-        screen_VerticalLine(37, 22, 6);
-        screen_VerticalLine(82, 25, 3);
-        screen_HorizontalLine(37, 28, 46);
-
-        screen_VerticalLine(30, 22, 14);
-        screen_VerticalLine(89, 25, 11);
-        screen_HorizontalLine(30, 36, 24);
-        screen_HorizontalLine(66, 36, 24);
+        screen_FastString6x8("Connect a 10V 300mA", 0, 0);
+        screen_FastString6x8("PSU and the meter in", 0, 1);
+        screen_FastString6x8("series in the mA", 0, 2);
+        screen_FastString6x8("range.", 0, 3);
 
         screen_SetSoftButton("Abort", 0);
 
@@ -242,52 +225,179 @@ void calibrationProcessAutomatic(void) {
             timer_waitms(100);
         } while (!(button & HAL_BUTTON_ENTER) || !setupOK);
 
+        screen_Clear();
         hal_SelectADCChannel(HAL_ADC_CURRENT);
         uint32_t i;
         errorIndicator = 0;
-        for (i = 1; i <= CAL_POINTS_FULLSCALE; i++) {
-            // set DAC to next calibration point
-            uint16_t DACvalue = i * HAL_DAC_MAX / CAL_POINTS_FULLSCALE;
-            hal_setDAC(DACvalue);
-            uint32_t meterAvg = cal_sampleMeter(3);
-            calibration.currentSetTableLow[i][0] = DACvalue;
-            calibration.currentSetTableLow[i][1] = meterAvg;
-            calibration.currentSenseTableLow[i][0] = hal_getADC(100);
-            calibration.currentSenseTableLow[i][1] = meterAvg;
-            if (i > 1) {
-                if (calibration.currentSetTableLow[i][1]
-                        <= calibration.currentSetTableLow[i - 1][1]) {
-                    errorIndicator = CAL_ERROR_METER_MONOTONIC;
-                    break;
-                }
-                if (calibration.currentSenseTableLow[i][0]
-                        <= calibration.currentSenseTableLow[i - 1][0]) {
-                    errorIndicator = CAL_ERROR_ADC_MONOTONIC;
-                    break;
-                }
-            }
+        // set DAC to first calibration point
+        screen_FastString6x8("Setting to 10%...", 0, 0);
+        hal_setDAC(HAL_DAC_MAX * 0.1);
+        calibration.currentSetTable[0][0] = HAL_DAC_MAX * 0.1;
+        screen_FastString6x8("Sampling meter...", 0, 1);
+        calibration.currentSetTable[0][1] = cal_sampleMeter(10);
+        screen_FastString6x8("Sampling ADC...", 0, 2);
+        calibration.currentSenseTable[0][0] = hal_getADC(100);
+        calibration.currentSenseTable[0][1] = calibration.currentSetTable[0][1];
+        // set DAC to second calibration point
+        screen_FastString6x8("Setting to 90%...", 0, 3);
+        hal_setDAC(HAL_DAC_MAX * 0.9);
+        calibration.currentSetTable[1][0] = HAL_DAC_MAX * 0.9;
+        screen_FastString6x8("Sampling meter...", 0, 4);
+        calibration.currentSetTable[1][1] = cal_sampleMeter(10);
+        screen_FastString6x8("Sampling ADC...", 0, 5);
+        calibration.currentSenseTable[1][0] = hal_getADC(100);
+        calibration.currentSenseTable[1][1] = calibration.currentSetTable[1][1];
+        // check values for plausibility
+        if (calibration.currentSetTable[0][1]
+                >= calibration.currentSetTable[1][1]) {
+            errorIndicator = CAL_ERROR_METER_MONOTONIC;
+            cal_DisplayError(errorIndicator);
+            break;
+        }
+        if (calibration.currentSenseTable[0][0]
+                >= calibration.currentSenseTable[1][0]) {
+            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
+            cal_DisplayError(errorIndicator);
+            break;
         }
         // set current back to zero
         hal_setDAC(0);
 
-        cal_DisplayError(errorIndicator);
+    } while (errorIndicator);
+
+    /****************************************
+     * Step 2: measure factor between the
+     * two shunts by applying the same DAC
+     * value to both of them
+     ***************************************/
+    errorIndicator = 0;
+    do {
+        screen_Clear();
+        screen_FastString6x8("set 1% of high shunt", 0, 0);
+        // set current to about 2mA
+        uint16_t dac1percent = common_Map(2000,
+                calibration.currentSetTable[0][1],
+                calibration.currentSetTable[1][1],
+                calibration.currentSetTable[0][0],
+                calibration.currentSetTable[1][1]);
+        hal_setDAC(dac1percent);
+        screen_FastString6x8("Sampling meter...", 0, 1);
+        int32_t currentLow = cal_sampleMeter(10);
+        hal_setDAC(0);
+        //switch to different shunt
+        hal_SelectShunt(HAL_SHUNT_R01);
+        // set DAC to same value as before (which is about 200mA now)
+        screen_FastString6x8("set 1% of low shunt", 0, 2);
+        hal_setDAC(dac1percent);
+        screen_FastString6x8("Sampling meter...", 0, 3);
+        int32_t currentHigh = cal_sampleMeter(10);
+        hal_setDAC(0);
+        //switch to different shunt
+        hal_SelectShunt(HAL_SHUNT_1R);
+
+        // calculate factor between the shunts
+        calibration.shuntFactor = currentHigh * 100 / currentLow;
+        // check for plausibility
+        if (calibration.shuntFactor < 8000 || calibration.shuntFactor > 12000) {
+            errorIndicator = CAL_ERROR_SHUNTFACTOR;
+            cal_DisplayError(errorIndicator);
+            break;
+        }
+    } while (errorIndicator);
+
+    /****************************************
+     * Step 3: voltage calibration
+     * Two point calibration, calibrate
+     * ADC + DAC by comparing with multimeter
+     ***************************************/
+    errorIndicator = 0;
+    do {
+        hal_SetControlMode(HAL_MODE_CV);
+        hal_SelectShunt(HAL_SHUNT_1R);
+        hal_setDAC(HAL_DAC_MAX);
+        // show setup
+        screen_Clear();
+        screen_FastString6x8("Connect a PSU with", 0, 0);
+        screen_FastString6x8("at least 30V via", 0, 1);
+        screen_FastString6x8("a 1k resistor. Use", 0, 2);
+        screen_FastString6x8("the meter in the 'V'", 0, 3);
+        screen_FastString6x8("range at the load.", 0, 4);
+
+        screen_SetSoftButton("Abort", 0);
+
+        do {
+            button = hal_getButton();
+            if (button & HAL_BUTTON_ESC) {
+                calibration.active = 0;
+                return;
+            }
+            setupOK = 1;
+            if (!timer_TimeoutElapsed(meter.timeout)) {
+                int32_t voltage = cal_getUncalibVoltage();
+                if (meter.function != UT61E_FUNCTION_VOLTAGE) {
+                    screen_FastString6x8("!Switch to V range! ", 0, 5);
+                    setupOK = 0;
+                } else if (!meter.DC) {
+                    screen_FastString6x8("!Switch to DC!      ", 0, 5);
+                    setupOK = 0;
+                } else if (!meter.AUTO) {
+                    screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
+                    setupOK = 0;
+                } else if (voltage < 28000) {
+                    screen_FastString6x8("!Apply at least 30V!", 0, 5);
+                    setupOK = 0;
+                }
+            } else {
+                // no meter connected
+                screen_FastString6x8("!No meter connected!", 0, 5);
+                setupOK = 0;
+            }
+            if (setupOK) {
+                screen_SetSoftButton("Start", 2);
+            }
+            timer_waitms(100);
+        } while (!(button & HAL_BUTTON_ENTER) || !setupOK);
+
+        screen_Clear();
+        hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+        uint32_t i;
+        errorIndicator = 0;
+        // set DAC to first calibration point
+        screen_FastString6x8("Setting to 20V...", 0, 0);
+        hal_setDAC(12480);
+        calibration.voltageSetTable[0][0] = 12480;
+        screen_FastString6x8("Sampling meter...", 0, 1);
+        calibration.voltageSetTable[0][1] = cal_sampleMeter(10);
+        screen_FastString6x8("Sampling ADC...", 0, 2);
+        calibration.voltageSenseTable[0][0] = hal_getADC(100);
+        calibration.voltageSenseTable[0][1] = calibration.voltageSetTable[1][1];
+        // set DAC to second calibration point
+        screen_FastString6x8("Setting to 10V...", 0, 3);
+        hal_setDAC(6240);
+        calibration.voltageSetTable[1][0] = 6240;
+        screen_FastString6x8("Sampling meter...", 0, 4);
+        calibration.voltageSetTable[1][1] = cal_sampleMeter(10);
+        screen_FastString6x8("Sampling ADC...", 0, 5);
+        calibration.voltageSenseTable[1][0] = hal_getADC(100);
+        calibration.voltageSenseTable[1][1] = calibration.voltageSetTable[1][1];
+        // check values for plausibility
+        if (calibration.voltageSetTable[0][1]
+                <= calibration.voltageSetTable[1][1]) {
+            errorIndicator = CAL_ERROR_METER_MONOTONIC;
+            cal_DisplayError(errorIndicator);
+            break;
+        }
+        if (calibration.voltageSenseTable[0][0]
+                <= calibration.voltageSenseTable[1][0]) {
+            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
+            cal_DisplayError(errorIndicator);
+            break;
+        }
+        // set current back to zero
+        hal_SetControlMode(HAL_MODE_CC);
+        hal_setDAC(0);
 
     } while (errorIndicator);
-    // calculate offset by extrapolating the first two data points
-    // TODO is it possible to measure this?
-    calibration.currentSetTableLow[0][0] = common_Map(0,
-            calibration.currentSetTableLow[1][1],
-            calibration.currentSetTableLow[2][1],
-            calibration.currentSetTableLow[1][0],
-            calibration.currentSetTableLow[2][0]);
-
-    calibration.currentSenseTableLow[0][1] = 0;
-    calibration.currentSenseTableLow[0][0] = common_Map(0,
-            calibration.currentSenseTableLow[1][1],
-            calibration.currentSenseTableLow[2][1],
-            calibration.currentSenseTableLow[1][0],
-            calibration.currentSenseTableLow[2][0]);
-    calibration.currentSenseTableLow[0][1] = 0;
 
 //    // save calibration values in FLASH
 //    cal_writeToFlash();
@@ -311,6 +421,10 @@ void cal_DisplayError(uint8_t error) {
         screen_FastString6x8("strictly monotonic.", 0, 3);
         screen_FastString6x8("(Probable a DAC or", 0, 4);
         screen_FastString6x8("int. control problem)", 0, 5);
+        break;
+    case CAL_ERROR_SHUNTFACTOR:
+        screen_FastString6x8("High deviation from", 0, 2);
+        screen_FastString6x8("expected value.", 0, 2);
         break;
     }
     screen_SetSoftButton("Retry", 0);
@@ -527,47 +641,22 @@ void calibrationDisplayMultimeterInfo(void) {
  * \param mA Current the load should draw
  */
 void cal_setCurrent(uint32_t uA) {
-    uint8_t i;
-    switch (settings.powerMode) {
-    case 0:
-        // low-power mode active
-        // search appropriate calibration points
-        for (i = 1; i <= CAL_POINTS_FULLSCALE; i++) {
-            if (calibration.currentSetTableLow[i][1] >= uA)
-                break;
-        }
-        if (i > CAL_POINTS_FULLSCALE) {
-            // value is off scale
-            hal_setDAC(HAL_DAC_MAX);
-        } else {
-            // interpolate between calibration points
-            hal_setDAC(
-                    common_Map(uA, calibration.currentSetTableLow[i - 1][1],
-                            calibration.currentSetTableLow[i][1],
-                            calibration.currentSetTableLow[i - 1][0],
-                            calibration.currentSetTableLow[i][0]));
-        }
-        break;
-    case 1:
-        // high-power mode active
-        // search appropriate calibration points
-        for (i = 1; i <= CAL_POINTS_FULLSCALE; i++) {
-            if (calibration.currentSetTableHigh[i][1] >= uA)
-                break;
-        }
-        if (i > CAL_POINTS_FULLSCALE) {
-            // value is off scale
-            hal_setDAC(HAL_DAC_MAX);
-        } else {
-            // interpolate between calibration points
-            hal_setDAC(
-                    common_Map(uA, calibration.currentSetTableHigh[i - 1][1],
-                            calibration.currentSetTableHigh[i][1],
-                            calibration.currentSetTableHigh[i - 1][0],
-                            calibration.currentSetTableHigh[i][0]));
-        }
-        break;
+    if (uA >= settings.maxCurrent[settings.powerMode]) {
+        uA = settings.maxCurrent[settings.powerMode];
     }
+    if (settings.powerMode) {
+        // low shunt active (high power mode)
+        uA = ((int64_t) uA * 100) / calibration.shuntFactor;
+    }
+    int32_t dac = common_Map(uA, calibration.currentSetTable[1][0],
+            calibration.currentSetTable[1][1],
+            calibration.currentSetTable[0][0],
+            calibration.currentSetTable[0][1]);
+    if (dac < 0)
+        dac = 0;
+    else if (dac > HAL_DAC_MAX)
+        dac = HAL_DAC_MAX;
+    hal_setDAC(dac);
 }
 
 /**
@@ -576,59 +665,16 @@ void cal_setCurrent(uint32_t uA) {
  * \return Current in mA
  */
 int32_t cal_getCurrent(void) {
-    uint8_t i;
     hal_SelectADCChannel(HAL_ADC_CURRENT);
     int32_t raw = hal_getADC(1);
-    switch (settings.powerMode) {
-    case 0:
-        // low-power mode active
-        // search appropriate calibration points
-        for (i = 1; i <= CAL_POINTS_FULLSCALE; i++) {
-            if (calibration.currentSenseTableLow[i][0] >= raw)
-                break;
-        }
-        if (i > CAL_POINTS_FULLSCALE) {
-            // value is off scale
-            // extrapolate from full scale
-            return common_Map(raw, calibration.currentSenseTableLow[0][0],
-                    calibration.currentSenseTableLow[CAL_POINTS_FULLSCALE][0],
-                    calibration.currentSenseTableLow[0][1],
-                    calibration.currentSenseTableLow[CAL_POINTS_FULLSCALE][1]);
-        } else {
-            // interpolate between calibration points
-            return common_Map(raw, calibration.currentSenseTableLow[i - 1][0],
-                    calibration.currentSenseTableLow[i][0],
-                    calibration.currentSenseTableLow[i - 1][1],
-                    calibration.currentSenseTableLow[i][1]);
-        }
-        break;
-    case 1:
-        // high-power mode active
-        // search appropriate calibration points
-        for (i = 1; i <= CAL_POINTS_FULLSCALE; i++) {
-            if (calibration.currentSenseTableHigh[i][0] >= raw)
-                break;
-        }
-        if (i > CAL_POINTS_FULLSCALE) {
-            // value is off scale
-            // extrapolate from full scale
-            return common_Map(raw, calibration.currentSenseTableHigh[0][0],
-                    calibration.currentSenseTableHigh[CAL_POINTS_FULLSCALE][0],
-                    calibration.currentSenseTableHigh[0][1],
-                    calibration.currentSenseTableHigh[CAL_POINTS_FULLSCALE][1]);
-        } else {
-            // interpolate between calibration points
-            return common_Map(raw, calibration.currentSenseTableHigh[i - 1][0],
-                    calibration.currentSenseTableHigh[i][0],
-                    calibration.currentSenseTableHigh[i - 1][1],
-                    calibration.currentSenseTableHigh[i][1]);
-        }
-        return 0;
-        break;
-    default:
-        return 0;
-        break;
+    int32_t current = common_Map(raw, calibration.currentSenseTable[0][0],
+            calibration.currentSenseTable[0][1],
+            calibration.currentSenseTable[1][0],
+            calibration.currentSenseTable[1][1]);
+    if (settings.powerMode) {
+        current = ((int64_t) current * calibration.shuntFactor) / 100;
     }
+    return current;
 }
 
 /**
@@ -637,26 +683,13 @@ int32_t cal_getCurrent(void) {
  * \return Voltage in mV
  */
 int32_t cal_getVoltage(void) {
-//    uint16_t biased = hal_getADC(ADC_VOLTAGE_SENSE, 1);
-//    int32_t ret = 0;
-//    if (hal.voltageRange == RANGE_LOW) {
-//        int16_t unbiased = biased - calibration.voltageSenseOffsetLowRange;
-//        ret = unbiased * calibration.voltageSenseScaleLowRange;
-//    } else {
-//        int16_t unbiased = biased - calibration.voltageSenseOffsetHighRange;
-//        ret = unbiased * calibration.voltageSenseScaleHighRange;
-//    }
-//    if (biased >= 3500 && hal.voltageRange == RANGE_LOW) {
-//        // low range is near limit -> switch to high range
-//        hal_setVoltageGain(0);
-//    } else if (biased <= 300 && hal.voltageRange == RANGE_HIGH) {
-//        // high range is near limit -> switch to low range
-//        hal_setVoltageGain(1);
-//    }
-//    if (ret < 0)
-//        ret = 0;
-//    return ret;
-    return 10000000UL;
+    hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+    int32_t raw = hal_getADC(1);
+    int32_t voltage = common_Map(raw, calibration.voltageSenseTable[0][0],
+            calibration.voltageSenseTable[0][1],
+            calibration.voltageSenseTable[1][0],
+            calibration.voltageSenseTable[1][1]);
+    return voltage;
 }
 
 int32_t cal_getUncalibVoltage(void) {

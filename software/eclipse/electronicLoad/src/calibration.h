@@ -18,10 +18,9 @@
 
 #define CAL_INDICATOR               0x02
 
-#define CAL_POINTS_FULLSCALE        20
-
 #define CAL_ERROR_METER_MONOTONIC   1
 #define CAL_ERROR_ADC_MONOTONIC     2
+#define CAL_ERROR_SHUNTFACTOR       3
 
 /*
  * This section must fit into four flash pages and thus
@@ -29,14 +28,18 @@
  */
 struct {
     // ADC value[0] -> actual current[1]
-    int32_t currentSenseTableLow[CAL_POINTS_FULLSCALE + 1][2];
+    int32_t currentSenseTable[2][2];
     // DAC value[0] -> actual current[1]
-    int32_t currentSetTableLow[CAL_POINTS_FULLSCALE + 1][2];
+    int32_t currentSetTable[2][2];
 
-    // ADC value[0] -> actual current[1]
-    int32_t currentSenseTableHigh[CAL_POINTS_FULLSCALE + 1][2];
-    // DAC value[0] -> actual current[1]
-    int32_t currentSetTableHigh[CAL_POINTS_FULLSCALE + 1][2];
+    // ADC value[0] -> actual voltage[1]
+    int32_t voltageSenseTable[2][2];
+    // DAC value[0] -> actual voltage[1]
+    int32_t voltageSetTable[2][2];
+
+    // factor between the two current shunts (in %)
+    // should be about 10000 (R01:1R)
+    uint32_t shuntFactor;
 
     uint8_t active;
 } calibration;
