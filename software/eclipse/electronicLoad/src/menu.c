@@ -29,7 +29,9 @@ void menu_DefaultScreenHandler(void) {
         // set default screen entries
         screen_Clear();
         char buf[11];
-        if (!load.powerOn) {
+        if (load.state.temp1 > LOAD_MAX_TEMP || load.state.temp2 > LOAD_MAX_TEMP) {
+            screen_FastString12x16("HIGH TEMP", 10, 4);
+        } else if (!load.powerOn) {
             screen_FastString12x16("INPUT OFF", 10, 4);
         } else if (waveform.form != WAVE_NONE) {
             screen_FastString12x16("WAVE ON", 22, 4);
@@ -136,6 +138,15 @@ void menu_DefaultScreenHandler(void) {
         screen_FastString6x8(smallUnit2, 86, 1);
 
         screen_InvertChar6x8(108 - encoderPosition * 6, 3);
+
+        string_fromUintUnit(load.state.temp1, buf, 3, 0, 0);
+        buf[3] = '\xf8';
+        buf[4] = 'C';
+        buf[5] = '/';
+        string_fromUintUnit(load.state.temp2, &buf[6], 3, 0, 0);
+        buf[9] = '\xf8';
+        buf[10] = 'C';
+        screen_FastString6x8(buf, 62, 2);
 
         screen_SetSoftButton("\x1b", 0);
         screen_SetSoftButton("\x1a", 1);
