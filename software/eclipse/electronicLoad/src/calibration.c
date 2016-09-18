@@ -866,10 +866,10 @@ void cal_setCurrent(uint32_t uA) {
         // low shunt active (high power mode)
         uA = ((int64_t) uA * 100) / calibration.shuntFactor;
     }
-    int32_t dac = common_Map(uA, calibration.currentSetTable[1][0],
+    int32_t dac = common_Map(uA, calibration.currentSetTable[0][1],
             calibration.currentSetTable[1][1],
             calibration.currentSetTable[0][0],
-            calibration.currentSetTable[0][1]);
+            calibration.currentSetTable[1][0]);
     if (dac < 0)
         dac = 0;
     else if (dac > HAL_DAC_MAX)
@@ -884,10 +884,10 @@ void cal_setVoltage(uint32_t uV) {
         uV = settings.minVoltage[settings.powerMode];
     }
 
-    int32_t dac = common_Map(uV, calibration.voltageSetTable[1][0],
+    int32_t dac = common_Map(uV, calibration.voltageSetTable[0][1],
             calibration.voltageSetTable[1][1],
             calibration.voltageSetTable[0][0],
-            calibration.voltageSetTable[0][1]);
+            calibration.voltageSetTable[1][0]);
     if (dac < 0)
         dac = 0;
     else if (dac > HAL_DAC_MAX)
@@ -903,9 +903,9 @@ void cal_setPower(uint32_t uW) {
         // low shunt active (high power mode)
         uW = ((int64_t) uW * 100) / calibration.shuntFactor;
     }
-    int32_t dac = common_Map(uW, calibration.powerSetTable[1][0],
+    int32_t dac = common_Map(uW, calibration.powerSetTable[0][1],
             calibration.powerSetTable[1][1], calibration.powerSetTable[0][0],
-            calibration.powerSetTable[0][1]);
+            calibration.powerSetTable[1][0]);
     if (dac < 0)
         dac = 0;
     else if (dac > HAL_DAC_MAX)
@@ -925,10 +925,10 @@ void cal_setResistance(uint32_t uR) {
     }
     // convert resistance in conductance
     int32_t uS = ((int64_t) 1000000000LL) / uR;
-    int32_t dac = common_Map(uS, calibration.conductanceSetTable[1][0],
+    int32_t dac = common_Map(uS, calibration.conductanceSetTable[0][1],
             calibration.conductanceSetTable[1][1],
             calibration.conductanceSetTable[0][0],
-            calibration.conductanceSetTable[0][1]);
+            calibration.conductanceSetTable[1][0]);
     if (dac < 0)
         dac = 0;
     else if (dac > HAL_DAC_MAX)
@@ -945,8 +945,8 @@ int32_t cal_getCurrent(void) {
     hal_SelectADCChannel(HAL_ADC_CURRENT);
     int32_t raw = hal_getADC(1);
     int32_t current = common_Map(raw, calibration.currentSenseTable[0][0],
-            calibration.currentSenseTable[0][1],
             calibration.currentSenseTable[1][0],
+            calibration.currentSenseTable[0][1],
             calibration.currentSenseTable[1][1]);
     if (settings.powerMode) {
         current = ((int64_t) current * calibration.shuntFactor) / 100;
@@ -963,8 +963,8 @@ int32_t cal_getVoltage(void) {
     hal_SelectADCChannel(HAL_ADC_VOLTAGE);
     int32_t raw = hal_getADC(1);
     int32_t voltage = common_Map(raw, calibration.voltageSenseTable[0][0],
-            calibration.voltageSenseTable[0][1],
             calibration.voltageSenseTable[1][0],
+            calibration.voltageSenseTable[0][1],
             calibration.voltageSenseTable[1][1]);
     return voltage;
 }
