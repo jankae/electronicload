@@ -179,7 +179,14 @@ void load_update(void) {
         }
         break;
     case FUNCTION_CR:
-        // TODO
+        hal_SetControlMode(HAL_MODE_CR);
+        if (enableInput) {
+            cal_setResistance(load.resistance);
+        } else {
+            // actually setting conductance thus a DAC
+            // value of 0 equals infinite resistance
+            hal_setDAC(0);
+        }
         break;
     case FUNCTION_CP:
         hal_SetControlMode(HAL_MODE_CP);

@@ -152,6 +152,11 @@ void cal_setDefaultCalibration(void) {
     calibration.powerSetTable[1][0] = 65536;
     calibration.powerSetTable[1][1] = 2038557;
 
+    calibration.conductanceSetTable[0][0] = 0;
+    calibration.conductanceSetTable[0][1] = 0;
+    calibration.conductanceSetTable[1][0] = 65536;
+    calibration.conductanceSetTable[1][1] = 199680;
+
     calibration.shuntFactor = 10000;
 }
 
@@ -237,7 +242,7 @@ void calibrationProcessAutomatic(void) {
                 } else if (!meter.AUTO) {
                     screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
                     setupOK = 0;
-                } else if (voltage < 28000) {
+                } else if (voltage < 28000000) {
                     screen_FastString6x8("!Apply at least 30V!", 0, 5);
                     setupOK = 0;
                 }
@@ -332,7 +337,7 @@ void calibrationProcessAutomatic(void) {
                 } else if (!meter.AUTO) {
                     screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
                     setupOK = 0;
-                } else if (voltage > 11000 || voltage < 9000) {
+                } else if (voltage > 11000000 || voltage < 9000000) {
                     screen_FastString6x8("!Apply 10V!         ", 0, 5);
                     setupOK = 0;
                 }
@@ -486,7 +491,7 @@ void calibrationProcessAutomatic(void) {
                 calibration.voltageSenseTable[0][1],
                 calibration.voltageSenseTable[1][0],
                 calibration.voltageSenseTable[1][1]);
-        uint32_t power = ((uint64_t) current * 1000000) / voltage;
+        uint32_t power = ((uint64_t) current * voltage) / 1000000;
 
         calibration.powerSetTable[0][0] = HAL_DAC_MAX * 0.1;
         calibration.powerSetTable[0][1] = power;
@@ -508,7 +513,7 @@ void calibrationProcessAutomatic(void) {
                 calibration.voltageSenseTable[1][1]);
         power = ((uint64_t) current * 1000000) / voltage;
 
-        calibration.powerSetTable[1][0] = HAL_DAC_MAX * 0.1;
+        calibration.powerSetTable[1][0] = HAL_DAC_MAX * 0.9;
         calibration.powerSetTable[1][1] = power;
         // set current back to zero
         hal_SetControlMode(HAL_MODE_CC);
@@ -516,6 +521,90 @@ void calibrationProcessAutomatic(void) {
         // check values for plausibility
         if (calibration.powerSetTable[0][1]
                 >= calibration.powerSetTable[1][1]) {
+            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
+            cal_DisplayError(errorIndicator);
+            break;
+        }
+    } while (errorIndicator);
+
+    /****************************************
+     * Step 5: low range resistance calibration
+     * Two point calibration, calibrate
+     * DAC by sampling (calibrated ADC)
+     ***************************************/
+    errorIndicator = 0;
+    do {
+        screen_Clear();
+        screen_FastString6x8("Connect a 1V 300mA", 0, 0);
+        screen_FastString6x8("PSU.", 0, 1);
+        screen_FastString6x8("Calib. resistance.", 0, 2);
+        screen_SetSoftButton("Abort", 0);
+        do {
+            setupOK = 1;
+            button = hal_getButton();
+            if (button & HAL_BUTTON_SOFT0) {
+                calibration.active = 0;
+                return;
+            }
+            uint32_t voltage = cal_getUncalibVoltage();
+            if (voltage < 800000 || voltage > 1200000)
+                setupOK = 0;
+            if (setupOK) {
+                screen_SetSoftButton("Start", 2);
+            }
+            timer_waitms(100);
+        } while (!(button & HAL_BUTTON_SOFT2) || !setupOK);
+        while (hal_getButton())
+            ;
+
+        hal_SetControlMode(HAL_MODE_CR);
+        hal_SelectShunt(HAL_SHUNT_1R);
+        screen_Clear();
+        screen_FastString6x8("set DAC to 10%...", 0, 0);
+        hal_setDAC(HAL_DAC_MAX * 0.1);
+        screen_FastString6x8("Sampling ADC...", 0, 1);
+        hal_SelectADCChannel(HAL_ADC_CURRENT);
+        uint32_t current = common_Map(hal_getADC(100),
+                calibration.currentSenseTable[0][0],
+                calibration.currentSenseTable[0][1],
+                calibration.currentSenseTable[1][0],
+                calibration.currentSenseTable[1][1]);
+        hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+        uint32_t voltage = common_Map(hal_getADC(100),
+                calibration.voltageSenseTable[0][0],
+                calibration.voltageSenseTable[0][1],
+                calibration.voltageSenseTable[1][0],
+                calibration.voltageSenseTable[1][1]);
+        uint32_t conductance = ((uint64_t) current * 1000000) / voltage;
+
+        calibration.powerSetTable[0][0] = HAL_DAC_MAX * 0.1;
+        calibration.powerSetTable[0][1] = conductance;
+
+        screen_FastString6x8("set DAC to 90%...", 0, 2);
+        hal_setDAC(HAL_DAC_MAX * 0.9);
+        screen_FastString6x8("Sampling ADC...", 0, 3);
+        hal_SelectADCChannel(HAL_ADC_CURRENT);
+        current = common_Map(hal_getADC(100),
+                calibration.currentSenseTable[0][0],
+                calibration.currentSenseTable[0][1],
+                calibration.currentSenseTable[1][0],
+                calibration.currentSenseTable[1][1]);
+        hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+        voltage = common_Map(hal_getADC(100),
+                calibration.voltageSenseTable[0][0],
+                calibration.voltageSenseTable[0][1],
+                calibration.voltageSenseTable[1][0],
+                calibration.voltageSenseTable[1][1]);
+        conductance = ((uint64_t) current * 1000000) / voltage;
+
+        calibration.conductanceSetTable[1][0] = HAL_DAC_MAX * 0.9;
+        calibration.conductanceSetTable[1][1] = conductance;
+        // set current back to zero
+        hal_SetControlMode(HAL_MODE_CC);
+        hal_setDAC(0);
+        // check values for plausibility
+        if (calibration.conductanceSetTable[0][1]
+                >= calibration.conductanceSetTable[1][1]) {
             errorIndicator = CAL_ERROR_ADC_MONOTONIC;
             cal_DisplayError(errorIndicator);
             break;
@@ -817,6 +906,29 @@ void cal_setPower(uint32_t uW) {
     int32_t dac = common_Map(uW, calibration.powerSetTable[1][0],
             calibration.powerSetTable[1][1], calibration.powerSetTable[0][0],
             calibration.powerSetTable[0][1]);
+    if (dac < 0)
+        dac = 0;
+    else if (dac > HAL_DAC_MAX)
+        dac = HAL_DAC_MAX;
+    hal_setDAC(dac);
+}
+
+void cal_setResistance(uint32_t uR) {
+    if (uR > settings.maxResistance[settings.powerMode]) {
+        uR = settings.maxResistance[settings.powerMode];
+    } else if (uR < settings.minResistance[settings.powerMode]) {
+        uR = settings.minResistance[settings.powerMode];
+    }
+    if (settings.powerMode) {
+        // low shunt active (high power mode)
+        uR = ((int64_t) uR * calibration.shuntFactor) / 100;
+    }
+    // convert resistance in conductance
+    int32_t uS = ((int64_t) 1000000000LL) / uR;
+    int32_t dac = common_Map(uS, calibration.conductanceSetTable[1][0],
+            calibration.conductanceSetTable[1][1],
+            calibration.conductanceSetTable[0][0],
+            calibration.conductanceSetTable[0][1]);
     if (dac < 0)
         dac = 0;
     else if (dac > HAL_DAC_MAX)

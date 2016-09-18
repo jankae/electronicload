@@ -40,8 +40,8 @@ struct {
     // DAC value[0] -> actual power[1]
     int32_t powerSetTable[2][2];
 
-//    // DAC value[0] -> actual conductance[1]
-//    int32_t conductanceSetTable[2][2];
+    // DAC value[0] -> actual conductance[1]
+    int32_t conductanceSetTable[2][2];
 
 // factor between the two current shunts (in %)
 // should be about 10000 (R01:1R)
@@ -105,6 +105,8 @@ void cal_setCurrent(uint32_t uA);
 void cal_setVoltage(uint32_t uV);
 
 void cal_setPower(uint32_t uW);
+
+void cal_setResistance(uint32_t uR);
 
 /**
  * \brief Returns the current being drawn
