@@ -108,6 +108,13 @@ void load_update(void) {
     hal_frontPanelUpdate();
     if (calibration.active)
         return;
+
+    if (settings.powerMode) {
+        hal_SelectShunt(HAL_SHUNT_R01);
+    } else {
+        hal_SelectShunt(HAL_SHUNT_1R);
+    }
+
     load.state.voltage = cal_getVoltage();
     load.state.current = cal_getCurrent();
     load.state.power = (uint64_t) load.state.voltage * load.state.current
@@ -129,8 +136,6 @@ void load_update(void) {
     else if (highTemp <= LOAD_FANOFF_TEMP)
         hal_setFan(0);
 
-    uint32_t current = 0;
-
     uint8_t triggerIn = hal_getTriggerIn();
     events.triggerInState = triggerIn - load.triggerInOld;
     load.triggerInOld = triggerIn;
@@ -143,39 +148,48 @@ void load_update(void) {
     characteristic_Update();
     load_ConstrainSettings();
 
-    uint32_t currentLimit = (settings.maxPower[settings.powerMode] * 1000)
+    uint32_t current = 0;
+    uint32_t currentLimit = (settings.maxPower[settings.powerMode] * 1000000)
             / load.state.voltage;
 
+    uint8_t enableInput = load.powerOn;
+    if (highTemp > LOAD_MAX_TEMP) {
+        // disable input if temperature too high
+        enableInput = 0;
+    }
     switch (load.mode) {
     case FUNCTION_CC:
         if (load.current > currentLimit)
             current = currentLimit;
         else
             current = load.current;
+        hal_SetControlMode(HAL_MODE_CC);
+        if (enableInput) {
+            cal_setCurrent(current);
+        } else {
+            hal_setDAC(0);
+        }
         break;
     case FUNCTION_CV:
-        //TODO
+        hal_SetControlMode(HAL_MODE_CV);
+        if (enableInput) {
+            cal_setCurrent(load.voltage);
+        } else {
+            hal_setDAC(HAL_DAC_MAX);
+        }
         break;
     case FUNCTION_CR:
-        current = (load.state.voltage * 1000) / load.resistance;
-        if (current > currentLimit)
-            current = currentLimit;
+        // TODO
         break;
     case FUNCTION_CP:
-        if (load.state.voltage > 0) {
-            current = (load.power * 1000) / load.state.voltage;
-            if (current > settings.maxCurrent[settings.powerMode])
-                current = settings.maxCurrent[settings.powerMode];
-        } else
-            current = settings.maxCurrent[settings.powerMode];
+        hal_SetControlMode(HAL_MODE_CP);
+        if (enableInput) {
+            cal_setCurrent(load.power);
+        } else {
+            hal_setDAC(0);
+        }
         break;
     }
-    if (load.powerOn && highTemp <= LOAD_MAX_TEMP
-            && load.state.voltage >= 2700) {
-        cal_setCurrent(current);
-    } else {
-        hal_setDAC(0);
-        //cal_setCurrent(0);
-    }
+
     stats_Update();
 }
