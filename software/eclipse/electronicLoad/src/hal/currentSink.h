@@ -11,6 +11,12 @@
 #include <stdint.h>
 #include "stm32f10x_conf.h"
 
+// Uses inline asm code for critical software SPI communication
+// It is *not* enough to adjust the pin definitions below if a pinchange
+// should happen. The assembler code itself must also be changed.
+// (or comment HAL_USE_ASM_SPI and use the C code)
+#define HAL_USE_ASM_SPI
+
 #define HAL_CS_A_LOW        (GPIOA->BRR = GPIO_Pin_5)
 #define HAL_CS_A_HIGH       (GPIOA->BSRR = GPIO_Pin_5)
 #define HAL_CS_B_LOW        (GPIOA->BRR = GPIO_Pin_7)
