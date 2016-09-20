@@ -266,7 +266,7 @@ void menu_DefaultScreenHandler(void) {
  * A submenu item is entered by pressing ENTER or the encoder.
  */
 void menu_MainMenu(void) {
-    char *entries[MENU_MAIN_MAX_ENRIES];
+    const char *entries[MENU_MAIN_MAX_ENRIES];
     uint8_t i;
     for (i = 0; i < menu.nentries; i++) {
         entries[i] = menu.entries[i].descr;
@@ -470,7 +470,7 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
     return 1;
 }
 
-int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems) {
+int8_t menu_ItemChooseDialog(const char *title, const char **items, uint8_t nitems) {
     if (nitems == 0) {
         // no menu entries
         // -> no main menu

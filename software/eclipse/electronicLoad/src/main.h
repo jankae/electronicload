@@ -16,5 +16,6 @@
 #include "settings.h"
 #include "multimeter.h"
 #include "selftest.h"
+#include "test.h"
 
 #endif

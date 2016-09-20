@@ -85,6 +85,6 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min, uint32_t 
  *
  * \return item number if item was chosen, otherwise -1
  */
-int8_t menu_ItemChooseDialog(char *title, char **items, uint8_t nitems);
+int8_t menu_ItemChooseDialog(const char *title, const char **items, uint8_t nitems);
 
 #endif /* SYSTEM_MENU_H_ */

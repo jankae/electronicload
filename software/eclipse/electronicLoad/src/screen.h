@@ -96,6 +96,8 @@ void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
  */
 void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c);
 
+void screen_InvertChar12x16(uint8_t x, uint8_t ypage);
+
 /**
  * \brief Writes a 6x8 font character into the display data buffer
  *

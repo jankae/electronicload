@@ -1189,6 +1189,17 @@ void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
     }
 }
 
+void screen_InvertChar12x16(uint8_t x, uint8_t ypage) {
+    if (x >= 128 || ypage >= 7)
+        return;
+    uint8_t i;
+    for (i = 0; i < 12; i++) {
+        display.buffer[x + i + ypage * 128] ^= 0xFF;
+        display.buffer[x + i + (ypage + 1) * 128] ^= 0xFF;
+        display.updateTime = timer_SetTimeout(2);
+    }
+}
+
 /**
  * \brief Writes a 6x8 font character into the display data buffer
  *
