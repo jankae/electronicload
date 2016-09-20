@@ -149,16 +149,16 @@ int32_t waveform_GetValue(uint16_t wavetime) {
         break;
     case WAVE_SAW:
         value = -waveform.amplitude
-                + (int64_t) (wavetime * waveform.amplitude * 2) / 65536;
+                + ((int64_t) wavetime * waveform.amplitude * 2) / 65536;
         break;
     case WAVE_TRIANGLE:
         if (wavetime >= 32768)
             wavetime = 65535 - wavetime;
         value = -waveform.amplitude
-                + (int64_t) (wavetime * waveform.amplitude * 2) / 32768;
+                + ((int64_t) wavetime * waveform.amplitude * 2) / 32768;
         break;
     case WAVE_SINE:
-        value = (int64_t) (waveform_Sine(wavetime) * waveform.amplitude)
+        value = ((int64_t) waveform_Sine(wavetime) * waveform.amplitude)
                 / 65536;
         break;
     }
