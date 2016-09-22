@@ -5,7 +5,11 @@ void test_Menu(void) {
     do {
         const char *entries[TEST_NUM_TESTS];
         const char availableBaudrates[TEST_NUM_TESTS][21] = { "Font", "Buttons",
-                "Snake" };
+                "AVR GPIO", "AVR ADC"
+#ifdef TEST_INCLUDE_EASTER
+                , "Snake"
+#endif
+                };
         for (sel = 0; sel < TEST_NUM_TESTS; sel++) {
             entries[sel] = availableBaudrates[sel];
         }
@@ -20,8 +24,16 @@ void test_Menu(void) {
             test_Buttons();
             break;
         case 2:
+            test_AVRGPIO();
+            break;
+        case 3:
+            test_AVRADC();
+            break;
+#ifdef TEST_INCLUDE_EASTER
+        case TEST_NUM_TESTS - 1:
             test_Snake();
             break;
+#endif
         }
     } while (sel >= 0);
 }
@@ -245,6 +257,112 @@ void test_Buttons(void) {
     screen_Clear();
 }
 
+void test_AVRGPIO(void) {
+    // block load update stuff (includes all SPI communication)
+    calibration.active = 1;
+    while (hal_getButton())
+        ;
+    uint8_t gpios = 0;
+    uint8_t active = 1;
+
+    char gpioNames[7][12] = { "1:SHUNT_EN2", "2:SHUNT_EN1", "3:SHUNTSEL",
+            "4:FAN", "5:MODE_A", "6:MODE_B", "7:ANA_MUX" };
+    do {
+        screen_Clear();
+        screen_FastString6x8("Manual GPIO control", 0, 0);
+        // display current GPIO status
+        uint8_t i;
+        uint8_t j = 1;
+        for (i = 0; i < 7; i++) {
+            screen_FastString6x8(gpioNames[i], 0, i + 1);
+            if (gpios & j) {
+                // this GPIO is set
+                screen_FastChar6x8(90, i + 1, '1');
+            } else {
+                screen_FastChar6x8(90, i + 1, '0');
+            }
+            j <<= 1;
+        }
+        // clear all GPIOs
+        hal_ClearAVRGPIO(0xff);
+        // set only active GPIOs
+        hal_SetAVRGPIO(gpios);
+        // update actual ports on AVR
+        hal_UpdateAVRGPIOs();
+
+        timer_waitms(10);
+
+        uint32_t button = hal_getButton();
+        if (button & HAL_BUTTON_ESC) {
+            active = 0;
+            continue;
+        }
+        if (button & HAL_BUTTON_1) {
+            gpios ^= 0x01;
+        }
+        if (button & HAL_BUTTON_2) {
+            gpios ^= 0x02;
+        }
+        if (button & HAL_BUTTON_3) {
+            gpios ^= 0x04;
+        }
+        if (button & HAL_BUTTON_4) {
+            gpios ^= 0x08;
+        }
+        if (button & HAL_BUTTON_5) {
+            gpios ^= 0x10;
+        }
+        if (button & HAL_BUTTON_6) {
+            gpios ^= 0x20;
+        }
+        if (button & HAL_BUTTON_7) {
+            gpios ^= 0x40;
+        }
+        while (hal_getButton())
+            ;
+    } while (active);
+    calibration.active = 0;
+}
+
+void test_AVRADC(void) {
+    // block load update stuff (includes all SPI communication)
+    calibration.active = 1;
+    while (hal_getButton())
+        ;
+    uint8_t gpios = 0;
+    uint8_t active = 1;
+
+    do {
+        screen_Clear();
+        screen_FastString6x8("AVR ADC overview", 0, 0);
+        // display all ADC channels
+        uint8_t i;
+        for (i = 0; i < 9; i++) {
+            uint16_t result = hal_ReadAVRADC(i);
+            char buf[5];
+            string_fromUint(result, buf, 4, 0);
+            uint8_t x = i < 5 ? 0 : 60;
+            uint8_t y = i < 5 ? i + 1 : i - 4;
+            screen_FastChar6x8(x, y, i + '0');
+            screen_FastChar6x8(x + 6, y, ':');
+            screen_FastString6x8(buf, x + 12, y);
+        }
+
+        timer_waitms(100);
+
+        uint32_t button = hal_getButton();
+        if (button & HAL_BUTTON_ESC) {
+            active = 0;
+            continue;
+        }
+        while (hal_getButton())
+            ;
+    } while (active);
+    calibration.active = 0;
+
+}
+
+#ifdef TEST_INCLUDE_EASTER
 void test_Snake(void) {
     while (hal_getButton())
         ;
@@ -458,7 +576,4 @@ void test_Snake(void) {
     while (hal_getButton())
         ;
 }
-
-void test_SnakeDraw(void) {
-
-}
+#endif

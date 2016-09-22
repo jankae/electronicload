@@ -5,15 +5,23 @@
 #include "hal/display.h"
 #include "menu.h"
 
-#define TEST_NUM_TESTS          3
-
 #define TEST_INCLUDE_EASTER
+
+#ifdef TEST_INCLUDE_EASTER
+#define TEST_NUM_TESTS          5
+#else
+#define TEST_NUM_TESTS          4
+#endif
 
 void test_Menu(void);
 
 void test_Font(void);
 
 void test_Buttons(void);
+
+void test_AVRGPIO(void);
+
+void test_AVRADC(void);
 
 #ifdef TEST_INCLUDE_EASTER
 #define SNAKE_LEFT              0
