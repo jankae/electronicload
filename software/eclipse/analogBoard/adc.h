@@ -14,12 +14,5 @@ struct {
  */
 void adc_Init(void);
 
-/**
- * \brief Stores the measured channel into the ADC struct.
- *
- * Also incrementes the channel thus the ADC is cycling through
- * all eight channels.
- */
-ISR(ADC_vect);
 
 #endif /* ADC_H_ */

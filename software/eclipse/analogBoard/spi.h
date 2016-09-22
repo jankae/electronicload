@@ -56,6 +56,7 @@
 #include <avr/interrupt.h>
 
 #include "adc.h"
+#include "portDefines.h"
 
 struct {
     uint8_t ADCbuffer;
