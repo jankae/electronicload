@@ -66,7 +66,7 @@ void hal_ClearAVRGPIO(uint8_t gpio) {
 void hal_UpdateAVRGPIOs(void) {
     static uint8_t oldGPIOs = 0;
     if (hal.AVRgpio != oldGPIOs) {
-        // only update when the is actually a pinchange
+        // only update when there is actually a pinchange
         oldGPIOs = hal.AVRgpio;
         HAL_CLK_LOW;
         hal_SetChipSelect(HAL_CS_AVR);
@@ -134,6 +134,10 @@ uint16_t hal_ReadAVRADC(uint8_t channel) {
 
         word <<= 1;
         HAL_CLK_LOW;
+        if (i == 7 || i == 15) {
+            // wait far longer to give SPI interrupt enough time
+            timer_waitus(6);
+        }
     }
     hal_SetChipSelect(HAL_CS_NONE);
     rec &= 0x000003ff;
@@ -162,14 +166,14 @@ int16_t hal_ReadVoltageRail(uint8_t rail) {
         result = 1126400 / result;
         break;
     case HAL_RAIL_P15V:
-        result = hal_ReadAVRADC(HAL_AVR_ADC_P5V);
+        result = hal_ReadAVRADC(HAL_AVR_ADC_P15V);
         // ADC measures 15V via a voltage divider with 10k/3k3
         // and a reference voltage of 5V
         result *= 492;
         result /= 25;
         break;
     case HAL_RAIL_N15V:
-        result = hal_ReadAVRADC(HAL_AVR_ADC_P5V);
+        result = hal_ReadAVRADC(HAL_AVR_ADC_N15V);
         // calculation assumes that the 15V rail is at 15V
         // ADC measures -15V via a voltage divider between +15V
         // and -15V (6k8/10k) against a reference voltage of 5V
