@@ -112,7 +112,7 @@ void load_update(void) {
     if (settings.powerMode) {
         hal_SelectShunt(HAL_SHUNT_R01);
     } else {
-    hal_SelectShunt(HAL_SHUNT_1R);
+   		hal_SelectShunt(HAL_SHUNT_1R);
     }
     static uint8_t channel = 0;
     if (channel) {
