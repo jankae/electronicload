@@ -51,52 +51,5 @@ int main(void) {
             // start next conversion
             ADCSRA |= (1 << ADSC);
         }
-        if (ports != spi.ports) {
-            // SPI gpio have changed
-            // -> update ports
-            ports = spi.ports;
-
-            if (ports & 0x01) {
-                PORT_SHUNT_EN2 |= (1 << BIT_SHUNT_EN2);
-            } else {
-                PORT_SHUNT_EN2 &= ~(1 << BIT_SHUNT_EN2);
-            }
-
-            if (ports & 0x02) {
-                PORT_SHUNT_EN1 |= (1 << BIT_SHUNT_EN1);
-            } else {
-                PORT_SHUNT_EN1 &= ~(1 << BIT_SHUNT_EN1);
-            }
-
-            if (ports & 0x04) {
-                PORT_SHUNT_SEL |= (1 << BIT_SHUNT_SEL);
-            } else {
-                PORT_SHUNT_SEL &= ~(1 << BIT_SHUNT_SEL);
-            }
-
-            if (ports & 0x08) {
-                PORT_GPIO3 |= (1 << BIT_GPIO3);
-            } else {
-                PORT_GPIO3 &= ~(1 << BIT_GPIO3);
-            }
-
-            if (ports & 0x10) {
-                PORT_MODE_A |= (1 << BIT_MODE_A);
-            } else {
-                PORT_MODE_A &= ~(1 << BIT_MODE_A);
-            }
-
-            if (ports & 0x20) {
-                PORT_MODE_B |= (1 << BIT_MODE_B);
-            } else {
-                PORT_MODE_B &= ~(1 << BIT_MODE_B);
-            }
-
-            if (ports & 0x40) {
-                PORT_ANALOG_MUX |= (1 << BIT_ANALOG_MUX);
-            } else {
-                PORT_ANALOG_MUX &= ~(1 << BIT_ANALOG_MUX);
-            }
-        }
     }
 }
