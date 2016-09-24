@@ -6,7 +6,7 @@ int32_t common_Map(int32_t value, int32_t scaleFromLow, int32_t scaleFromHigh,
     value -= scaleFromLow;
     int32_t rangeFrom = scaleFromHigh - scaleFromLow;
     int32_t rangeTo = scaleToHigh - scaleToLow;
-    value = ((int64_t) value * rangeTo) / rangeFrom;
+    result = ((int64_t) value * rangeTo) / rangeFrom;
     result += scaleToLow;
     return result;
 }
