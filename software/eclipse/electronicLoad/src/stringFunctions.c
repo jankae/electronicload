@@ -48,9 +48,7 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
     for (; firstDigit < digits; digits--) {
         *dest++ = ' ';
     }
-    if (firstDigit < dot || (dot <= firstDigit - digits && dot)) {
-        *dest++ = ' ';
-    }
+    uint8_t _dot = dot;
     char prefix = 0;
     if (baseUnit) {
         // calculate prefix
@@ -64,6 +62,9 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
             dot -= 3;
             prefix = 'm';
         }
+    }
+    if (firstDigit < dot || (dot <= firstDigit - digits && _dot)) {
+        *dest++ = ' ';
     }
     // display value
     if (baseUnit && !prefix) {
