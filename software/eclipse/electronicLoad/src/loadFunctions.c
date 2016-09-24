@@ -112,7 +112,7 @@ void load_update(void) {
     if (settings.powerMode) {
         hal_SelectShunt(HAL_SHUNT_R01);
     } else {
-        hal_SelectShunt(HAL_SHUNT_1R);
+    hal_SelectShunt(HAL_SHUNT_1R);
     }
     static uint8_t channel = 0;
     if (channel) {
@@ -156,8 +156,8 @@ void load_update(void) {
     load_ConstrainSettings();
 
     uint32_t current = 0;
-    uint32_t currentLimit = (settings.maxPower[settings.powerMode] * 1000000)
-            / load.state.voltage;
+    uint32_t currentLimit = ((uint64_t) settings.maxPower[settings.powerMode]
+            * 1000000) / load.state.voltage;
 
     uint8_t enableInput = load.powerOn;
     if (highTemp > LOAD_MAX_TEMP) {
