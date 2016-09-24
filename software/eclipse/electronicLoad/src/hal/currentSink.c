@@ -78,12 +78,52 @@ void hal_UpdateAVRGPIOs(void) {
             } else {
                 HAL_DIN_LOW;
             }
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
             // generate clock pulse
             HAL_CLK_HIGH;
             word <<= 1;
             // delay clock (AVR isn't that fast)
             // Minimum high/low pulse length for AVR on 8MHz is 250ns.
             // This function has at least 300ns high/low pulses.
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
+            asm volatile("NOP");
             asm volatile("NOP");
             asm volatile("NOP");
             asm volatile("NOP");
@@ -131,9 +171,49 @@ uint16_t hal_ReadAVRADC(uint8_t channel) {
         // This function has at least 300ns high/low pulses.
         asm volatile("NOP");
         asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
 
         word <<= 1;
         HAL_CLK_LOW;
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
         if (i == 7 || i == 15) {
             // wait far longer to give SPI interrupt enough time
             timer_waitus(6);
