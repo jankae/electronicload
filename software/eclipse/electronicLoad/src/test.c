@@ -5,7 +5,7 @@ void test_Menu(void) {
     do {
         const char *entries[TEST_NUM_TESTS];
         const char availableBaudrates[TEST_NUM_TESTS][21] = { "Font", "Buttons",
-                "AVR GPIO", "AVR ADC"
+                "AVR GPIO", "AVR ADC", "DAC", "ADC"
 #ifdef TEST_INCLUDE_EASTER
                 , "Snake"
 #endif
@@ -28,6 +28,12 @@ void test_Menu(void) {
             break;
         case 3:
             test_AVRADC();
+            break;
+        case 4:
+            test_DAC();
+            break;
+        case 5:
+            test_ADC();
             break;
 #ifdef TEST_INCLUDE_EASTER
         case TEST_NUM_TESTS - 1:
@@ -359,7 +365,82 @@ void test_AVRADC(void) {
             ;
     } while (active);
     calibration.active = 0;
+}
 
+void test_DAC(void) {
+    // block load update stuff (includes all SPI communication)
+    calibration.active = 1;
+    while (hal_getButton())
+        ;
+    uint8_t active = 1;
+    uint32_t DACvalue = 0;
+    do {
+        screen_Clear();
+        screen_FastString6x8("DAC Test", 0, 0);
+        char buf[11];
+        string_fromUint(DACvalue, buf, 5, 0);
+        screen_FastString6x8("DAC value:", 0, 2);
+        screen_FastString12x16(buf, 0, 3);
+        screen_SetSoftButton("Value", 2);
+
+        hal_setDAC(DACvalue);
+
+        uint32_t button;
+        while (!(button = hal_getButton()))
+            ;
+        if (button & HAL_BUTTON_ESC) {
+            active = 0;
+            continue;
+        }
+        if (button & HAL_BUTTON_SOFT2) {
+            // get new DAC value
+            menu_getInputValue(&DACvalue, "DAC value", 0, 65535, "LSB", NULL,
+            NULL);
+        }
+        while (hal_getButton())
+            ;
+    } while (active);
+    calibration.active = 0;
+}
+
+void test_ADC(void) {
+    // block load update stuff (includes all SPI communication)
+    calibration.active = 1;
+    while (hal_getButton())
+        ;
+
+    uint8_t active = 1;
+
+    do {
+        screen_Clear();
+        screen_FastString6x8("Raw ADC overview", 0, 0);
+        // display ADC channels
+        hal_SelectADCChannel(HAL_ADC_CURRENT);
+        timer_waitms(1);
+        uint16_t adc = hal_getADC(16);
+        char buf[6];
+        string_fromUint(adc, buf, 5, 0);
+        screen_FastString6x8("Current:", 0, 2);
+        screen_FastString6x8(buf, 54, 2);
+
+        hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+        timer_waitms(1);
+        adc = hal_getADC(16);
+        string_fromUint(adc, buf, 5, 0);
+        screen_FastString6x8("Voltage:", 0, 3);
+        screen_FastString6x8(buf, 54, 3);
+
+        timer_waitms(100);
+
+        uint32_t button = hal_getButton();
+        if (button & HAL_BUTTON_ESC) {
+            active = 0;
+            continue;
+        }
+        while (hal_getButton())
+            ;
+    } while (active);
+    calibration.active = 0;
 }
 
 #ifdef TEST_INCLUDE_EASTER
