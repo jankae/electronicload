@@ -135,7 +135,7 @@ void cal_setDefaultCalibration(void) {
     calibration.currentSenseTable[0][0] = 0;
     calibration.currentSenseTable[0][1] = 0;
     calibration.currentSenseTable[1][0] = 65536;
-    calibration.currentSenseTable[1][1] = 198759;
+    calibration.currentSenseTable[1][1] = 217212;
 
     calibration.voltageSetTable[0][0] = 0;
     calibration.voltageSetTable[0][1] = 0;
