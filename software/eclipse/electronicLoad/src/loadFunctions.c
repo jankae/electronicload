@@ -114,9 +114,16 @@ void load_update(void) {
     } else {
         hal_SelectShunt(HAL_SHUNT_1R);
     }
-
-    load.state.voltage = cal_getVoltage();
-    load.state.current = cal_getCurrent();
+    static uint8_t channel = 0;
+    if (channel) {
+        load.state.voltage = cal_getVoltage();
+        hal_SelectADCChannel(HAL_ADC_CURRENT);
+        channel = 0;
+    } else {
+        load.state.current = cal_getCurrent();
+        hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+        channel = 1;
+    }
     load.state.power = (uint64_t) load.state.voltage * load.state.current
             / 1000000UL;
     load.state.voltageSum += load.state.voltage;

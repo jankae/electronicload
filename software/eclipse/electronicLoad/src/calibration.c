@@ -943,7 +943,8 @@ void cal_setResistance(uint32_t uR) {
  */
 int32_t cal_getCurrent(void) {
     hal_SelectADCChannel(HAL_ADC_CURRENT);
-    int32_t raw = hal_getADC(1);
+    timer_waitus(10);
+    int32_t raw = hal_getADC(16);
     int32_t current = common_Map(raw, calibration.currentSenseTable[0][0],
             calibration.currentSenseTable[1][0],
             calibration.currentSenseTable[0][1],
@@ -961,7 +962,8 @@ int32_t cal_getCurrent(void) {
  */
 int32_t cal_getVoltage(void) {
     hal_SelectADCChannel(HAL_ADC_VOLTAGE);
-    int32_t raw = hal_getADC(1);
+    timer_waitus(10);
+    int32_t raw = hal_getADC(16);
     int32_t voltage = common_Map(raw, calibration.voltageSenseTable[0][0],
             calibration.voltageSenseTable[1][0],
             calibration.voltageSenseTable[0][1],
@@ -974,11 +976,12 @@ int32_t cal_getUncalibVoltage(void) {
 // reference voltage is 4.096V, ADC resolution is 16bits
 // -> multiplying by 1602 roughly results in uV
     hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+    timer_waitus(10);
     return (int32_t) hal_getADC(1) * 1602;
 }
 int32_t cal_getUncalibCurrent(void) {
-    hal_SelectADCChannel(HAL_ADC_VOLTAGE);
-
+    hal_SelectADCChannel(HAL_ADC_CURRENT);
+    timer_waitus(10);
     switch (settings.powerMode) {
     case 0:
         // current is provided to ADC at 2V/100mA
