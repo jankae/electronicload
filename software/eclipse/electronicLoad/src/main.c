@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     uart_Init(115200);
     uart_writeString("electronicload\n");
 
-    timer_waitms(100);
+    timer_waitms(500);
 
 // External hardware inits
 // (nothing so far)
