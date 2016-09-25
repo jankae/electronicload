@@ -28,9 +28,14 @@ uint8_t selftest_Run(void) {
         screen_FastString6x8("-15V rail:", 0, 3);
         if (railn15V < 0) {
             railn15V = -railn15V;
-            screen_FastChar6x8(60, 3, '-');
         }
         string_fromUintUnit(railn15V, value, 5, 3, 'V');
+        // add '-'-sign
+        char *ptr = value;
+        while (*ptr == ' ')
+            ptr++;
+        ptr--;
+        *ptr = '-';
         screen_FastString6x8(value, 66, 3);
         if (railn15V < 13500 || railn15V > 16500) {
             uart_writeString("selftest failed: -15V rail\n");
