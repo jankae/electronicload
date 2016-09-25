@@ -114,16 +114,11 @@ void load_update(void) {
     } else {
    		hal_SelectShunt(HAL_SHUNT_1R);
     }
-    static uint8_t channel = 0;
-    if (channel) {
-        load.state.voltage = cal_getVoltage();
-        hal_SelectADCChannel(HAL_ADC_CURRENT);
-        channel = 0;
-    } else {
-        load.state.current = cal_getCurrent();
-        hal_SelectADCChannel(HAL_ADC_VOLTAGE);
-        channel = 1;
-    }
+
+    load.state.voltage = cal_getVoltage();
+
+    load.state.current = cal_getCurrent();
+
     load.state.power = (uint64_t) load.state.voltage * load.state.current
             / 1000000UL;
     load.state.voltageSum += load.state.voltage;
@@ -180,7 +175,7 @@ void load_update(void) {
     case FUNCTION_CV:
         hal_SetControlMode(HAL_MODE_CV);
         if (enableInput) {
-            cal_setCurrent(load.voltage);
+            cal_setVoltage(load.voltage);
         } else {
             hal_setDAC(HAL_DAC_MAX);
         }
@@ -198,7 +193,7 @@ void load_update(void) {
     case FUNCTION_CP:
         hal_SetControlMode(HAL_MODE_CP);
         if (enableInput) {
-            cal_setCurrent(load.power);
+            cal_setPower(load.power);
         } else {
             hal_setDAC(0);
         }
