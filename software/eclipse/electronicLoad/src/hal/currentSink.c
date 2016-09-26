@@ -326,10 +326,10 @@ void hal_setFan(uint8_t en) {
     }
 }
 
-uint16_t hal_getADC(uint8_t nsamples) {
+uint16_t hal_getADC(uint32_t nsamples) {
     HAL_CLK_LOW;
-    uint8_t i;
-    uint32_t buf = 0;
+    uint32_t i;
+    uint64_t buf = 0;
     for (i = 0; i < nsamples; i++) {
         uint32_t adc = 0;
         hal_SetChipSelect(HAL_CS_ADC);

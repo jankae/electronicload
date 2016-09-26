@@ -153,7 +153,7 @@ void hal_setFan(uint8_t en);
  * \param nsamples Number of samples (result will be averaged)
  * \return 16-Bit ADC value
  */
-uint16_t hal_getADC(uint8_t nsamples);
+uint16_t hal_getADC(uint32_t nsamples);
 
 /**
  * \brief Sets the mux at the op-amp to a specific control mode
