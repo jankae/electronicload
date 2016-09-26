@@ -106,7 +106,7 @@ void load_ConstrainSettings(void) {
  */
 void load_update(void) {
     hal_frontPanelUpdate();
-    if (calibration.active)
+    if (cal.active)
         return;
 
     if (settings.powerMode) {

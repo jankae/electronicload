@@ -22,6 +22,9 @@
 #define CAL_ERROR_ADC_MONOTONIC     2
 #define CAL_ERROR_SHUNTFACTOR       3
 
+#define CAL_ADC_NSAMPLES            250000
+#define CAL_METER_NSAMPLES          10
+
 /*
  * This section must fit into four flash pages and thus
  * NEVER exceed 4kB
@@ -46,9 +49,14 @@ struct {
 // factor between the two current shunts (in %)
 // should be about 10000 (R01:1R)
     uint32_t shuntFactor;
+} calData;
 
+struct {
     uint8_t active;
-} calibration;
+    uint8_t unsavedData;
+} cal;
+
+
 
 /**
  * \brief Transfers the calibration values from the end of the FLASH
