@@ -41,6 +41,8 @@ struct {
 
     uint8_t triggerInOld;
 
+    uint16_t DACoverride;
+
     struct {
         uint32_t current;
         uint64_t currentSum;

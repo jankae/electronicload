@@ -22,7 +22,7 @@
 #define CAL_ERROR_ADC_MONOTONIC     2
 #define CAL_ERROR_SHUNTFACTOR       3
 
-#define CAL_ADC_NSAMPLES            250000
+#define CAL_ADC_NSAMPLES            1000
 #define CAL_METER_NSAMPLES          10
 
 /*
@@ -54,6 +54,8 @@ struct {
 struct {
     uint8_t active;
     uint8_t unsavedData;
+    uint16_t rawADCcurrent;
+    uint16_t rawADCvoltage;
 } cal;
 
 
@@ -74,7 +76,24 @@ uint8_t cal_readFromFlash(void);
  */
 void cal_writeToFlash(void);
 
+/**
+ * \brief Returns the (averaged) value reported by a connected multimeter
+ *
+ * The function waits until the meter value has stabilized (either remaining
+ * the same or small variations in both directions). It the samples the meter
+ * 'samples'-times and returns the average value.
+ * \param samples Number of samples
+ * \return Averaged raw meter value
+ */
 int32_t cal_sampleMeter(uint8_t samples);
+
+/**
+ * \brief Returns the (averaged) raw ADC value
+ *
+ * \param samples Number of samples
+ * \param *ADCdata Pointer to ADC data (should be either &cal.rawADCcurrent or &cal.rawADCvoltage)
+ */
+int32_t cal_sampleADC(uint16_t samples, uint16_t *ADCdata);
 
 /**
  * \brief Sets the calibration values to the default values.

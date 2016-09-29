@@ -106,13 +106,11 @@ void load_ConstrainSettings(void) {
  */
 void load_update(void) {
     hal_frontPanelUpdate();
-    if (cal.active)
-        return;
 
     if (settings.powerMode) {
         hal_SelectShunt(HAL_SHUNT_R01);
     } else {
-   		hal_SelectShunt(HAL_SHUNT_1R);
+        hal_SelectShunt(HAL_SHUNT_1R);
     }
 
     load.state.voltage = cal_getVoltage();
@@ -142,62 +140,83 @@ void load_update(void) {
     events.triggerInState = triggerIn - load.triggerInOld;
     load.triggerInOld = triggerIn;
 
-    events_decrementTimers();
-    events_updateWaveformPhase();
-    events_HandleEvents();
+    if (!cal.active) {
+        // only run function that can potentially change settings
+        // while calibration is not active
+        events_decrementTimers();
+        events_updateWaveformPhase();
+        events_HandleEvents();
 
-    waveform_Update();
-    characteristic_Update();
-    load_ConstrainSettings();
+        waveform_Update();
+        characteristic_Update();
+        load_ConstrainSettings();
 
-    uint32_t current = 0;
-    uint32_t currentLimit = ((uint64_t) settings.maxPower[settings.powerMode]
-            * 1000000) / load.state.voltage;
+        uint32_t current = 0;
+//    uint32_t currentLimit = ((uint64_t) settings.maxPower[settings.powerMode]
+//            * 1000000) / load.state.voltage;
 
-    uint8_t enableInput = load.powerOn;
-    if (highTemp > LOAD_MAX_TEMP) {
-        // disable input if temperature too high
-        enableInput = 0;
-    }
-    switch (load.mode) {
-    case FUNCTION_CC:
-        if (load.current > currentLimit)
-            current = currentLimit;
-        else
+        uint8_t enableInput = load.powerOn;
+        if (highTemp > LOAD_MAX_TEMP) {
+            // disable input if temperature too high
+            enableInput = 0;
+        }
+        switch (load.mode) {
+        case FUNCTION_CC:
+//        if (load.current > currentLimit)
+//            current = currentLimit;
+//        else
             current = load.current;
-        hal_SetControlMode(HAL_MODE_CC);
-        if (enableInput) {
-            cal_setCurrent(current);
-        } else {
-            hal_setDAC(0);
+            hal_SetControlMode(HAL_MODE_CC);
+            if (enableInput) {
+                cal_setCurrent(current);
+            } else {
+                hal_setDAC(0);
+            }
+            break;
+        case FUNCTION_CV:
+            hal_SetControlMode(HAL_MODE_CV);
+            if (enableInput) {
+                cal_setVoltage(load.voltage);
+            } else {
+                hal_setDAC(HAL_DAC_MAX);
+            }
+            break;
+        case FUNCTION_CR:
+            hal_SetControlMode(HAL_MODE_CR);
+            if (enableInput) {
+                cal_setResistance(load.resistance);
+            } else {
+                // actually setting conductance thus a DAC
+                // value of 0 equals infinite resistance
+                hal_setDAC(0);
+            }
+            break;
+        case FUNCTION_CP:
+            hal_SetControlMode(HAL_MODE_CP);
+            if (enableInput) {
+                cal_setPower(load.power);
+            } else {
+                hal_setDAC(0);
+            }
+            break;
         }
-        break;
-    case FUNCTION_CV:
-        hal_SetControlMode(HAL_MODE_CV);
-        if (enableInput) {
-            cal_setVoltage(load.voltage);
-        } else {
-            hal_setDAC(HAL_DAC_MAX);
+    } else {
+        // calibration is active
+        switch (load.mode) {
+        case FUNCTION_CC:
+            hal_SetControlMode(HAL_MODE_CC);
+            break;
+        case FUNCTION_CV:
+            hal_SetControlMode(HAL_MODE_CV);
+            break;
+        case FUNCTION_CR:
+            hal_SetControlMode(HAL_MODE_CR);
+            break;
+        case FUNCTION_CP:
+            hal_SetControlMode(HAL_MODE_CP);
+            break;
         }
-        break;
-    case FUNCTION_CR:
-        hal_SetControlMode(HAL_MODE_CR);
-        if (enableInput) {
-            cal_setResistance(load.resistance);
-        } else {
-            // actually setting conductance thus a DAC
-            // value of 0 equals infinite resistance
-            hal_setDAC(0);
-        }
-        break;
-    case FUNCTION_CP:
-        hal_SetControlMode(HAL_MODE_CP);
-        if (enableInput) {
-            cal_setPower(load.power);
-        } else {
-            hal_setDAC(0);
-        }
-        break;
+        hal_setDAC(load.DACoverride);
     }
 
     stats_Update();
