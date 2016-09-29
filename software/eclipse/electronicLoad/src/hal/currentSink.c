@@ -267,60 +267,60 @@ int16_t hal_ReadVoltageRail(uint8_t rail) {
 }
 
 void hal_setDAC(uint16_t dac) {
-    static uint16_t _dac = 0;
-    if (_dac != dac) {
-        // only update if DAC value has changed
-        _dac = dac;
-        HAL_CLK_HIGH;
-        hal_SetChipSelect(HAL_CS_DAC);
-        // set control bits to 01 (write through)
-        uint32_t DACword = 0x00400000;
-        DACword += dac << 6;
+//    static uint16_t _dac
+//    if (hal.DACvalue != dac) {
+    // only update if DAC value has changed
+//    _dac = dac;
+    HAL_CLK_HIGH;
+    hal_SetChipSelect(HAL_CS_DAC);
+    // set control bits to 01 (write through)
+    uint32_t DACword = 0x00400000;
+    DACword += dac << 6;
 #ifndef HAL_USE_ASM_SPI
-        // slightly slower C code
-        // CLK_h is about 360ns (DAC minimum 8ns)
-        // CLK_l is about 110ns (DAC minimum 8ns)
-        uint8_t i;
-        for (i = 0; i < 24; i++) {
-            if (DACword & 0x00800000) {
-                HAL_DIN_HIGH;
-            } else {
-                HAL_DIN_LOW;
-            }
-            // generate clock pulse
-            HAL_CLK_LOW;
-            HAL_CLK_HIGH;
-            DACword <<= 1;
+    // slightly slower C code
+    // CLK_h is about 360ns (DAC minimum 8ns)
+    // CLK_l is about 110ns (DAC minimum 8ns)
+    uint8_t i;
+    for (i = 0; i < 24; i++) {
+        if (DACword & 0x00800000) {
+            HAL_DIN_HIGH;
+        } else {
+            HAL_DIN_LOW;
         }
-#else
-        // slightly faster assembler code (about 2 times faster than C code)
-        // CLK_h is about 200ns (DAC minimum 8ns)
-        // CLK_l is about 30ns (DAC minimum 8ns)
-        uint32_t GPIOA_BSRR = 0x40010810;
-        uint32_t GPIOC_BSRR = 0x40011010;
-        asm(
-                "ldr r5, =0x00800000\n\t" /* load constant to compare DAC word with */
-                "lsl r1, %[dinpin], #16\n\t" /* prepare register to clear DIN pin */
-                "lsl r2, %[clkpin], #16\n\t" /* prepare register to clear CLK pin */
-                "1:\n\t" /* beginning of SPI sending loop */
-                "ands r0, r5, %[dac]\n\t" /* currently sending a 1? */
-                "ite ne\n\t" /* IF yes */
-                "strne %[dinpin], [%[din]]\n\t" /* THEN set DIN high */
-                "streq r1, [%[din]]\n\t" /* ELSE set DIN low */
-                "lsrs r5, r5, #1\n\t" /* shift 'compare'-bit position by one */
-                "str r2, [%[clk]]\n\t" /* set CLK low */
-                "str %[clkpin], [%[clk]]\n\t" /* set CLK high */
-                "bne 1b\n\t" /* repeat until finished */
-                :
-                : [dac] "r" (DACword),
-                [clk] "r" (GPIOA_BSRR),
-                [din] "r" (GPIOC_BSRR),
-                [dinpin] "r" (GPIO_Pin_15),
-                [clkpin] "r" (GPIO_Pin_0)
-                : "r0", "r1", "r2", "r5");
-#endif
-        hal_SetChipSelect(HAL_CS_NONE);
+        // generate clock pulse
+        HAL_CLK_LOW;
+        HAL_CLK_HIGH;
+        DACword <<= 1;
     }
+#else
+    // slightly faster assembler code (about 2 times faster than C code)
+    // CLK_h is about 200ns (DAC minimum 8ns)
+    // CLK_l is about 30ns (DAC minimum 8ns)
+    uint32_t GPIOA_BSRR = 0x40010810;
+    uint32_t GPIOC_BSRR = 0x40011010;
+    asm(
+            "ldr r5, =0x00800000\n\t" /* load constant to compare DAC word with */
+            "lsl r1, %[dinpin], #16\n\t" /* prepare register to clear DIN pin */
+            "lsl r2, %[clkpin], #16\n\t" /* prepare register to clear CLK pin */
+            "1:\n\t" /* beginning of SPI sending loop */
+            "ands r0, r5, %[dac]\n\t" /* currently sending a 1? */
+            "ite ne\n\t" /* IF yes */
+            "strne %[dinpin], [%[din]]\n\t" /* THEN set DIN high */
+            "streq r1, [%[din]]\n\t" /* ELSE set DIN low */
+            "lsrs r5, r5, #1\n\t" /* shift 'compare'-bit position by one */
+            "str r2, [%[clk]]\n\t" /* set CLK low */
+            "str %[clkpin], [%[clk]]\n\t" /* set CLK high */
+            "bne 1b\n\t" /* repeat until finished */
+            :
+            : [dac] "r" (DACword),
+            [clk] "r" (GPIOA_BSRR),
+            [din] "r" (GPIOC_BSRR),
+            [dinpin] "r" (GPIO_Pin_15),
+            [clkpin] "r" (GPIO_Pin_0)
+            : "r0", "r1", "r2", "r5");
+#endif
+    hal_SetChipSelect(HAL_CS_NONE);
+//    }
 }
 
 void hal_setFan(uint8_t en) {
