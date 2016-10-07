@@ -68,9 +68,12 @@
 
 #define HAL_DAC_MAX         0xffff
 
+#define HAL_ADC_UNSTABLE_THRESHOLD  1000
+
 struct {
     uint8_t ADCchannel;
     uint8_t AVRgpio;
+    uint8_t ADCunstable;
 } hal;
 
 /**

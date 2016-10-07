@@ -335,6 +335,8 @@ uint16_t hal_getADC(uint32_t nsamples) {
     HAL_CLK_LOW;
     uint32_t i;
     uint64_t buf = 0;
+    uint16_t min = UINT16_MAX;
+    uint16_t max = 0;
     for (i = 0; i < nsamples; i++) {
         uint32_t adc = 0;
         hal_SetChipSelect(HAL_CS_ADC);
@@ -378,6 +380,16 @@ uint16_t hal_getADC(uint32_t nsamples) {
 #endif
         hal_SetChipSelect(HAL_CS_NONE);
         buf += adc;
+        if (adc > max)
+            max = adc;
+        if (adc < min)
+            min = adc;
+    }
+    if (max - min > HAL_ADC_UNSTABLE_THRESHOLD) {
+        if (hal.ADCunstable < 255)
+            hal.ADCunstable++;
+    } else if (hal.ADCunstable) {
+        hal.ADCunstable--;
     }
     return buf /= nsamples;
 }
