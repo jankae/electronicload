@@ -107,6 +107,9 @@ void load_ConstrainSettings(void) {
 void load_update(void) {
     hal_frontPanelUpdate();
 
+    if(load.disableIOcontrol)
+        return;
+
     if (settings.powerMode) {
         hal_SelectShunt(HAL_SHUNT_R01);
     } else {

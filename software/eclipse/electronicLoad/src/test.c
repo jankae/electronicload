@@ -265,7 +265,7 @@ void test_Buttons(void) {
 
 void test_AVRGPIO(void) {
     // block load update stuff (includes all SPI communication)
-    cal.active = 1;
+    load.disableIOcontrol = 1;
     while (hal_getButton())
         ;
     uint8_t gpios = 0;
@@ -327,12 +327,12 @@ void test_AVRGPIO(void) {
         while (hal_getButton())
             ;
     } while (active);
-    cal.active = 0;
+    load.disableIOcontrol = 0;
 }
 
 void test_AVRADC(void) {
     // block load update stuff (includes all SPI communication)
-    cal.active = 1;
+    load.disableIOcontrol = 1;
     while (hal_getButton())
         ;
     uint8_t gpios = 0;
@@ -364,12 +364,12 @@ void test_AVRADC(void) {
         while (hal_getButton())
             ;
     } while (active);
-    cal.active = 0;
+    load.disableIOcontrol = 0;
 }
 
 void test_DAC(void) {
     // block load update stuff (includes all SPI communication)
-    cal.active = 1;
+    load.disableIOcontrol = 1;
     while (hal_getButton())
         ;
     uint8_t active = 1;
@@ -400,12 +400,12 @@ void test_DAC(void) {
         while (hal_getButton())
             ;
     } while (active);
-    cal.active = 0;
+    load.disableIOcontrol = 0;
 }
 
 void test_ADC(void) {
     // block load update stuff (includes all SPI communication)
-    cal.active = 1;
+    load.disableIOcontrol = 1;
     while (hal_getButton())
         ;
 
@@ -440,7 +440,7 @@ void test_ADC(void) {
         while (hal_getButton())
             ;
     } while (active);
-    cal.active = 0;
+    load.disableIOcontrol = 0;
 }
 
 #ifdef TEST_INCLUDE_EASTER

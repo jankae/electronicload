@@ -54,6 +54,8 @@ struct {
         uint16_t temp2;
         uint32_t nsamples;
     } state;
+
+    uint8_t disableIOcontrol;
 } load;
 
 /**
