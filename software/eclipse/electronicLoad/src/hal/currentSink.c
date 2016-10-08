@@ -37,19 +37,19 @@ void hal_currentSinkInit(void) {
 void hal_SetChipSelect(uint8_t cs) {
     switch (cs) {
     default:
-    case 0:
+    case HAL_CS_NONE:
         HAL_CS_A_LOW;
         HAL_CS_B_LOW;
         break;
-    case 1:
+    case HAL_CS_DAC:
         HAL_CS_A_HIGH;
         HAL_CS_B_LOW;
         break;
-    case 2:
+    case HAL_CS_ADC:
         HAL_CS_A_LOW;
         HAL_CS_B_HIGH;
         break;
-    case 3:
+    case HAL_CS_AVR:
         HAL_CS_A_HIGH;
         HAL_CS_B_HIGH;
         break;
@@ -144,7 +144,27 @@ void hal_UpdateAVRGPIOs(void) {
             asm volatile("NOP");
             HAL_CLK_LOW;
         }
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
         hal_SetChipSelect(HAL_CS_NONE);
+        HAL_DIN_LOW;
     }
 }
 
@@ -160,6 +180,28 @@ uint16_t hal_ReadAVRADC(uint8_t channel) {
         } else {
             HAL_DIN_LOW;
         }
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
         // generate clock pulse
         HAL_CLK_HIGH;
         rec <<= 1;
@@ -169,6 +211,13 @@ uint16_t hal_ReadAVRADC(uint8_t channel) {
         // delay clock (AVR isn't that fast)
         // Minimum high/low pulse length for AVR on 8MHz is 250ns.
         // This function has at least 300ns high/low pulses.
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
+        asm volatile("NOP");
         asm volatile("NOP");
         asm volatile("NOP");
         asm volatile("NOP");
@@ -220,6 +269,7 @@ uint16_t hal_ReadAVRADC(uint8_t channel) {
         }
     }
     hal_SetChipSelect(HAL_CS_NONE);
+    HAL_DIN_LOW;
     rec &= 0x000003ff;
     return rec;
 }
@@ -320,6 +370,7 @@ void hal_setDAC(uint16_t dac) {
             : "r0", "r1", "r2", "r5");
 #endif
     hal_SetChipSelect(HAL_CS_NONE);
+    HAL_DIN_LOW;
 //    }
 }
 
@@ -339,6 +390,7 @@ uint16_t hal_getADC(uint32_t nsamples) {
     uint16_t max = 0;
     for (i = 0; i < nsamples; i++) {
         uint32_t adc = 0;
+        HAL_DIN_LOW;
         hal_SetChipSelect(HAL_CS_ADC);
 #ifndef HAL_USE_ASM_SPI
         // slightly slower C code
