@@ -28,13 +28,13 @@ typedef enum {
 struct {
     loadMode_t mode;
     // values for the different modes
-    // constant current in mA
+    // constant current in uA
     int32_t current;
-    // constant voltage in mV
+    // constant voltage in uV
     int32_t voltage;
     // constant resistance in mOhm
     int32_t resistance;
-    // constant power in mW
+    // constant power in uW
     int32_t power;
 
     uint8_t powerOn;

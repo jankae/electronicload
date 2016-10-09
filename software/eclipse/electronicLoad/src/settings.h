@@ -10,9 +10,9 @@
 #define FLASH_SETTINGS_DATA             0x0801E004
 #define FLASH_VALID_SETTINGS_INDICATOR  0x0801E000
 
-#define SETTINGS_INDICATOR              0x01
+#define SETTINGS_INDICATOR              0x02
 
-#define SETTINGS_NUM_ENTRIES            8
+#define SETTINGS_NUM_ENTRIES            10
 
 #define LOAD_MAXVOLTAGE_LOWP            100000000
 #define LOAD_MINVOLTAGE_LOWP            100000
@@ -30,6 +30,10 @@
 
 #define SETTINGS_DEF_BAUDRATE           9600
 
+typedef enum {
+    CONTROL_ANALOG = 0, CONTROL_DIGITAL = 1
+} controlMode_t;
+
 struct {
     uint32_t baudrate;
     uint8_t powerMode;
@@ -39,6 +43,8 @@ struct {
     uint32_t maxVoltage[2];
     uint32_t minResistance[2];
     uint32_t maxResistance[2];
+    controlMode_t powerControl;
+    controlMode_t resistanceControl;
 } settings;
 
 void settings_Init(void);

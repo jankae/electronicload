@@ -15,6 +15,8 @@ void settings_Init(void) {
     settings.maxVoltage[1] = LOAD_MAXVOLTAGE_HIGHP;
     settings.minResistance[1] = LOAD_MINRESISTANCE_HIGHP;
     settings.maxResistance[1] = LOAD_MAXRESISTANCE_HIGHP;
+    settings.powerControl = CONTROL_ANALOG;
+    settings.resistanceControl = CONTROL_ANALOG;
 }
 
 uint8_t settings_readFromFlash(void) {
@@ -78,6 +80,8 @@ void settings_Menu(void) {
         char minResist[21] = "Min. Resist: ";
         char maxResist[21] = "Max. Resist: ";
         char settingHigh[21];
+        char powerControl[21];
+        char resistanceControl[21];
 
         if (settings.powerMode) {
             strcpy(settingHigh, "Mode: high power");
@@ -96,6 +100,18 @@ void settings_Menu(void) {
             minV = LOAD_MINVOLTAGE_LOWP;
             maxV = LOAD_MAXVOLTAGE_LOWP;
             maxW = LOAD_MAXPOWER_LOWP;
+        }
+
+        if (settings.powerControl == CONTROL_ANALOG) {
+            strcpy(powerControl, "CP Ctrl: ANALOG");
+        } else {
+            strcpy(powerControl, "CP Ctrl: DIGITAL");
+        }
+
+        if (settings.resistanceControl == CONTROL_ANALOG) {
+            strcpy(powerControl, "CR Ctrl: ANALOG");
+        } else {
+            strcpy(powerControl, "CR Ctrl: DIGITAL");
         }
 
         string_fromUintUnit(settings.maxCurrent[settings.powerMode],
@@ -119,6 +135,8 @@ void settings_Menu(void) {
         entries[5] = maxVoltage;
         entries[6] = minResist;
         entries[7] = maxResist;
+        entries[8] = powerControl;
+        entries[9] = resistanceControl;
 
         char resetToDefault[21] = "Reset to default";
         entries[SETTINGS_NUM_ENTRIES] = resetToDefault;
@@ -161,6 +179,20 @@ void settings_Menu(void) {
             case 7:
                 menu_getInputValue(&settings.maxResistance[settings.powerMode],
                         maxResist, minRes, maxRes, "mOhm", "Ohm", "kOhm");
+                break;
+            case 8:
+                // toggle power control
+                if (settings.powerControl == CONTROL_ANALOG)
+                    settings.powerControl = CONTROL_DIGITAL;
+                else
+                    settings.powerControl = CONTROL_ANALOG;
+                break;
+            case 9:
+                // toggle resistance control
+                if (settings.resistanceControl == CONTROL_ANALOG)
+                    settings.resistanceControl = CONTROL_DIGITAL;
+                else
+                    settings.resistanceControl = CONTROL_ANALOG;
                 break;
             case SETTINGS_NUM_ENTRIES:
                 settings_ResetToDefaultMenu();
