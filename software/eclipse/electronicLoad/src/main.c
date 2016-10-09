@@ -29,7 +29,10 @@ int main(int argc, char* argv[]) {
 // (nothing so far)
 
 // Software inits
-    settings_Init();
+    if (settings_readFromFlash()) {
+        // no settings saved in flash -> use default values
+        settings_Init();
+    }
     events_Init();
     waveform_Init();
     load_Init();
@@ -51,7 +54,8 @@ int main(int argc, char* argv[]) {
         screen_SetSoftButton("Yes", 2);
         while (!(hal_getButton() & HAL_BUTTON_SOFT2))
             ;
-        while(hal_getButton());
+        while (hal_getButton())
+            ;
     } else {
         uart_writeString("calibration loaded\n");
     }

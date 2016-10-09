@@ -17,8 +17,53 @@ void settings_Init(void) {
     settings.maxResistance[1] = LOAD_MAXRESISTANCE_HIGHP;
 }
 
+uint8_t settings_readFromFlash(void) {
+    // check whether there is any settings data in FLASH
+    if (*(uint32_t*) FLASH_VALID_SETTINGS_INDICATOR == SETTINGS_INDICATOR) {
+        // copy memory section from FLASH into RAM
+        uint8_t i;
+        uint32_t *from = (uint32_t*) FLASH_SETTINGS_DATA;
+        uint32_t *to = (uint32_t*) &settings;
+        uint8_t words = (sizeof(settings) + 3) / 4;
+        for (i = 0; i < words; i++) {
+            *to = *from;
+            to++;
+            from++;
+        }
+        return 0;
+    }
+    return 1;
+}
+
+void settings_writeToFlash(void) {
+    FLASH_Unlock();
+    FLASH_ClearFlag(
+    FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);
+    FLASH_ErasePage(0x0807E000);
+    if (sizeof(settings) >= 0x400)
+        FLASH_ErasePage(0x0807E400);
+    if (sizeof(settings) >= 0x800)
+        FLASH_ErasePage(0x0807E800);
+    if (sizeof(settings) >= 0xC00)
+        FLASH_ErasePage(0x0807EC00);
+    // FLASH is ready to be written at this point
+    uint8_t i;
+    uint32_t *from = (uint32_t*) &settings;
+    uint32_t *to = (uint32_t*) FLASH_SETTINGS_DATA;
+    uint8_t words = (sizeof(settings) + 3) / 4;
+    for (i = 0; i < words; i++) {
+        FLASH_ProgramWord((uint32_t) to, *from);
+        to++;
+        from++;
+    }
+    // set valid data indicator
+    FLASH_ProgramWord((uint32_t) FLASH_VALID_SETTINGS_INDICATOR,
+    SETTINGS_INDICATOR);
+    FLASH_Lock();
+}
+
 void settings_Menu(void) {
-    char *entries[SETTINGS_NUM_ENTRIES];
+    char *entries[SETTINGS_NUM_ENTRIES + 3];
     int8_t sel = 0;
     do {
         uint32_t minRes, maxRes, maxA, minV, maxV, maxW;
@@ -75,9 +120,16 @@ void settings_Menu(void) {
         entries[6] = minResist;
         entries[7] = maxResist;
 
+        char resetToDefault[21] = "Reset to default";
+        entries[SETTINGS_NUM_ENTRIES] = resetToDefault;
+        char readSaved[21] = "Load saved settings";
+        entries[SETTINGS_NUM_ENTRIES + 1] = readSaved;
+        char writeSaved[21] = "Save settings";
+        entries[SETTINGS_NUM_ENTRIES + 2] = writeSaved;
+
         sel = menu_ItemChooseDialog(
                 "\xCD\xCD\xCD\xCDSETTINGS MENU\xCD\xCD\xCD\xCD", entries,
-                SETTINGS_NUM_ENTRIES, sel);
+                SETTINGS_NUM_ENTRIES + 3, sel);
         if (sel >= 0) {
             switch (sel) {
             case 0:
@@ -109,6 +161,15 @@ void settings_Menu(void) {
             case 7:
                 menu_getInputValue(&settings.maxResistance[settings.powerMode],
                         maxResist, minRes, maxRes, "mOhm", "Ohm", "kOhm");
+                break;
+            case SETTINGS_NUM_ENTRIES:
+                settings_ResetToDefaultMenu();
+                break;
+            case SETTINGS_NUM_ENTRIES + 1:
+                settings_LoadMenu();
+                break;
+            case SETTINGS_NUM_ENTRIES + 2:
+                settings_SaveMenu();
                 break;
             }
         }
@@ -155,5 +216,75 @@ void settings_SelectBaudrate(void) {
         while (uart.busyFlag)
             ;
         uart_Init(settings.baudrate);
+    }
+}
+
+void settings_ResetToDefaultMenu(void) {
+    // wait for all buttons to be released
+    while (hal_getButton())
+        ;
+    screen_Clear();
+    screen_FastString6x8("Reset all settings to", 0, 0);
+    screen_FastString6x8("default values?", 0, 1);
+    screen_SetSoftButton("No", 0);
+    screen_SetSoftButton("Yes", 2);
+    uint32_t button;
+    do {
+        button = hal_getButton();
+    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT0 | HAL_BUTTON_SOFT2)));
+
+    if (button & HAL_BUTTON_SOFT2) {
+        // reset settings if 'yes' has been selected
+        settings_Init();
+    }
+}
+
+void settings_LoadMenu(void) {
+    // wait for all buttons to be released
+    while (hal_getButton())
+        ;
+    screen_Clear();
+    screen_FastString6x8("Reset all settings to", 0, 0);
+    screen_FastString6x8("saved values?", 0, 1);
+    screen_SetSoftButton("No", 0);
+    screen_SetSoftButton("Yes", 2);
+    uint32_t button;
+    do {
+        button = hal_getButton();
+    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT0 | HAL_BUTTON_SOFT2)));
+
+    if (button & HAL_BUTTON_SOFT2) {
+        // read settings if 'yes' has been selected
+        if (settings_readFromFlash()) {
+            // couldn't read data
+            while (hal_getButton())
+                ;
+            screen_Clear();
+            screen_FastString6x8("No saved values", 0, 0);
+            screen_FastString6x8("available", 0, 1);
+            screen_SetSoftButton("OK", 2);
+            while (!(hal_getButton() & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT2)))
+                ;
+        }
+    }
+}
+
+void settings_SaveMenu(void) {
+    // wait for all buttons to be released
+    while (hal_getButton())
+        ;
+    screen_Clear();
+    screen_FastString6x8("Use current settings", 0, 0);
+    screen_FastString6x8("as saved values?", 0, 1);
+    screen_SetSoftButton("No", 0);
+    screen_SetSoftButton("Yes", 2);
+    uint32_t button;
+    do {
+        button = hal_getButton();
+    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT0 | HAL_BUTTON_SOFT2)));
+
+    if (button & HAL_BUTTON_SOFT2) {
+        // write settings if 'yes' has been selected
+        settings_writeToFlash();
     }
 }

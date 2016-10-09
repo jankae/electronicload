@@ -481,6 +481,9 @@ int8_t menu_ItemChooseDialog(const char *title, const char **items,
     if (startitem < nitems)
         selectedItem = startitem;
     uint8_t firstDisplayedItem = 0;
+    // scroll if necessary
+    if (selectedItem > firstDisplayedItem + 6)
+        firstDisplayedItem = selectedItem - 6;
     do {
         // wait for all buttons to be released
         while (hal_getButton())
