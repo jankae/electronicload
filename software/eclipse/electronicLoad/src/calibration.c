@@ -175,7 +175,7 @@ void cal_setDefaultCalibration(void) {
 void calibrationMenu(void) {
     char *entries[5];
     uint8_t nentries;
-    int8_t sel;
+    int8_t sel = 0;
     do {
         char automatic[21] = "Automatic Cal.";
         entries[0] = automatic;
@@ -198,7 +198,7 @@ void calibrationMenu(void) {
         }
 
         sel = menu_ItemChooseDialog("\xCD\xCD" "CALIBRATIONS MENU\xCD\xCD",
-                entries, nentries);
+                entries, nentries, sel);
         switch (sel) {
         case 0:
             calibrationProcessAutomatic();

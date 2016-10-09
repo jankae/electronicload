@@ -1,7 +1,7 @@
 #include "test.h"
 
 void test_Menu(void) {
-    int8_t sel;
+    int8_t sel = 0;
     do {
         const char *entries[TEST_NUM_TESTS];
         const char availableBaudrates[TEST_NUM_TESTS][21] = { "Font", "Buttons",
@@ -15,7 +15,7 @@ void test_Menu(void) {
         }
         sel = menu_ItemChooseDialog(
                 "\xCD\xCD\xCD\xCD\xCD\xCDTEST MENU\xCD\xCD\xCD\xCD\xCD\xCD",
-                entries, TEST_NUM_TESTS);
+                entries, TEST_NUM_TESTS, sel);
         switch (sel) {
         case 0:
             test_Font();

@@ -81,10 +81,11 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min, uint32_t 
  *
  * \param *title Title of the menu being displayed
  * \param **items List of pointers to char array describing the items
- * \param nitems Number of items
+ * \param nitems Number of item
+ * \param startitem Selected item at startup
  *
  * \return item number if item was chosen, otherwise -1
  */
-int8_t menu_ItemChooseDialog(const char *title, const char **items, uint8_t nitems);
+int8_t menu_ItemChooseDialog(const char *title, const char **items, uint8_t nitems, uint8_t startitem);
 
 #endif /* SYSTEM_MENU_H_ */

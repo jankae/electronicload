@@ -216,7 +216,7 @@ void events_menu(void) {
     char eventDescr[EV_MAXEVENTS][21];
     char *descrList[EV_MAXEVENTS];
     uint8_t i;
-    int8_t ev;
+    int8_t ev = 0;
     do {
         for (i = 0; i < EV_MAXEVENTS; i++) {
             events_getDescr(i, eventDescr[i]);
@@ -225,7 +225,7 @@ void events_menu(void) {
         ev = menu_ItemChooseDialog(
                 "\xCD\xCD\xCD\xCD\xCD" "EVENT LIST\xCD\xCD\xCD\xCD\xCD\xCD",
                 descrList,
-                EV_MAXEVENTS);
+                EV_MAXEVENTS, ev);
         if (ev >= 0) {
             events_editEventMenu(ev);
         }
@@ -382,7 +382,7 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select event source:",
                         itemList,
-                        EV_NUM_SOURCETYPES);
+                        EV_NUM_SOURCETYPES, events.evlist[ev].srcType);
                 if (sel >= 0) {
                     events.evlist[ev].srcType = sel;
                 }
@@ -398,7 +398,7 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
                         itemList,
-                        EV_NUM_COMPPARAMS);
+                        EV_NUM_COMPPARAMS, events.evlist[ev].srcParamNum);
                 if (sel >= 0) {
                     events.evlist[ev].srcParamNum = sel;
                     events.evlist[ev].srcParam = eventCompParamPointers[sel];
@@ -407,7 +407,8 @@ void events_editEventMenu(uint8_t ev) {
                     && (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)) {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param limit", 0, 1000000, "mX", "X", NULL)) {
+                if (menu_getInputValue(&val, "param limit", 0, 1000000, "mX",
+                        "X", NULL)) {
                     events.evlist[ev].srcLimit = val;
                 }
             } else if (selectedRow == 2 && src == EV_SRC_TIM_ZERO) {
@@ -420,7 +421,8 @@ void events_editEventMenu(uint8_t ev) {
             } else if (selectedRow == 2 && src == EV_SRC_WAVEFORM_PHASE) {
                 // change phase value
                 uint32_t val;
-                if (menu_getInputValue(&val, "Phase:", 0, 360000, "mDeg", "Degree", NULL)) {
+                if (menu_getInputValue(&val, "Phase:", 0, 360000, "mDeg",
+                        "Degree", NULL)) {
                     events.evlist[ev].srcLimit = val;
                 }
             } else if (selectedRow == 5) {
@@ -434,7 +436,7 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select event dest.:",
                         itemList,
-                        EV_NUM_DESTTYPES);
+                        EV_NUM_DESTTYPES, events.evlist[ev].destType);
                 if (sel >= 0) {
                     events.evlist[ev].destType = sel;
                 }
@@ -449,7 +451,7 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
                         itemList,
-                        EV_NUM_SETPARAMS);
+                        EV_NUM_SETPARAMS, events.evlist[ev].destParamNum);
                 if (sel >= 0) {
                     events.evlist[ev].destParamNum = sel;
                     events.evlist[ev].destParam = eventSetParamPointers[sel];
@@ -457,7 +459,8 @@ void events_editEventMenu(uint8_t ev) {
             } else if (selectedRow == 7 && dest == EV_DEST_SET_PARAM) {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param value", 0, 1000000, "mX", "X", NULL)) {
+                if (menu_getInputValue(&val, "param value", 0, 1000000, "mX",
+                        "X", NULL)) {
                     events.evlist[ev].destSetValue = val;
                 }
             } else if (selectedRow == 6 && dest == EV_DEST_SET_TIMER) {
@@ -470,14 +473,15 @@ void events_editEventMenu(uint8_t ev) {
             } else if (selectedRow == 7 && dest == EV_DEST_SET_TIMER) {
                 // change timer start value
                 uint32_t time;
-                if (menu_getInputValue(&time, "time", 0, 3600000, "ms", "s", NULL)) {
+                if (menu_getInputValue(&time, "time", 0, 3600000, "ms", "s",
+                NULL)) {
                     events.evlist[ev].destTimerValue = time;
                 }
             } else if (selectedRow == 6 && dest == EV_DEST_LOAD_MODE) {
                 // change load mode
                 char *modeList[4] = { "CC", "CV", "CR", "CP" };
                 int8_t sel = menu_ItemChooseDialog("Select load mode:",
-                        modeList, 4);
+                        modeList, 4, events.evlist[ev].destMode);
                 if (sel >= 0) {
                     events.evlist[ev].destMode = sel;
                 }

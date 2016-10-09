@@ -19,7 +19,7 @@ void settings_Init(void) {
 
 void settings_Menu(void) {
     char *entries[SETTINGS_NUM_ENTRIES];
-    int8_t sel;
+    int8_t sel = 0;
     do {
         uint32_t minRes, maxRes, maxA, minV, maxV, maxW;
 
@@ -77,7 +77,7 @@ void settings_Menu(void) {
 
         sel = menu_ItemChooseDialog(
                 "\xCD\xCD\xCD\xCDSETTINGS MENU\xCD\xCD\xCD\xCD", entries,
-                SETTINGS_NUM_ENTRIES);
+                SETTINGS_NUM_ENTRIES, sel);
         if (sel >= 0) {
             switch (sel) {
             case 0:
@@ -124,7 +124,7 @@ void settings_SelectBaudrate(void) {
         entries[sel] = availableBaudrates[sel];
     }
     sel = menu_ItemChooseDialog("\xCD\xCD\xCDSELECT BAUDRATE\xCD\xCD\xCD",
-            entries, 7);
+            entries, 7, 0);
     uint32_t baudratebuffer = settings.baudrate;
     switch (sel) {
     case 0:

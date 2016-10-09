@@ -271,11 +271,11 @@ void menu_MainMenu(void) {
     for (i = 0; i < menu.nentries; i++) {
         entries[i] = menu.entries[i].descr;
     }
-    int8_t sel;
+    int8_t sel = 0;
     do {
         sel = menu_ItemChooseDialog(
                 "\xCD\xCD\xCD\xCD\xCD\xCDMAIN MENU\xCD\xCD\xCD\xCD\xCD\xCD",
-                entries, menu.nentries);
+                entries, menu.nentries, sel);
         if (sel >= 0) {
             menu.entries[sel].menuFunction();
         }
@@ -470,13 +470,16 @@ uint8_t menu_getInputValue(uint32_t *value, char *descr, uint32_t min,
     return 1;
 }
 
-int8_t menu_ItemChooseDialog(const char *title, const char **items, uint8_t nitems) {
+int8_t menu_ItemChooseDialog(const char *title, const char **items,
+        uint8_t nitems, uint8_t startitem) {
     if (nitems == 0) {
         // no menu entries
         // -> no main menu
         return -1;
     }
     uint8_t selectedItem = 0;
+    if (startitem < nitems)
+        selectedItem = startitem;
     uint8_t firstDisplayedItem = 0;
     do {
         // wait for all buttons to be released

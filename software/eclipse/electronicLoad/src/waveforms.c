@@ -323,7 +323,7 @@ void waveform_Menu(void) {
                     itemList[i] = waveform_Names[i];
                 }
                 int8_t sel = menu_ItemChooseDialog("Select waveform:", itemList,
-                        5);
+                        5, waveform.form);
                 if (sel >= 0) {
                     waveform.form = sel;
                     load.powerOn = 0;
@@ -367,7 +367,7 @@ void waveform_Menu(void) {
                     itemList[i] = waveSetParamNames[i];
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
-                        itemList, EV_NUM_SETPARAMS);
+                        itemList, EV_NUM_SETPARAMS, waveform.paramNum);
                 if (sel >= 0) {
                     waveform.paramNum = sel;
                     waveform.param = waveSetParamPointers[sel];
