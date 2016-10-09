@@ -61,7 +61,7 @@ void cal_writeToFlash(void) {
         from++;
     }
     // set valid data indicator
-    FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR, 0x01);
+    FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR, CAL_INDICATOR);
     FLASH_Lock();
     cal.unsavedData = 0;
 }
@@ -364,7 +364,8 @@ void calibrationProcessAutomatic(void) {
                 } else if (!meter.AUTO) {
                     screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
                     setupOK = 0;
-                } else if (load.state.voltage > 12000000 || load.state.voltage < 8000000) {
+                } else if (load.state.voltage > 12000000
+                        || load.state.voltage < 8000000) {
                     screen_FastString6x8("!Apply 10V!         ", 0, 5);
                     setupOK = 0;
                 }
