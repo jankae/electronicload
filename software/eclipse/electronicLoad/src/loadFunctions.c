@@ -208,8 +208,7 @@ void load_update(void) {
             }
             break;
         case FUNCTION_CP:
-            break;
-            if (settings.resistanceControl == CONTROL_ANALOG) {
+            if (settings.powerControl == CONTROL_ANALOG) {
                 hal_SetControlMode(HAL_MODE_CP);
                 if (enableInput) {
                     cal_setPower(load.power);
@@ -228,6 +227,7 @@ void load_update(void) {
                     hal_setDAC(0);
                 }
             }
+            break;
         }
     } else {
         // calibration is active

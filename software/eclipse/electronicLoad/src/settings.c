@@ -109,9 +109,9 @@ void settings_Menu(void) {
         }
 
         if (settings.resistanceControl == CONTROL_ANALOG) {
-            strcpy(powerControl, "CR Ctrl: ANALOG");
+            strcpy(resistanceControl, "CR Ctrl: ANALOG");
         } else {
-            strcpy(powerControl, "CR Ctrl: DIGITAL");
+            strcpy(resistanceControl, "CR Ctrl: DIGITAL");
         }
 
         string_fromUintUnit(settings.maxCurrent[settings.powerMode],
