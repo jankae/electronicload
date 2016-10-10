@@ -29,7 +29,7 @@ void com_Update(void) {
             uart_writeString("OK:");
             uart_writeString(com_commands[cmdnum]);
             uart_writeByte('\n');
-            char answer[10];
+            char answer[20];
             switch (cmdnum) {
             case COM_CMD_HELP:
                 uart_writeString("Available commands:\n");
@@ -69,27 +69,24 @@ void com_Update(void) {
                 load.resistance = strtol(&cmd[4], NULL, 0);
                 break;
             case COM_CMD_GET_VOLTAGE:
-                string_fromUint(load.state.voltage, answer, 6, 0);
-                answer[6] = 'm';
-                answer[7] = 'V';
-                answer[8] = '\n';
-                answer[9] = 0;
+                string_fromUint(load.state.voltage, answer, 9, 6);
+                answer[9] = 'V';
+                answer[10] = '\n';
+                answer[11] = 0;
                 uart_writeString(answer);
                 break;
             case COM_CMD_GET_CURRENT:
-                string_fromUint(load.state.current, answer, 5, 0);
-                answer[5] = 'm';
-                answer[6] = 'A';
-                answer[7] = '\n';
-                answer[8] = 0;
+                string_fromUint(load.state.current, answer, 8, 6);
+                answer[8] = 'A';
+                answer[9] = '\n';
+                answer[10] = 0;
                 uart_writeString(answer);
                 break;
             case COM_CMD_GET_POWER:
-                string_fromUint(load.state.power, answer, 6, 0);
-                answer[6] = 'm';
-                answer[7] = 'W';
-                answer[8] = '\n';
-                answer[9] = 0;
+                string_fromUint(load.state.power, answer, 10, 6);
+                answer[10] = 'W';
+                answer[11] = '\n';
+                answer[12] = 0;
                 uart_writeString(answer);
                 break;
             }
