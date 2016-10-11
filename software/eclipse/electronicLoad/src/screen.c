@@ -1179,7 +1179,7 @@ void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
  * \param ypage Y-coordinate (up = 0, down = 6)
  * \param c Character to be displayed
  */
-void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c) {
+void screen_FastChar12x16(char c, uint8_t x, uint8_t ypage) {
     if (x >= 128 || ypage >= 7)
         return;
     uint8_t i;
@@ -1210,7 +1210,7 @@ void screen_InvertChar12x16(uint8_t x, uint8_t ypage) {
  * \param ypage Y-coordinate (up = 0, down = 7)
  * \param c Character to be displayed
  */
-void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c) {
+void screen_FastChar6x8(char c, uint8_t x, uint8_t ypage) {
     if (x >= 128 || ypage >= 8)
         return;
     uint8_t i;
@@ -1241,7 +1241,7 @@ void screen_InvertChar6x8(uint8_t x, uint8_t ypage) {
  */
 void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage) {
     while (*src) {
-        screen_FastChar12x16(x, ypage, *src++);
+        screen_FastChar12x16(*src++, x, ypage);
         x += 12;
     }
 }
@@ -1258,7 +1258,7 @@ void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage) {
  */
 void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage) {
     while (*src) {
-        screen_FastChar6x8(x, ypage, *src++);
+        screen_FastChar6x8(*src++, x, ypage);
         x += 6;
     }
 }

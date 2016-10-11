@@ -269,7 +269,7 @@ void waveform_Menu(void) {
         screen_FastString6x8(waveSetParamNames[waveform.paramNum], 66, 5);
 
         // display selected line
-        screen_FastChar6x8(0, selectedRow, 0x1A);
+        screen_FastChar6x8(0x1A, 0, selectedRow);
 
         /*
          * display waveform in last two rows

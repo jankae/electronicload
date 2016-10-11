@@ -92,7 +92,7 @@ void stats_Display(void) {
             string_fromUintUnit(stats.energyConsumed, buf, 6, 6, 'W');
             screen_FastString6x8("Consumed energy:", 0, 0);
             screen_FastString12x16(buf, 0, 2);
-            screen_FastChar12x16(108, 2, 'h');
+            screen_FastChar12x16('h', 108, 2);
             screen_SetSoftButton("Max", 0);
         }
 

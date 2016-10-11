@@ -54,7 +54,7 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString6x8("CC-Mode:", 0, 3);
             if (settings.powerMode) {
                 string_fromUint(load.current / 1000, buf, 5, 3);
-                screen_FastChar6x8(114, 3, 'A');
+                screen_FastChar6x8('A', 114, 3);
                 baseInkrement = 1000;
                 dotPosition = 3;
                 maxEncoderPosition = 5;
@@ -77,7 +77,7 @@ void menu_DefaultScreenHandler(void) {
 
             screen_FastString6x8("CV-Mode:", 0, 3);
             string_fromUint(load.voltage / 10000, buf, 5, 2);
-            screen_FastChar6x8(114, 3, 'V');
+            screen_FastChar6x8('V', 114, 3);
             baseInkrement = 10000;
             dotPosition = 2;
             maxEncoderPosition = 5;
@@ -95,7 +95,7 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString6x8("CR-Mode:", 0, 3);
             if (settings.powerMode) {
                 string_fromUint(load.resistance / 10, buf, 5, 2);
-                screen_FastChar6x8(114, 3, 'R');
+                screen_FastChar6x8('R', 114, 3);
                 baseInkrement = 10;
                 dotPosition = 2;
                 maxEncoderPosition = 5;
@@ -120,7 +120,7 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString6x8("CP-Mode:", 0, 3);
             if (settings.powerMode) {
                 string_fromUint(load.power / 10000, buf, 5, 2);
-                screen_FastChar6x8(114, 3, 'W');
+                screen_FastChar6x8('W', 114, 3);
                 baseInkrement = 10000;
                 dotPosition = 2;
                 maxEncoderPosition = 5;
@@ -503,7 +503,7 @@ int8_t menu_ItemChooseDialog(const char *title, const char **items,
             screen_FastString6x8(items[i + firstDisplayedItem], 6, i + 1);
         }
         // display arrow at selected menu entry
-        screen_FastChar6x8(0, 1 + selectedItem - firstDisplayedItem, 0x1A);
+        screen_FastChar6x8(0x1A, 0, 1 + selectedItem - firstDisplayedItem);
 
         uint32_t button;
         int32_t encoder;

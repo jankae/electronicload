@@ -94,7 +94,7 @@ void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
  * \param ypage Y-coordinate (up = 0, down = 6)
  * \param c Character to be displayed
  */
-void screen_FastChar12x16(uint8_t x, uint8_t ypage, char c);
+void screen_FastChar12x16(char c, uint8_t x, uint8_t ypage);
 
 void screen_InvertChar12x16(uint8_t x, uint8_t ypage);
 
@@ -108,7 +108,7 @@ void screen_InvertChar12x16(uint8_t x, uint8_t ypage);
  * \param ypage Y-coordinate (up = 0, down = 7)
  * \param c Character to be displayed
  */
-void screen_FastChar6x8(uint8_t x, uint8_t ypage, char c);
+void screen_FastChar6x8(char c, uint8_t x, uint8_t ypage);
 
 void screen_InvertChar6x8(uint8_t x,uint8_t ypage);
 

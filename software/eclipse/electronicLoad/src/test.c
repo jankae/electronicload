@@ -69,8 +69,8 @@ void test_Font(void) {
             uint8_t i, j;
             for (i = 0; i < 8; i++) {
                 for (j = 0; j < 4; j++) {
-                    screen_FastChar12x16(i * 12, j * 2,
-                            (j + topRow) * 16 + i + leftColumn);
+                    screen_FastChar12x16((j + topRow) * 16 + i + leftColumn,
+                            i * 12, j * 2);
                 }
             }
             screen_InvertChar12x16(cursorX * 12, cursorY * 2);
@@ -83,8 +83,8 @@ void test_Font(void) {
             uint8_t i, j;
             for (i = 0; i < 16; i++) {
                 for (j = 0; j < 8; j++) {
-                    screen_FastChar6x8(i * 6, j,
-                            (j + topRow) * 16 + i + leftColumn);
+                    screen_FastChar6x8((j + topRow) * 16 + i + leftColumn,
+                            i * 6, j);
                 }
             }
             screen_InvertChar6x8(cursorX * 6, cursorY);
@@ -97,7 +97,7 @@ void test_Font(void) {
         screen_FastString6x8("Hex:", 102, 0);
         screen_FastString6x8("0x", 102, 1);
         uint8_t selectedChar = ((topRow + cursorY) << 4) + leftColumn + cursorX;
-        screen_FastChar12x16(108, 3, selectedChar);
+        screen_FastChar12x16(selectedChar, 108, 3);
         screen_Rectangle(106, 22, 121, 41);
         screen_Rectangle(105, 21, 122, 42);
         char hex10 =
@@ -107,8 +107,8 @@ void test_Font(void) {
                 (selectedChar & 0x0f) < 10 ?
                         (selectedChar & 0x0f) + '0' :
                         (selectedChar & 0x0f) + '7';
-        screen_FastChar6x8(114, 1, hex10);
-        screen_FastChar6x8(120, 1, hex1);
+        screen_FastChar6x8(hex10, 114, 1);
+        screen_FastChar6x8(hex1, 120, 1);
         uint32_t button;
         // wait for button press
         while (!(button = hal_getButton()))
@@ -208,11 +208,11 @@ void test_Buttons(void) {
         // display currenty pressed buttons
         screen_Clear();
         if (button & HAL_BUTTON_1)
-            screen_FastChar6x8(6, 0, '1');
+            screen_FastChar6x8('1', 6, 0);
         if (button & HAL_BUTTON_2)
-            screen_FastChar6x8(24, 0, '2');
+            screen_FastChar6x8('2', 24, 0);
         if (button & HAL_BUTTON_3)
-            screen_FastChar6x8(42, 0, '3');
+            screen_FastChar6x8('3', 42, 0);
         if (button & HAL_BUTTON_ESC)
             screen_FastString6x8("Esc", 54, 0);
         if (button & HAL_BUTTON_CC)
@@ -220,23 +220,23 @@ void test_Buttons(void) {
         if (button & HAL_BUTTON_CV)
             screen_FastString6x8("CV", 114, 0);
         if (button & HAL_BUTTON_4)
-            screen_FastChar6x8(6, 1, '4');
+            screen_FastChar6x8('4', 6, 1);
         if (button & HAL_BUTTON_5)
-            screen_FastChar6x8(24, 1, '5');
+            screen_FastChar6x8('5', 24, 1);
         if (button & HAL_BUTTON_6)
-            screen_FastChar6x8(42, 1, '6');
+            screen_FastChar6x8('6', 42, 1);
         if (button & HAL_BUTTON_0)
-            screen_FastChar6x8(60, 1, '0');
+            screen_FastChar6x8('0', 60, 1);
         if (button & HAL_BUTTON_CR)
             screen_FastString6x8("CR", 96, 1);
         if (button & HAL_BUTTON_CP)
             screen_FastString6x8("CP", 114, 1);
         if (button & HAL_BUTTON_7)
-            screen_FastChar6x8(6, 2, '7');
+            screen_FastChar6x8('7', 6, 2);
         if (button & HAL_BUTTON_8)
-            screen_FastChar6x8(24, 2, '8');
+            screen_FastChar6x8('8', 24, 2);
         if (button & HAL_BUTTON_9)
-            screen_FastChar6x8(42, 2, '9');
+            screen_FastChar6x8('9', 42, 2);
         if (button & HAL_BUTTON_DOT)
             screen_FastString6x8("Dot", 54, 2);
         if (button & HAL_BUTTON_ENTER)
@@ -283,9 +283,9 @@ void test_AVRGPIO(void) {
             screen_FastString6x8(gpioNames[i], 0, i + 1);
             if (gpios & j) {
                 // this GPIO is set
-                screen_FastChar6x8(90, i + 1, '1');
+                screen_FastChar6x8('1', 90, i + 1);
             } else {
-                screen_FastChar6x8(90, i + 1, '0');
+                screen_FastChar6x8('0', 90, i + 1);
             }
             j <<= 1;
         }
@@ -349,8 +349,8 @@ void test_AVRADC(void) {
             string_fromUint(result, buf, 4, 0);
             uint8_t x = i < 5 ? 0 : 60;
             uint8_t y = i < 5 ? i + 1 : i - 4;
-            screen_FastChar6x8(x, y, i + '0');
-            screen_FastChar6x8(x + 6, y, ':');
+            screen_FastChar6x8(i + '0', x, y);
+            screen_FastChar6x8(':', x + 6, y);
             screen_FastString6x8(buf, x + 12, y);
         }
 

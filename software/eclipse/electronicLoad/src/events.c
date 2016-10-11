@@ -50,8 +50,8 @@ void events_HandleEvents(void) {
         }
     }
     for (i = 0; i < EV_MAXEVENTS; i++) {
-        if (triggered[i]){
-            events_triggerEventDestination();
+        if (triggered[i]) {
+            events_triggerEventDestination(i);
         }
     }
 }
@@ -261,7 +261,7 @@ void events_editEventMenu(uint8_t ev) {
         screen_FastString6x8(eventSrcNames[src], 30, 1);
         if (src == EV_SRC_TIM_ZERO) {
             screen_FastString6x8("Timer:", 6, 2);
-            screen_FastChar6x8(48, 2, events.evlist[ev].srcTimerNum + '0');
+            screen_FastChar6x8(events.evlist[ev].srcTimerNum + '0', 48, 2);
         } else if (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER) {
             screen_FastString6x8("Param:", 6, 2);
             screen_FastString6x8(
@@ -283,7 +283,7 @@ void events_editEventMenu(uint8_t ev) {
             screen_FastString6x8(eventDestNames[dest], 36, 5);
             if (dest == EV_DEST_SET_TIMER) {
                 screen_FastString6x8("Timer:", 6, 6);
-                screen_FastChar6x8(48, 6, events.evlist[ev].destTimerNum + '0');
+                screen_FastChar6x8(events.evlist[ev].destTimerNum + '0', 48, 6);
                 screen_FastString6x8("Value:", 6, 7);
                 char value[11];
                 string_fromUint(events.evlist[ev].destTimerValue, value, 9, 3);
@@ -301,21 +301,21 @@ void events_editEventMenu(uint8_t ev) {
                 screen_FastString6x8("Mode: C", 6, 6);
                 switch (events.evlist[ev].destMode) {
                 case FUNCTION_CC:
-                    screen_FastChar6x8(48, 6, 'C');
+                    screen_FastChar6x8('C', 48, 6);
                     break;
                 case FUNCTION_CV:
-                    screen_FastChar6x8(48, 6, 'V');
+                    screen_FastChar6x8('V', 48, 6);
                     break;
                 case FUNCTION_CR:
-                    screen_FastChar6x8(48, 6, 'R');
+                    screen_FastChar6x8('R', 48, 6);
                     break;
                 case FUNCTION_CP:
-                    screen_FastChar6x8(48, 6, 'P');
+                    screen_FastChar6x8('P', 48, 6);
                     break;
                 }
             }
         }
-        screen_FastChar6x8(0, selectedRow, 0x1A);
+        screen_FastChar6x8(0x1A, 0, selectedRow);
         // wait for user input
         do {
             button = hal_getButton();
