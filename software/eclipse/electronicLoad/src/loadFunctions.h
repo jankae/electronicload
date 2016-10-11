@@ -45,13 +45,14 @@ struct {
 
     struct {
         uint32_t current;
-        uint64_t currentSum;
         uint32_t voltage;
-        uint64_t voltageSum;
         uint32_t power;
-        uint64_t powerSum;
         uint16_t temp1;
         uint16_t temp2;
+        // average variables for display
+        uint64_t currentSum;
+        uint64_t voltageSum;
+        uint64_t powerSum;
         uint32_t nsamples;
     } state;
 
@@ -67,6 +68,16 @@ struct {
  * call load_update()
  */
 void load_Init(void);
+
+/**
+ * \brief Calculates average values since last call
+ *
+ * \param current Pointer to the average current
+ * \param voltage Pointer to the average voltage
+ * \param power Pointer to the average power
+ */
+void load_GetAverageAndReset(uint32_t *current, uint32_t *voltage,
+        uint32_t *power);
 
 /**
  * \brief Sets constant current mode

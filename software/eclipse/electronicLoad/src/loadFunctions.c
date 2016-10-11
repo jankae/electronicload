@@ -24,6 +24,17 @@ void load_Init(void) {
     timer_SetupPeriodicFunction(2, MS_TO_TICKS(1), load_update, 4);
 }
 
+void load_GetAverageAndReset(uint32_t *current, uint32_t *voltage,
+        uint32_t *power) {
+    *current = load.state.currentSum / load.state.nsamples;
+    *voltage = load.state.voltageSum / load.state.nsamples;
+    *power = load.state.powerSum / load.state.nsamples;
+    load.state.currentSum = 0;
+    load.state.voltageSum = 0;
+    load.state.powerSum = 0;
+    load.state.nsamples = 0;
+}
+
 /**
  * \brief Sets constant current mode
  *
@@ -122,6 +133,8 @@ void load_update(void) {
 
     load.state.power = (uint64_t) load.state.voltage * load.state.current
             / 1000000UL;
+
+    // update average values
     load.state.voltageSum += load.state.voltage;
     load.state.currentSum += load.state.current;
     load.state.powerSum += load.state.power;
