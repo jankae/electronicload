@@ -438,8 +438,8 @@ uint16_t hal_getADC(uint32_t nsamples) {
             min = adc;
     }
     if (max - min > HAL_ADC_UNSTABLE_THRESHOLD) {
-        if (hal.ADCunstable < 255)
-            hal.ADCunstable++;
+        if (hal.ADCunstable < 254)
+            hal.ADCunstable += 2;
     } else if (hal.ADCunstable) {
         hal.ADCunstable--;
     }
@@ -499,4 +499,12 @@ void hal_SelectADCChannel(uint8_t channel) {
         break;
     }
     hal_UpdateAVRGPIOs();
+}
+
+uint8_t hal_isStable(void) {
+    if (hal.ADCunstable > HAL_ADC_UNSTABLE_DURATION * 2)
+        // ADC has been unstable for some time -> probably oscillation in the load
+        return 0;
+    else
+        return 1;
 }

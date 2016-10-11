@@ -68,7 +68,10 @@
 
 #define HAL_DAC_MAX         0xffff
 
+// maximum difference between max and min value to be considered stable
 #define HAL_ADC_UNSTABLE_THRESHOLD  1000
+// maximum time in ms for which the ADC is allowed to be unstable (e.g. during settling)
+#define HAL_ADC_UNSTABLE_DURATION   10
 
 struct {
     uint8_t ADCchannel;
@@ -168,5 +171,7 @@ void hal_SetControlMode(uint8_t mode);
 void hal_SelectShunt(uint8_t shunt);
 
 void hal_SelectADCChannel(uint8_t channel);
+
+uint8_t hal_isStable(void);
 
 #endif
