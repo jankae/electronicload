@@ -10,9 +10,9 @@
 #define FLASH_SETTINGS_DATA             0x0801E004
 #define FLASH_VALID_SETTINGS_INDICATOR  0x0801E000
 
-#define SETTINGS_INDICATOR              0x02
+#define SETTINGS_INDICATOR              0x03
 
-#define SETTINGS_NUM_ENTRIES            10
+#define SETTINGS_NUM_ENTRIES            11
 
 #define LOAD_MAXVOLTAGE_LOWP            100000000
 #define LOAD_MINVOLTAGE_LOWP            100000
@@ -45,6 +45,7 @@ struct {
     uint32_t maxResistance[2];
     controlMode_t powerControl;
     controlMode_t resistanceControl;
+    uint8_t turnOffOnError;
 } settings;
 
 void settings_Init(void);

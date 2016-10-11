@@ -17,6 +17,7 @@ void settings_Init(void) {
     settings.maxResistance[1] = LOAD_MAXRESISTANCE_HIGHP;
     settings.powerControl = CONTROL_ANALOG;
     settings.resistanceControl = CONTROL_ANALOG;
+    settings.turnOffOnError = 1;
 }
 
 uint8_t settings_readFromFlash(void) {
@@ -82,6 +83,7 @@ void settings_Menu(void) {
         char settingHigh[21];
         char powerControl[21];
         char resistanceControl[21];
+        char onError[21];
 
         if (settings.powerMode) {
             strcpy(settingHigh, "Mode: high power");
@@ -114,6 +116,12 @@ void settings_Menu(void) {
             strcpy(resistanceControl, "CR Ctrl: DIGITAL");
         }
 
+        if (settings.turnOffOnError) {
+            strcpy(resistanceControl, "On error: turn off");
+        } else {
+            strcpy(resistanceControl, "On error: keep on");
+        }
+
         string_fromUintUnit(settings.maxCurrent[settings.powerMode],
                 &maxCurrent[13], 4, 6, 'A');
         string_fromUintUnit(settings.maxPower[settings.powerMode],
@@ -137,6 +145,7 @@ void settings_Menu(void) {
         entries[7] = maxResist;
         entries[8] = powerControl;
         entries[9] = resistanceControl;
+        entries[10] = onError;
 
         char resetToDefault[21] = "Reset to default";
         entries[SETTINGS_NUM_ENTRIES] = resetToDefault;
@@ -193,6 +202,9 @@ void settings_Menu(void) {
                     settings.resistanceControl = CONTROL_DIGITAL;
                 else
                     settings.resistanceControl = CONTROL_ANALOG;
+                break;
+            case 10:
+                settings.turnOffOnError = !settings.turnOffOnError;
                 break;
             case SETTINGS_NUM_ENTRIES:
                 settings_ResetToDefaultMenu();
