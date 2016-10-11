@@ -41,9 +41,17 @@ void events_Init(void) {
 
 void events_HandleEvents(void) {
     uint8_t i;
+    uint8_t triggered[EV_MAXEVENTS];
     for (i = 0; i < EV_MAXEVENTS; i++) {
         if (events_isEventSourceTriggered(i)) {
-            events_triggerEventDestination(i);
+            triggered[i] = 1;
+        } else {
+            triggered[i] = 0;
+        }
+    }
+    for (i = 0; i < EV_MAXEVENTS; i++) {
+        if (triggered[i]){
+            events_triggerEventDestination();
         }
     }
 }
