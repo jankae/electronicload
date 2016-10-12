@@ -17,5 +17,6 @@
 #include "multimeter.h"
 #include "selftest.h"
 #include "test.h"
+#include "errors.h"
 
 #endif

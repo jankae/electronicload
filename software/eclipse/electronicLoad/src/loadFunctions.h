@@ -45,9 +45,9 @@ struct {
     uint16_t DACoverride;
 
     struct {
-        uint32_t current;
-        uint32_t voltage;
-        uint32_t power;
+        int32_t current;
+        int32_t voltage;
+        int32_t power;
         uint16_t temp1;
         uint16_t temp2;
         // average variables for display

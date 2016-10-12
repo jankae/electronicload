@@ -117,9 +117,9 @@ void settings_Menu(void) {
         }
 
         if (settings.turnOffOnError) {
-            strcpy(resistanceControl, "On error: turn off");
+            strcpy(onError, "On error: turn off");
         } else {
-            strcpy(resistanceControl, "On error: keep on");
+            strcpy(onError, "On error: keep on");
         }
 
         string_fromUintUnit(settings.maxCurrent[settings.powerMode],

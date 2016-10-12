@@ -10,12 +10,15 @@
 #define LOAD_ERROR_OFF_CURRENT              0x01
 // load drawing wrong amount of current (voltage/power)
 #define LOAD_ERROR_WRONG_CURRENT            0x02
-#define LOAD_ERROR_WRONG_VOLTAGE            0x04
-#define LOAD_ERROR_WRONG_POWER              0x08
+#define LOAD_ERROR_WRONG_VOLTAGE            0x03
+#define LOAD_ERROR_WRONG_POWER              0x04
 
 struct {
     uint32_t code;
+    uint8_t Duration[32];
 } error;
+
+void error_Menu(void);
 
 void errors_Check(void);
 

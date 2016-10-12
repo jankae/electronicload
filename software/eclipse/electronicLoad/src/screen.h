@@ -144,4 +144,6 @@ void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage);
  */
 void screen_SetSoftButton(const char *descr, uint8_t num);
 
+void screen_Text6x8(const char *src, uint8_t x, uint8_t ypage);
+
 #endif

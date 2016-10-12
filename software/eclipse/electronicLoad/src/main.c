@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
     menu_AddMainMenuEntry("Statistics", stats_Display);
     menu_AddMainMenuEntry("Settings", settings_Menu);
     menu_AddMainMenuEntry("Tests", test_Menu);
+    menu_AddMainMenuEntry("Errors", error_Menu);
 
     menu_DefaultScreenHandler();
 }

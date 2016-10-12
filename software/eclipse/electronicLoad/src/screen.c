@@ -1278,3 +1278,68 @@ void screen_SetSoftButton(const char *descr, uint8_t num) {
     screen_FastString6x8(descr, start, 7);
 }
 
+void screen_Text6x8(const char *src, uint8_t x, uint8_t ypage) {
+    uint8_t xbuf = x;
+    while (*src) {
+        // try to display next word
+        char *c = src;
+        uint8_t wordlength = 0;
+        while (*c != ' ' && *c) {
+            wordlength++;
+            c++;
+        }
+        if (xbuf + wordlength * 6 > 128) {
+            // word doesn't fit in any line
+            // -> write it with line break
+            while (*src != ' ' && *src) {
+                screen_FastChar6x8(*src++, x, ypage);
+                x += 6;
+                if (x >= 128) {
+                    ypage++;
+                    x = xbuf;
+                    if (ypage > 7) {
+                        // screen is full -> abort
+                        return;
+                    }
+                }
+            }
+        } else if (x + wordlength * 6 > 128) {
+            // the word doesn't fit into current line
+            // -> switch to next line
+            x = xbuf;
+            ypage++;
+            if (ypage > 7) {
+                // screen is full -> abort
+                return;
+            }
+            while (*src != ' ' && *src) {
+                screen_FastChar6x8(*src++, x, ypage);
+                x += 6;
+            }
+        } else {
+            // word fits into current line
+            while (*src != ' ' && *src) {
+                screen_FastChar6x8(*src++, x, ypage);
+                x += 6;
+            }
+        }
+        if (*src == ' ') {
+            // skip spaces
+            src++;
+            if (x <= 116) {
+                // enough room for 'space'
+                x += 6;
+            } else {
+                // end of line, start next word at next line
+                // -> switch to next line
+                x = xbuf;
+                ypage++;
+                if (ypage > 7) {
+                    // screen is full -> abort
+                    return;
+                }
+            }
+        }
+    }
+}
+
