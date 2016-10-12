@@ -14,20 +14,11 @@
 #include "waveforms.h"
 #include "settings.h"
 #include "characteristic.h"
+#include "errors.h"
 
 #define LOAD_MAX_TEMP           100
 #define LOAD_FANON_TEMP         30
 #define LOAD_FANOFF_TEMP        25
-
-// time in ms after which an error condition is reported
-#define LOAD_MAX_ERROR_DURATION 10
-// error bits encoded into load.error:
-// load draws current while input is switched off
-#define LOAD_ERROR_OFF_CURRENT              0x01
-// load drawing wrong amount of current (voltage/power)
-#define LOAD_ERROR_WRONG_CURRENT            0x02
-#define LOAD_ERROR_WRONG_VOLTAGE            0x04
-#define LOAD_ERROR_WRONG_POWER              0x08
 
 typedef enum {
     FUNCTION_CC = 0, FUNCTION_CV = 1, FUNCTION_CR = 2, FUNCTION_CP = 3
@@ -65,8 +56,6 @@ struct {
         uint64_t powerSum;
         uint32_t nsamples;
     } state;
-
-    uint32_t error;
 
     uint8_t disableIOcontrol;
 } load;
@@ -141,7 +130,5 @@ void load_ConstrainSettings(void);
  * This function is called from an interrupt (using timer 2) every millisecond
  */
 void load_update(void);
-
-void load_CheckErrors(void);
 
 #endif

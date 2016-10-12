@@ -153,6 +153,10 @@ void menu_DefaultScreenHandler(void) {
         buf[10] = 'C';
         screen_FastString6x8(buf, 62, 2);
 
+        if (error.code) {
+            screen_FastString6x8("!ERROR!", 0, 2);
+        }
+
         screen_SetSoftButton("\x1b", 0);
         screen_SetSoftButton("\x1a", 1);
         screen_SetSoftButton("Menu", 2);
