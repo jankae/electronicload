@@ -121,7 +121,10 @@ void load_update(void) {
     if (load.disableIOcontrol)
         return;
 
-    if (settings.powerMode) {
+    if (settings.turnOffOnError && error.code) {
+        load.powerOn = 0;
+        hal_SelectShunt(HAL_SHUNT_NONE);
+    } else if (settings.powerMode) {
         hal_SelectShunt(HAL_SHUNT_R01);
     } else {
         hal_SelectShunt(HAL_SHUNT_1R);
@@ -157,10 +160,6 @@ void load_update(void) {
     load.triggerInOld = triggerIn;
 
     if (!cal.active) {
-        if(settings.turnOffOnError && error.code){
-            load.powerOn = 0;
-        }
-
         // only run function that can potentially change settings
         // while calibration is not active
         events_decrementTimers();
