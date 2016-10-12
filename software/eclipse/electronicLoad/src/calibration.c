@@ -241,11 +241,10 @@ void calibrationProcessAutomatic(void) {
         load.DACoverride = HAL_DAC_MAX;
         // show setup
         screen_Clear();
-        screen_FastString6x8("Connect a PSU with", 0, 0);
-        screen_FastString6x8("at least 30V via", 0, 1);
-        screen_FastString6x8("a 1k resistor. Use", 0, 2);
-        screen_FastString6x8("the meter in the 'V'", 0, 3);
-        screen_FastString6x8("range at the load.", 0, 4);
+        screen_Text6x8("Connect a PSU with at least"
+                " 30V via a 1k resistor. Use"
+                " the meter in the 'V'"
+                " range at the load.", 0, 0);
 
         screen_SetSoftButton("Abort", 0);
 
@@ -340,10 +339,9 @@ void calibrationProcessAutomatic(void) {
         load.mode = FUNCTION_CC;
         // show setup
         screen_Clear();
-        screen_FastString6x8("Connect a 10V 300mA", 0, 0);
-        screen_FastString6x8("PSU and the meter in", 0, 1);
-        screen_FastString6x8("series in the mA", 0, 2);
-        screen_FastString6x8("range.", 0, 3);
+        screen_Text6x8("Connect a 10V 300mA"
+                " PSU and the meter in"
+                " series in the mA range.", 0, 0);
 
         screen_SetSoftButton("Abort", 0);
 
@@ -716,9 +714,9 @@ void calibrationProcessHardware(void) {
             settings.powerMode = 0;
             load.DACoverride = 0;
             screen_Clear();
-            screen_FastString6x8("Disconnect everything", 0, 0);
-            screen_FastString6x8("from the input and", 0, 1);
-            screen_FastString6x8("open the top cover.", 0, 2);
+            screen_Text6x8("Disconnect everything"
+                    " from the input and"
+                    " open the top cover.", 0, 0);
             screen_SetSoftButton("Abort", 0);
             screen_SetSoftButton("Next", 2);
             do {
@@ -742,11 +740,11 @@ void calibrationProcessHardware(void) {
             settings.powerMode = 0;
             load.DACoverride = 0;
             screen_Clear();
-            screen_FastString6x8("Adjust R26 on", 0, 0);
-            screen_FastString6x8("analogControlBoard", 0, 1);
-            screen_FastString6x8("for 0V at FET pin on", 0, 2);
-            screen_FastString6x8("analogBoard with", 0, 3);
-            screen_FastString6x8("respect to ground.", 0, 4);
+            screen_Text6x8("Adjust R26 on"
+                    " analogControlBoard"
+                    " for 0V at FET pin on"
+                    " analogBoard with"
+                    " respect to ground.", 0, 0);
             screen_SetSoftButton("Abort", 0);
             screen_SetSoftButton("Prev", 1);
             screen_SetSoftButton("Next", 2);
@@ -773,11 +771,11 @@ void calibrationProcessHardware(void) {
             settings.powerMode = 0;
             load.DACoverride = 0;
             screen_Clear();
-            screen_FastString6x8("Adjust R18 on", 0, 0);
-            screen_FastString6x8("analogControlBoard", 0, 1);
-            screen_FastString6x8("for minimal Vpp at", 0, 2);
-            screen_FastString6x8("TRIM header on", 0, 3);
-            screen_FastString6x8("analogControlBoard.", 0, 4);
+            screen_Text6x8("Adjust R18 on"
+                    " analogControlBoard"
+                    " for minimal Vpp at"
+                    " TRIM header on"
+                    " analogControlBoard.", 0, 0);
             screen_SetSoftButton("Abort", 0);
             screen_SetSoftButton("Next", 2);
             uint32_t DACtoggle = timer_SetTimeout(10);
@@ -817,12 +815,12 @@ void calibrationProcessHardware(void) {
             settings.powerMode = 0;
             load.DACoverride = 0;
             screen_Clear();
-            screen_FastString6x8("Apply a large Vpp", 0, 0);
-            screen_FastString6x8("signal at the sense", 0, 1);
-            screen_FastString6x8("input. Adjust R2 on", 0, 2);
-            screen_FastString6x8("the analogCtrlBoard", 0, 3);
-            screen_FastString6x8("for minimal Vpp at", 0, 4);
-            screen_FastString6x8("TRIM header.", 0, 5);
+            screen_Text6x8("Apply a large Vpp"
+                    " signal at the sense"
+                    " input. Adjust R2 on"
+                    " the analogCtrlBoard"
+                    " for minimal Vpp at"
+                    " TRIM header.", 0, 0);
             screen_SetSoftButton("Abort", 0);
             screen_SetSoftButton("Prev", 1);
             screen_SetSoftButton("Next", 2);
@@ -849,11 +847,11 @@ void calibrationProcessHardware(void) {
             settings.powerMode = 0;
             load.DACoverride = 0;
             screen_Clear();
-            screen_FastString6x8("Adjust R25 on", 0, 0);
-            screen_FastString6x8("analogControlBoard", 0, 1);
-            screen_FastString6x8("for minimal voltage", 0, 2);
-            screen_FastString6x8("at TRIM header on", 0, 3);
-            screen_FastString6x8("analogControlBoard.", 0, 4);
+            screen_Text6x8("Adjust R25 on"
+                    " analogControlBoard"
+                    " for minimal voltage"
+                    " at TRIM header on"
+                    " analogControlBoard.", 0, 0);
             screen_SetSoftButton("Abort", 0);
             screen_SetSoftButton("Prev", 1);
             screen_SetSoftButton("Done", 2);
