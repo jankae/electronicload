@@ -17,8 +17,8 @@
 #include "errors.h"
 
 #define LOAD_MAX_TEMP           100
-#define LOAD_FANON_TEMP         30
-#define LOAD_FANOFF_TEMP        25
+#define LOAD_FANON_TEMP         35
+#define LOAD_FANOFF_TEMP        30
 
 typedef enum {
     FUNCTION_CC = 0, FUNCTION_CV = 1, FUNCTION_CR = 2, FUNCTION_CP = 3
