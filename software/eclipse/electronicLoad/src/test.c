@@ -272,7 +272,7 @@ void test_AVRGPIO(void) {
     uint8_t active = 1;
 
     char gpioNames[7][12] = { "1:SHUNT_EN2", "2:SHUNT_EN1", "3:SHUNTSEL",
-            "4:FAN", "5:MODE_A", "6:MODE_B", "7:ANA_MUX" };
+            "4:GPIO3", "5:MODE_A", "6:MODE_B", "7:ANA_MUX" };
     do {
         screen_Clear();
         screen_FastString6x8("Manual GPIO control", 0, 0);

@@ -36,7 +36,7 @@
 #define HAL_GPIO_SHUNT_EN2  1
 #define HAL_GPIO_SHUNT_EN1  2
 #define HAL_GPIO_SHUNTSEL   4
-#define HAL_GPIO3           8
+#define HAL_GPIO_3          8
 #define HAL_GPIO_MODE_A     16
 #define HAL_GPIO_MODE_B     32
 #define HAL_GPIO_ANALOG_MUX 64
