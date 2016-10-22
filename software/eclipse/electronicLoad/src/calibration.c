@@ -1032,6 +1032,8 @@ int32_t cal_getCurrent(void) {
     if (settings.powerMode) {
         current = ((int64_t) current * calData.shuntFactor) / 100;
     }
+    if (current < 0)
+        current = 0;
     return current;
 }
 
@@ -1047,6 +1049,8 @@ int32_t cal_getVoltage(void) {
     int32_t voltage = common_Map(cal.rawADCvoltage,
             calData.voltageSenseTable[0][0], calData.voltageSenseTable[1][0],
             calData.voltageSenseTable[0][1], calData.voltageSenseTable[1][1]);
+    if (voltage < 0)
+        voltage = 0;
     return voltage;
 }
 
