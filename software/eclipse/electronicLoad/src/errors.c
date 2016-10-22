@@ -3,7 +3,8 @@
 const char *errorDescr[] = { "Load draws current despite being turned off",
         "Load current deviates from set current",
         "Load voltage deviates from set voltage",
-        "Load power deviates from set power" };
+        "Load power deviates from set power",
+        "Load draws more than maximum settable current" };
 
 void error_Menu(void) {
     if (error.code) {
@@ -77,7 +78,9 @@ void errors_Check(void) {
     /******************************************************************
      * Load drawing current while input is switched off
      *****************************************************************/
-    if (!load.powerOn && (load.state.current > 100)) {
+    if (!load.powerOn
+            && (((load.state.current > 100) && !settings.powerMode)
+                    || load.state.current > 10000)) {
         // input is switched off but load is still drawing more than 100uA
         if (error.Duration[LOAD_ERROR_OFF_CURRENT] < 254)
             error.Duration[LOAD_ERROR_OFF_CURRENT] += 2;
@@ -119,6 +122,15 @@ void errors_Check(void) {
             if (error.Duration[LOAD_ERROR_WRONG_POWER] < 254)
                 error.Duration[LOAD_ERROR_WRONG_POWER] += 2;
         }
+    }
+    /******************************************************************
+     * Load drawing too much current
+     *****************************************************************/
+    if (load.state.current > LOAD_MAXCURRENT_HIGHP + 2000000
+            || (!settings.powerMode
+                    && load.state.current > LOAD_MAXCURRENT_LOWP + 20000)) {
+        if (error.Duration[LOAD_ERROR_OVERCURRENT] < 254)
+            error.Duration[LOAD_ERROR_OVERCURRENT] += 2;
     }
     /******************************************
      * Check error durations and set error code
