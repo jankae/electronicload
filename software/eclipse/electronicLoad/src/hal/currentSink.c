@@ -456,14 +456,14 @@ void hal_SetControlMode(uint8_t mode) {
         hal_SetAVRGPIO(HAL_GPIO_MODE_A);
         hal_ClearAVRGPIO(HAL_GPIO_MODE_B);
         break;
-    case HAL_MODE_CR:
-        hal_SetAVRGPIO(HAL_GPIO_MODE_A);
-        hal_SetAVRGPIO(HAL_GPIO_MODE_B);
-        break;
-    case HAL_MODE_CP:
-        hal_ClearAVRGPIO(HAL_GPIO_MODE_A);
-        hal_SetAVRGPIO(HAL_GPIO_MODE_B);
-        break;
+//    case HAL_MODE_CR:
+//        hal_SetAVRGPIO(HAL_GPIO_MODE_A);
+//        hal_SetAVRGPIO(HAL_GPIO_MODE_B);
+//        break;
+//    case HAL_MODE_CP:
+//        hal_ClearAVRGPIO(HAL_GPIO_MODE_A);
+//        hal_SetAVRGPIO(HAL_GPIO_MODE_B);
+//        break;
     }
     hal_UpdateAVRGPIOs();
 }

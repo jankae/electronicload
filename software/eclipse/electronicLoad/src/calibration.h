@@ -131,9 +131,9 @@ void cal_setCurrent(uint32_t uA);
 
 void cal_setVoltage(uint32_t uV);
 
-void cal_setPower(uint32_t uW);
-
-void cal_setResistance(uint32_t uR);
+//void cal_setPower(uint32_t uW);
+//
+//void cal_setResistance(uint32_t uR);
 
 /**
  * \brief Returns the current being drawn

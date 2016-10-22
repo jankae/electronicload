@@ -976,46 +976,46 @@ void cal_setVoltage(uint32_t uV) {
     hal_setDAC(dac);
 }
 
-void cal_setPower(uint32_t uW) {
-    if (uW > settings.maxPower[settings.powerMode]) {
-        uW = settings.maxPower[settings.powerMode];
-    }
-    if (settings.powerMode) {
-        // low shunt active (high power mode)
-        uW = ((int64_t) uW * 100) / calData.shuntFactor;
-    }
-    int32_t dac = common_Map(uW, calData.powerSetTable[0][1],
-            calData.powerSetTable[1][1], calData.powerSetTable[0][0],
-            calData.powerSetTable[1][0]);
-    if (dac < 0)
-        dac = 0;
-    else if (dac > HAL_DAC_MAX)
-        dac = HAL_DAC_MAX;
-    hal_setDAC(dac);
-}
-
-void cal_setResistance(uint32_t uR) {
-    if (uR > settings.maxResistance[settings.powerMode]) {
-        uR = settings.maxResistance[settings.powerMode];
-    } else if (uR < settings.minResistance[settings.powerMode]) {
-        uR = settings.minResistance[settings.powerMode];
-    }
-    if (settings.powerMode) {
-        // low shunt active (high power mode)
-        uR = ((int64_t) uR * calData.shuntFactor) / 100;
-    }
-    // convert resistance in conductance
-    int32_t uS = ((int64_t) 1000000000LL) / uR;
-    int32_t dac = common_Map(uS, calData.conductanceSetTable[0][1],
-            calData.conductanceSetTable[1][1],
-            calData.conductanceSetTable[0][0],
-            calData.conductanceSetTable[1][0]);
-    if (dac < 0)
-        dac = 0;
-    else if (dac > HAL_DAC_MAX)
-        dac = HAL_DAC_MAX;
-    hal_setDAC(dac);
-}
+//void cal_setPower(uint32_t uW) {
+//    if (uW > settings.maxPower[settings.powerMode]) {
+//        uW = settings.maxPower[settings.powerMode];
+//    }
+//    if (settings.powerMode) {
+//        // low shunt active (high power mode)
+//        uW = ((int64_t) uW * 100) / calData.shuntFactor;
+//    }
+//    int32_t dac = common_Map(uW, calData.powerSetTable[0][1],
+//            calData.powerSetTable[1][1], calData.powerSetTable[0][0],
+//            calData.powerSetTable[1][0]);
+//    if (dac < 0)
+//        dac = 0;
+//    else if (dac > HAL_DAC_MAX)
+//        dac = HAL_DAC_MAX;
+//    hal_setDAC(dac);
+//}
+//
+//void cal_setResistance(uint32_t uR) {
+//    if (uR > settings.maxResistance[settings.powerMode]) {
+//        uR = settings.maxResistance[settings.powerMode];
+//    } else if (uR < settings.minResistance[settings.powerMode]) {
+//        uR = settings.minResistance[settings.powerMode];
+//    }
+//    if (settings.powerMode) {
+//        // low shunt active (high power mode)
+//        uR = ((int64_t) uR * calData.shuntFactor) / 100;
+//    }
+//    // convert resistance in conductance
+//    int32_t uS = ((int64_t) 1000000000LL) / uR;
+//    int32_t dac = common_Map(uS, calData.conductanceSetTable[0][1],
+//            calData.conductanceSetTable[1][1],
+//            calData.conductanceSetTable[0][0],
+//            calData.conductanceSetTable[1][0]);
+//    if (dac < 0)
+//        dac = 0;
+//    else if (dac > HAL_DAC_MAX)
+//        dac = HAL_DAC_MAX;
+//    hal_setDAC(dac);
+//}
 
 /**
  * \brief Returns the current being drawn

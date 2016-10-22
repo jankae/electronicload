@@ -56,8 +56,8 @@
 
 #define HAL_MODE_CC         0
 #define HAL_MODE_CV         1
-#define HAL_MODE_CR         2
-#define HAL_MODE_CP         3
+//#define HAL_MODE_CR         2
+//#define HAL_MODE_CP         3
 
 #define HAL_SHUNT_NONE      0
 #define HAL_SHUNT_R01       1

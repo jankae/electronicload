@@ -201,47 +201,27 @@ void load_update(void) {
             }
             break;
         case FUNCTION_CR:
-            if (settings.resistanceControl == CONTROL_ANALOG) {
-                hal_SetControlMode(HAL_MODE_CR);
-                if (enableInput) {
-                    cal_setResistance(load.resistance);
-                } else {
-                    // actually setting conductance thus a DAC
-                    // value of 0 equals infinite resistance
-                    hal_setDAC(0);
-                }
+            // control resistance in digital mode: set current depending on voltage
+            hal_SetControlMode(HAL_MODE_CC);
+            if (enableInput) {
+                // calculate necessary current
+                current = ((uint64_t) load.state.voltage * 1000)
+                        / load.resistance;
+                cal_setCurrent(current);
             } else {
-                // control resistance in digital mode: set current depending on voltage
-                hal_SetControlMode(HAL_MODE_CC);
-                if (enableInput) {
-                    // calculate necessary current
-                    current = ((uint64_t) load.state.voltage * 1000)
-                            / load.resistance;
-                    cal_setCurrent(current);
-                } else {
-                    hal_setDAC(0);
-                }
+                hal_setDAC(0);
             }
             break;
         case FUNCTION_CP:
-            if (settings.powerControl == CONTROL_ANALOG) {
-                hal_SetControlMode(HAL_MODE_CP);
-                if (enableInput) {
-                    cal_setPower(load.power);
-                } else {
-                    hal_setDAC(0);
-                }
+            // control control in digital mode: set current depending on voltage
+            hal_SetControlMode(HAL_MODE_CC);
+            if (enableInput) {
+                // calculate necessary current
+                current = ((uint64_t) load.power * 1000000)
+                        / load.state.voltage;
+                cal_setCurrent(current);
             } else {
-                // control control in digital mode: set current depending on voltage
-                hal_SetControlMode(HAL_MODE_CC);
-                if (enableInput) {
-                    // calculate necessary current
-                    current = ((uint64_t) load.power * 1000000)
-                            / load.state.voltage;
-                    cal_setCurrent(current);
-                } else {
-                    hal_setDAC(0);
-                }
+                hal_setDAC(0);
             }
             break;
         }
@@ -256,10 +236,10 @@ void load_update(void) {
             hal_SetControlMode(HAL_MODE_CV);
             break;
         case FUNCTION_CR:
-            hal_SetControlMode(HAL_MODE_CR);
+            hal_SetControlMode(HAL_MODE_CC);
             break;
         case FUNCTION_CP:
-            hal_SetControlMode(HAL_MODE_CP);
+            hal_SetControlMode(HAL_MODE_CC);
             break;
         }
         hal_setDAC(load.DACoverride);

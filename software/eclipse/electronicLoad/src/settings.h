@@ -12,7 +12,7 @@
 
 #define SETTINGS_INDICATOR              0x03
 
-#define SETTINGS_NUM_ENTRIES            11
+#define SETTINGS_NUM_ENTRIES            9
 
 #define LOAD_MAXVOLTAGE_LOWP            100000000
 #define LOAD_MINVOLTAGE_LOWP            100000
@@ -30,10 +30,6 @@
 
 #define SETTINGS_DEF_BAUDRATE           9600
 
-typedef enum {
-    CONTROL_ANALOG = 0, CONTROL_DIGITAL = 1
-} controlMode_t;
-
 struct {
     uint32_t baudrate;
     uint8_t powerMode;
@@ -43,8 +39,6 @@ struct {
     uint32_t maxVoltage[2];
     uint32_t minResistance[2];
     uint32_t maxResistance[2];
-    controlMode_t powerControl;
-    controlMode_t resistanceControl;
     uint8_t turnOffOnError;
 } settings;
 
