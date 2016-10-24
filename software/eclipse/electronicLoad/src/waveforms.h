@@ -18,13 +18,12 @@ struct {
     uint16_t period;
     int32_t *param;
     uint8_t paramNum;
+    uint16_t phase;
 } waveform;
 
 void waveform_Init(void);
 
 void waveform_Update(void);
-
-uint16_t waveform_GetPhase(void);
 
 int32_t waveform_GetValue(uint16_t wavetime);
 

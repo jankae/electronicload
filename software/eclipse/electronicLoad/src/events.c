@@ -137,8 +137,7 @@ void events_decrementTimers(void) {
 
 void events_updateWaveformPhase(void) {
     events.waveformOldPhase = events.waveformPhase;
-    events.waveformPhase = ((uint64_t) (waveform_GetPhase()) * 360000UL)
-            / 65536;
+    events.waveformPhase = ((uint64_t) (waveform.phase) * 360000UL) / 65536;
 }
 
 void events_getDescr(uint8_t ev, char* descr) {
