@@ -45,6 +45,27 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
         char baseUnit);
 
 /**
+ * \brief Creates a string from an unsigned integer and includes the unit
+ *
+ * Similar to string_fromUintUnit but no decimal point can be specified and no
+ * prefixes are added. Instead the user supplies the units for 10^0, 10^3 and 10^6 LSB.
+ * The value will be displayed with a maximum of 3 digits before the decimal point
+ * (provided the unit for that decimal point position is != NULL)
+ * \param value     Integer value which will be written to string
+ * \param dest      Pointer to char array. The array must be long enough to hold
+ *                  the result. Result length can vary.
+ * \param digits    Number of displayed digits (not counting the decimal point).
+ *                  If value has more digits than specified only the first digits
+ *                  will displayed. If value has less digits the first characters
+ *                  will be left blank
+ * \param *unit0    LSB*10^0 unit (e.g. "uA" if LSB denotes uA)
+ * \param *unit3    LSB*10^3 unit (e.g. "mA" if LSB denotes uA)
+ * \param *unit6    LSB*10^6 unit (e.g. "A" if LSB denotes uA)
+ */
+void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
+        char *unit0, char *unit3, char *unit6);
+
+/**
  * \brief copies a string from the FLASH into a char array
  *
  * Copies bytes from src to dest until it reaches a string terminator (the terminator

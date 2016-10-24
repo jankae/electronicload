@@ -91,6 +91,48 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
     *dest = 0;
 }
 
+void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
+        char *unit0, char *unit3, char *unit6) {
+    // find position of first digit
+    uint32_t divider = 1000000000UL;
+    int8_t firstDigit = 10;
+    for (; divider > 1; divider /= 10) {
+        if (value / divider > 0)
+            break;
+        firstDigit--;
+    }
+    for (; firstDigit < digits; digits--) {
+        *dest++ = ' ';
+    }
+    char prefix = 0;
+    uint8_t dot = 0;
+    char *unit = unit0;
+    // calculate prefix
+    if (firstDigit > 6 && unit6) {
+        dot = 6;
+        unit = unit6;
+    } else if (firstDigit > 3 && unit3) {
+        dot = 3;
+        unit = unit3;
+    }
+    for (; firstDigit > 0; firstDigit--) {
+        if (!digits)
+            break;
+        if (firstDigit == dot) {
+            *dest++ = '.';
+        }
+        *dest = value / divider;
+        value -= *dest * divider;
+        divider /= 10;
+        *dest++ += '0';
+        digits--;
+    }
+    while (*unit) {
+        *dest++ = *unit++;
+    }
+    *dest = 0;
+}
+
 void string_copy(char *dest, const char *src) {
     while (*src) {
         *dest++ = *src++;
