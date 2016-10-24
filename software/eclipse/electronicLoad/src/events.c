@@ -11,11 +11,28 @@ const char eventDestNames[EV_NUM_DESTTYPES][21] = { "TRIGGER HIGH",
 const char eventSetParamNames[EV_NUM_SETPARAMS][21] = { "CURRENT", "VOLTAGE",
         "RESISTANCE", "POWER" };
 
+const char eventSetParamUnits0[EV_NUM_SETPARAMS][6] =
+        { "uA", "uV", "mOhm", "uW" };
+
+const char eventSetParamUnits3[EV_NUM_SETPARAMS][6] =
+        { "mA", "mV", "Ohm", "mW" };
+
+const char eventSetParamUnits6[EV_NUM_SETPARAMS][6] = { "A", "V", "kOhm", "W" };
+
 uint32_t *eventSetParamPointers[EV_NUM_SETPARAMS] = { &load.current,
         &load.voltage, &load.resistance, &load.power };
 
 const char eventCompParamNames[EV_NUM_COMPPARAMS][21] = { "CURRENT", "VOLTAGE",
         "POWER", "SET CURRENT", "SET VOLTAGE", "SET RESIST.", "SET POWER" };
+
+const char eventCompParamUnits0[EV_NUM_COMPPARAMS][6] = { "uA", "uV", "uW",
+        "uA", "uV", "mOhm", "uW" };
+
+const char eventCompParamUnits3[EV_NUM_COMPPARAMS][6] = { "mA", "mV", "mW",
+        "mA", "mV", "Ohm", "mW" };
+
+const char eventCompParamUnits6[EV_NUM_COMPPARAMS][6] = { "A", "V", "W", "A",
+        "V", "kOhm", "W" };
 
 uint32_t *eventCompParamPointers[EV_NUM_COMPPARAMS] = { &load.state.current,
         &load.state.voltage, &load.state.power, &load.current, &load.voltage,
@@ -142,7 +159,9 @@ void events_updateWaveformPhase(void) {
 
 void events_getDescr(uint8_t ev, char* descr) {
     if (events.evlist[ev].srcType == EV_SRC_DISABLED) {
-        string_copy(descr, "DISABLED");
+        descr[0] = ev + '0';
+        descr[1] = ':';
+        string_copy(&descr[2], "DISABLED");
         return;
     }
 // construct source description
@@ -414,8 +433,10 @@ void events_editEventMenu(uint8_t ev) {
                     && (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)) {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param limit", 0, 1000000, "mX",
-                        "X", NULL)) {
+                if (menu_getInputValue(&val, "param limit", 0, 1000000,
+                        eventCompParamUnits0[events.evlist[ev].srcParamNum],
+                        eventCompParamUnits3[events.evlist[ev].srcParamNum],
+                        eventCompParamUnits6[events.evlist[ev].srcParamNum])) {
                     events.evlist[ev].srcLimit = val;
                 }
             } else if (selectedRow == 2 && src == EV_SRC_TIM_ZERO) {
@@ -466,8 +487,10 @@ void events_editEventMenu(uint8_t ev) {
             } else if (selectedRow == 7 && dest == EV_DEST_SET_PARAM) {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param value", 0, 1000000, "mX",
-                        "X", NULL)) {
+                if (menu_getInputValue(&val, "param value", 0, 1000000,
+                        eventSetParamUnits0[events.evlist[ev].destParamNum],
+                        eventSetParamUnits3[events.evlist[ev].destParamNum],
+                        eventSetParamUnits6[events.evlist[ev].destParamNum])) {
                     events.evlist[ev].destSetValue = val;
                 }
             } else if (selectedRow == 6 && dest == EV_DEST_SET_TIMER) {
