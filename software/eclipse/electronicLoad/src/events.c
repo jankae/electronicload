@@ -330,13 +330,16 @@ void events_editEventMenu(struct event *ev) {
             screen_FastString6x8(eventCompParamNames[ev->srcParamNum], 48, 2);
             rowContent[2] = EV_ROW_SRC_PARAM;
             screen_FastString6x8("Value:", 6, 3);
-            string_fromUint(ev->srcLimit, value, 9, 3);
+            string_fromUintUnits(ev->srcLimit, value, 5,
+                    eventCompParamUnits0[ev->srcParamNum],
+                    eventCompParamUnits3[ev->srcParamNum],
+                    eventCompParamUnits6[ev->srcParamNum]);
             screen_FastString6x8(value, 48, 3);
             rowContent[3] = EV_ROW_SRC_VALUE;
             break;
         case EV_SRC_WAVEFORM_PHASE:
             screen_FastString6x8("Phase:", 6, 2);
-            string_fromUint(ev->srcLimit, value, 9, 3);
+            string_fromUintUnits(ev->srcLimit, value, 5, "m\xF8", "\xF8", NULL);
             screen_FastString6x8(value, 48, 2);
             rowContent[2] = EV_ROW_SRC_PHASE;
             break;
@@ -412,7 +415,7 @@ void events_editEventMenu(struct event *ev) {
             case EV_ROW_SRC_VALUE: {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param limit", 0, 1000000,
+                if (menu_getInputValue(&val, "param limit", 0, 200000000,
                         eventCompParamUnits0[ev->srcParamNum],
                         eventCompParamUnits3[ev->srcParamNum],
                         eventCompParamUnits6[ev->srcParamNum])) {
@@ -480,7 +483,7 @@ void events_editEffectMenu(struct effect *ef) {
             screen_FastChar6x8(ef->destTimerNum + '0', 48, 2);
             rowContent[2] = EV_ROW_EFF_TIMER;
             screen_FastString6x8("Value:", 6, 3);
-            string_fromUint(ef->destTimerValue, value, 9, 3);
+            string_fromUintUnits(ef->destTimerValue, value, 5, "ms", "s", NULL);
             screen_FastString6x8(value, 48, 3);
             rowContent[3] = EV_ROW_EFF_TIMVAL;
             break;
@@ -489,7 +492,10 @@ void events_editEffectMenu(struct effect *ef) {
             screen_FastString6x8(eventSetParamNames[ef->destParamNum], 48, 2);
             rowContent[2] = EV_ROW_EFF_PARAM;
             screen_FastString6x8("Value:", 6, 3);
-            string_fromUint(ef->destSetValue, value, 9, 3);
+            string_fromUintUnits(ef->destSetValue, value, 5,
+                    eventCompParamUnits0[ef->destParamNum],
+                    eventCompParamUnits3[ef->destParamNum],
+                    eventCompParamUnits6[ef->destParamNum]);
             screen_FastString6x8(value, 48, 3);
             rowContent[3] = EV_ROW_EFF_VALUE;
             break;
@@ -579,7 +585,7 @@ void events_editEffectMenu(struct effect *ef) {
             case EV_ROW_EFF_VALUE: {
                 // change compare value
                 uint32_t val;
-                if (menu_getInputValue(&val, "param value", 0, 1000000,
+                if (menu_getInputValue(&val, "param value", 0, 200000000,
                         eventSetParamUnits0[ef->destParamNum],
                         eventSetParamUnits3[ef->destParamNum],
                         eventSetParamUnits6[ef->destParamNum])) {
