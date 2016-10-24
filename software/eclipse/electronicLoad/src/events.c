@@ -75,67 +75,73 @@ void events_HandleEvents(void) {
 
 uint8_t events_isEventSourceTriggered(uint8_t ev) {
     uint8_t triggered = 0;
-    if (events.evlist[ev].srcType == EV_SRC_TIM_ZERO) {
+    switch (events.evlist[ev].srcType) {
+    case EV_SRC_TIM_ZERO:
         if (events.evTimers[events.evlist[ev].srcTimerNum] == 0)
             triggered = 1;
-    }
-    if (events.evlist[ev].srcType == EV_SRC_PARAM_HIGHER) {
+        break;
+    case EV_SRC_PARAM_HIGHER:
         if (*(events.evlist[ev].srcParam) > events.evlist[ev].srcLimit)
             triggered = 1;
-    }
-    if (events.evlist[ev].srcType == EV_SRC_PARAM_LOWER) {
+        break;
+    case EV_SRC_PARAM_LOWER:
         if (*(events.evlist[ev].srcParam) < events.evlist[ev].srcLimit)
             triggered = 1;
-    }
-    if (events.evlist[ev].srcType == EV_SRC_TRIG_FALL) {
+        break;
+    case EV_SRC_TRIG_FALL:
         if (events.triggerInState == -1)
             triggered = 1;
-    }
-    if (events.evlist[ev].srcType == EV_SRC_TRIG_RISE) {
+        break;
+    case EV_SRC_TRIG_RISE:
         if (events.triggerInState == 1)
             triggered = 1;
-    }
-    if (events.evlist[ev].srcType == EV_SRC_WAVEFORM_PHASE
-            && waveform.form != WAVE_NONE) {
-        // check whether phase limit has been passed since last cycle
-        if (events.waveformPhase >= events.waveformOldPhase) {
-            // phase hasn't passed 360°
-            if (events.evlist[ev].srcLimit <= events.waveformPhase
-                    && events.evlist[ev].srcLimit > events.waveformOldPhase) {
-                triggered = 1;
+        break;
+    case EV_SRC_WAVEFORM_PHASE:
+        if (waveform.form != WAVE_NONE) {
+            // check whether phase limit has been passed since last cycle
+            if (events.waveformPhase >= events.waveformOldPhase) {
+                // phase hasn't passed 360°
+                if (events.evlist[ev].srcLimit <= events.waveformPhase
+                        && events.evlist[ev].srcLimit
+                                > events.waveformOldPhase) {
+                    triggered = 1;
+                }
+            } else {
+                // phase has passed 360°
+                if (events.evlist[ev].srcLimit > events.waveformOldPhase
+                        || events.evlist[ev].srcLimit <= events.waveformPhase)
+                    triggered = 1;
             }
-        } else {
-            // phase has passed 360°
-            if (events.evlist[ev].srcLimit > events.waveformOldPhase
-                    || events.evlist[ev].srcLimit <= events.waveformPhase)
-                triggered = 1;
         }
+        break;
     }
     return triggered;
 }
 
 void events_triggerEventDestination(uint8_t ev) {
-    if (events.evlist[ev].destType == EV_DEST_SET_PARAM) {
+    switch (events.evlist[ev].destType) {
+    case EV_DEST_SET_PARAM:
         *(events.evlist[ev].destParam) = events.evlist[ev].destSetValue;
-    }
-    if (events.evlist[ev].destType == EV_DEST_SET_TIMER) {
+        break;
+    case EV_DEST_SET_TIMER:
         events.evTimers[events.evlist[ev].destTimerNum] =
                 events.evlist[ev].destTimerValue;
-    }
-    if (events.evlist[ev].destType == EV_DEST_TRIG_HIGH) {
+        break;
+    case EV_DEST_TRIG_HIGH:
         hal_setTriggerOut(1);
-    }
-    if (events.evlist[ev].destType == EV_DEST_TRIG_LOW) {
+        break;
+    case EV_DEST_TRIG_LOW:
         hal_setTriggerOut(0);
-    }
-    if (events.evlist[ev].destType == EV_DEST_LOAD_MODE) {
+        break;
+    case EV_DEST_LOAD_MODE:
         load_setMode(events.evlist[ev].destMode);
-    }
-    if (events.evlist[ev].destType == EV_DEST_LOAD_ON) {
+        break;
+    case EV_DEST_LOAD_ON:
         load.powerOn = 1;
-    }
-    if (events.evlist[ev].destType == EV_DEST_LOAD_OFF) {
+        break;
+    case EV_DEST_LOAD_OFF:
         load.powerOn = 0;
+        break;
     }
 }
 
