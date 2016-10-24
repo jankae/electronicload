@@ -25,6 +25,9 @@
 #define CAL_ADC_NSAMPLES            1000
 #define CAL_METER_NSAMPLES          10
 
+#define CAL_VALUE_CURRENT           0
+#define CAL_VALUE_VOLTAGE           1
+
 /*
  * This section must fit into four flash pages and thus
  * NEVER exceed 4kB
@@ -77,6 +80,19 @@ uint8_t cal_readFromFlash(void);
 void cal_writeToFlash(void);
 
 /**
+ * \brief Retrieves the real current/voltage during calibration
+ *
+ * The function checks whether a multimeter in the correct range is
+ * connected. If so, the multimeter value is returned. If not, the user
+ * is prompted for the value.
+ * Deviations from the approximate value results in an error message.
+ * (The measured value is still returned)
+ * \param unit Can be either CAL_VALUE_CURRENT or CAL_VALUE_VOLTAGE
+ * \param approxValue guessed approximate value
+ */
+int32_t cal_GetRealValue(uint8_t unit, int32_t approxValue);
+
+/**
  * \brief Returns the (averaged) value reported by a connected multimeter
  *
  * The function waits until the meter value has stabilized (either remaining
@@ -104,19 +120,15 @@ void cal_setDefaultCalibration(void);
 
 void calibrationMenu(void);
 
-void calibrationProcessAutomatic(void);
+//void calibrationProcessAutomatic(void);
 
 void cal_DisplayError(uint8_t error);
 
-/**
- * \brief Starts and executes the calibration process.
- *
- * Stand-alone function, start from main thread, depends on interrupts
- * to update display and  to get user inputs.
- * IMPORTANT: disable all functions dealing with the DAC, this is all
- * done internally in this function
- */
-void calibrationProcessManual(void);
+void cal_CurrentCalibration(void);
+
+void cal_ShuntCalibration(void);
+
+void cal_VoltageCalibration(void);
 
 void calibrationProcessHardware(void);
 

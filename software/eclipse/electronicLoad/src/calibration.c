@@ -66,6 +66,55 @@ void cal_writeToFlash(void) {
     cal.unsavedData = 0;
 }
 
+/**
+ * \brief Retrieves the real current/voltage during calibration
+ *
+ * The function checks whether a multimeter in the correct range is
+ * connected. If so, the multimeter value is returned. If not, the user
+ * is prompted for the value.
+ * Deviations from the approximate value results in an error.
+ * \param unit Can be either CAL_VALUE_CURRENT or CAL_VALUE_VOLTAGE
+ * \param approxValue guessed approximate value
+ */
+int32_t cal_GetRealValue(uint8_t unit, int32_t approxValue) {
+    uint8_t useMeter = 0;
+    int32_t returnValue = 0;
+    if (!timer_TimeoutElapsed(meter.timeout)) {
+        // meter connected, check for correct mode
+        if (unit == CAL_VALUE_CURRENT && meter.function ==
+        UT61E_FUNCTION_CURRENT_MA && meter.AUTO) {
+            useMeter = 1;
+        } else if (unit == CAL_VALUE_VOLTAGE
+                && meter.function == UT61E_FUNCTION_VOLTAGE && meter.AUTO) {
+            useMeter = 1;
+        }
+    }
+    if (useMeter) {
+        returnValue = cal_sampleMeter(CAL_METER_NSAMPLES);
+    } else {
+        if (unit == CAL_VALUE_CURRENT) {
+            menu_getInputValue(&returnValue, "Actual current", 0,
+                    approxValue * 2, "uA", "mA", "A");
+        } else {
+            menu_getInputValue(&returnValue, "Actual voltage", 0,
+                    approxValue * 2, "uV", "mV", "V");
+        }
+    }
+    if (returnValue < approxValue * 0.8 || returnValue > approxValue * 1.2) {
+        // high deviation from expected value
+        screen_Clear();
+        screen_FastString12x16("WARNING", 0, 0);
+        screen_Text6x8("Actual value deviates from expected value."
+                " Calibration might be off.", 0, 2);
+        screen_SetSoftButton("OK", 2);
+        while (!(hal_getButton() & HAL_BUTTON_SOFT2))
+            ;
+        while (hal_getButton())
+            ;
+    }
+    return returnValue;
+}
+
 int32_t cal_sampleMeter(uint8_t samples) {
     uint8_t meterStable = 0;
     int8_t direction = 0;
@@ -104,8 +153,8 @@ int32_t cal_sampleMeter(uint8_t samples) {
         }
         lastData = meter.value;
     } while (!meterStable);
-    // meter has stabilized
-    // -> sample values
+// meter has stabilized
+// -> sample values
     int32_t valueSum = meter.value;
     uint8_t i;
     for (i = 1; i < samples; i++) {
@@ -173,256 +222,454 @@ void cal_setDefaultCalibration(void) {
 }
 
 void calibrationMenu(void) {
-    char *entries[5];
+    char *entries[6];
     uint8_t nentries;
     int8_t sel = 0;
     do {
-        char automatic[21] = "Automatic Cal.";
-        entries[0] = automatic;
+        char current[21] = "Current Calibration";
+        entries[0] = current;
 
-        char manual[21] = "Manual Cal.";
-        entries[1] = manual;
+        char shunt[21] = "Shunt Calibration";
+        entries[1] = shunt;
+
+        char voltage[21] = "Voltage Calibration";
+        entries[2] = voltage;
 
         char info[21] = "Multimeter info";
-        entries[2] = info;
+        entries[3] = info;
 
         char hardware[21] = "Hardware Cal.";
-        entries[3] = hardware;
+        entries[4] = hardware;
 
         char save[21] = "Save data in Flash";
         if (cal.unsavedData) {
-            entries[4] = save;
-            nentries = 5;
+            entries[5] = save;
+            nentries = 6;
         } else {
-            nentries = 4;
+            nentries = 5;
         }
 
         sel = menu_ItemChooseDialog("\xCD\xCD" "CALIBRATIONS MENU\xCD\xCD",
                 entries, nentries, sel);
         switch (sel) {
         case 0:
-            calibrationProcessAutomatic();
+            cal_CurrentCalibration();
             break;
         case 1:
-            calibrationProcessManual();
+            cal_ShuntCalibration();
             break;
         case 2:
-            calibrationDisplayMultimeterInfo();
+            cal_VoltageCalibration();
             break;
         case 3:
-            calibrationProcessHardware();
+            calibrationDisplayMultimeterInfo();
             break;
         case 4:
+            calibrationProcessHardware();
+            break;
+        case 5:
             cal_writeToFlash();
         }
     } while (sel >= 0);
 }
 
-void calibrationProcessAutomatic(void) {
+void cal_CurrentCalibration(void) {
     uint32_t button;
-    uint8_t setupOK;
     while (hal_getButton())
         ;
 
     cal.active = 1;
+    settings.powerMode = 0;
+    load.powerOn = 0;
+    load.DACoverride = 0;
+    load.mode = FUNCTION_CC;
+    // show setup
+    screen_Clear();
+    screen_Text6x8("Connect a 10V 300mA"
+            " PSU and the meter in"
+            " series in the mA range.", 0, 0);
 
-    uint8_t errorIndicator;
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("Start", 2);
 
-    /****************************************
-     * Step 1: voltage calibration
-     * Two point calibration, calibrate
-     * ADC + DAC by comparing with multimeter
-     ***************************************/
-    errorIndicator = 0;
     do {
-        load.mode = FUNCTION_CV;
-        settings.powerMode = 0;
-        load.powerOn = 0;
-        load.DACoverride = HAL_DAC_MAX;
-        // show setup
-        screen_Clear();
-        screen_Text6x8("Connect a PSU with at least"
-                " 30V via a 1k resistor. Use"
-                " the meter in the 'V'"
-                " range at the load.", 0, 0);
-
-        screen_SetSoftButton("Abort", 0);
-
-        do {
-            button = hal_getButton();
-            if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
-                cal.active = 0;
-                return;
-            }
-            setupOK = 1;
-            if (!timer_TimeoutElapsed(meter.timeout)) {
-                if (meter.function != UT61E_FUNCTION_VOLTAGE) {
-                    screen_FastString6x8("!Switch to V range! ", 0, 5);
-                    setupOK = 0;
-                } else if (!meter.DC) {
-                    screen_FastString6x8("!Switch to DC!      ", 0, 5);
-                    setupOK = 0;
-                } else if (!meter.AUTO) {
-                    screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
-                    setupOK = 0;
-                } else if (load.state.voltage < 28000000) {
-                    screen_FastString6x8("!Apply at least 30V!", 0, 5);
-                    setupOK = 0;
-                }
-            } else {
-                // no meter connected
-                screen_FastString6x8("!No meter connected!", 0, 5);
-                setupOK = 0;
-            }
-            if (setupOK) {
-                screen_FastString6x8("                     ", 0, 5);
-                screen_SetSoftButton("Start", 2);
-            }
-            timer_waitms(100);
-        } while (!(button & HAL_BUTTON_SOFT2) || !setupOK);
-        while (hal_getButton())
-            ;
-
-        screen_Clear();
-        uint32_t i;
-        errorIndicator = 0;
-        // set DAC to first calibration point
-        screen_FastString6x8("Setting to 20V...", 0, 0);
-        load.DACoverride = 12480;
-        timer_waitms(100);
-        calData.voltageSetTable[0][0] = 12480;
-        screen_FastString6x8("Sampling meter...", 0, 1);
-        calData.voltageSetTable[0][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
-        screen_FastString6x8("Sampling ADC...", 0, 2);
-        calData.voltageSenseTable[0][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
-                &cal.rawADCvoltage);
-        calData.voltageSenseTable[0][1] = calData.voltageSetTable[0][1];
-        // set DAC to second calibration point
-        screen_FastString6x8("Setting to 10V...", 0, 3);
-        load.DACoverride = 6240;
-        timer_waitms(100);
-        calData.voltageSetTable[1][0] = 6240;
-        screen_FastString6x8("Sampling meter...", 0, 4);
-        calData.voltageSetTable[1][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
-        screen_FastString6x8("Sampling ADC...", 0, 5);
-        calData.voltageSenseTable[1][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
-                &cal.rawADCvoltage);
-        calData.voltageSenseTable[1][1] = calData.voltageSetTable[1][1];
-        cal.unsavedData = 1;
-        // set current back to zero
-        load.DACoverride = 0;
-        load.mode = FUNCTION_CC;
-        // check values for plausibility
-        if (calData.voltageSetTable[0][1] <= calData.voltageSetTable[1][1]) {
-            errorIndicator = CAL_ERROR_METER_MONOTONIC;
-            cal_DisplayError(errorIndicator);
-            break;
+        button = hal_getButton();
+        if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
+            cal.active = 0;
+            return;
         }
-        if (calData.voltageSenseTable[0][0]
-                <= calData.voltageSenseTable[1][0]) {
-            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
-            cal_DisplayError(errorIndicator);
-            break;
-        }
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
 
-    } while (errorIndicator);
-    /****************************************
-     * Step 2: low range current calibration
-     * Two point calibration, calibrate
-     * ADC + DAC by comparing with multimeter
-     ***************************************/
-    errorIndicator = 0;
+    screen_Clear();
+    hal_SelectADCChannel(HAL_ADC_CURRENT);
+    uint32_t i;
+    // set DAC to first calibration point
+    screen_FastString6x8("Setting to 1mA...", 0, 0);
+    load.DACoverride = 321;
+    timer_waitms(100);
+    calData.currentSetTable[0][0] = 321;
+    screen_FastString6x8("Sampling ADC...", 0, 1);
+    calData.currentSenseTable[0][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+            &cal.rawADCcurrent);
+    calData.currentSetTable[0][1] = cal_GetRealValue(CAL_VALUE_CURRENT, 1000);
+    calData.currentSenseTable[0][1] = calData.currentSetTable[0][1];
+    screen_Clear();
+    // set DAC to second calibration point
+    screen_FastString6x8("Setting to 180mA...", 0, 0);
+    load.DACoverride = 57800;
+    timer_waitms(100);
+    calData.currentSetTable[1][0] = 57800;
+    screen_FastString6x8("Sampling ADC...", 0, 1);
+    calData.currentSenseTable[1][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+            &cal.rawADCcurrent);
+    calData.currentSetTable[1][1] = cal_GetRealValue(CAL_VALUE_CURRENT, 180000);
+    calData.currentSenseTable[1][1] = calData.currentSetTable[1][1];
+    // set current back to zero
+    load.DACoverride = 0;
+    // check values for plausibility
+    if (calData.currentSetTable[0][1] >= calData.currentSetTable[1][1]) {
+        cal_DisplayError(CAL_ERROR_METER_MONOTONIC);
+    }
+    if (calData.currentSenseTable[0][0] >= calData.currentSenseTable[1][0]) {
+        cal_DisplayError(CAL_ERROR_ADC_MONOTONIC);
+    }
+    cal.unsavedData = 1;
+    cal.active = 0;
+}
+
+void cal_ShuntCalibration(void) {
+    uint32_t button;
+    while (hal_getButton())
+        ;
+
+    cal.active = 1;
+    settings.powerMode = 0;
+    load.powerOn = 0;
+    load.DACoverride = 0;
+    load.mode = FUNCTION_CC;
+    // show setup
+    screen_Clear();
+    screen_Text6x8("Connect a 10V 300mA"
+            " PSU and the meter in"
+            " series in the mA range.", 0, 0);
+
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("Start", 2);
+
     do {
-        settings.powerMode = 0;
-        load.powerOn = 0;
-        load.DACoverride = 0;
-        load.mode = FUNCTION_CC;
-        // show setup
-        screen_Clear();
-        screen_Text6x8("Connect a 10V 300mA"
-                " PSU and the meter in"
-                " series in the mA range.", 0, 0);
-
-        screen_SetSoftButton("Abort", 0);
-
-        do {
-            button = hal_getButton();
-            if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
-                cal.active = 0;
-                return;
-            }
-            setupOK = 1;
-            if (!timer_TimeoutElapsed(meter.timeout)) {
-                if (meter.function != UT61E_FUNCTION_CURRENT_MA) {
-                    screen_FastString6x8("!Switch to mA range!", 0, 5);
-                    setupOK = 0;
-                } else if (!meter.DC) {
-                    screen_FastString6x8("!Switch to DC!      ", 0, 5);
-                    setupOK = 0;
-                } else if (!meter.AUTO) {
-                    screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
-                    setupOK = 0;
-                } else if (load.state.voltage > 12000000
-                        || load.state.voltage < 8000000) {
-                    screen_FastString6x8("!Apply 10V!         ", 0, 5);
-                    setupOK = 0;
-                }
-            } else {
-                // no meter connected
-                screen_FastString6x8("!No meter connected!", 0, 5);
-                setupOK = 0;
-            }
-            if (setupOK) {
-                screen_SetSoftButton("Start", 2);
-            }
-            timer_waitms(100);
-        } while (!(button & HAL_BUTTON_SOFT2) || !setupOK);
-        while (hal_getButton())
-            ;
-
-        screen_Clear();
-        hal_SelectADCChannel(HAL_ADC_CURRENT);
-        uint32_t i;
-        errorIndicator = 0;
-        // set DAC to first calibration point
-        screen_FastString6x8("Setting to 20mA...", 0, 0);
-        load.DACoverride = 6422;
-        timer_waitms(100);
-        calData.currentSetTable[0][0] = 6422;
-        screen_FastString6x8("Sampling meter...", 0, 1);
-        calData.currentSetTable[0][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
-        screen_FastString6x8("Sampling ADC...", 0, 2);
-        calData.currentSenseTable[0][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
-                &cal.rawADCcurrent);
-        calData.currentSenseTable[0][1] = calData.currentSetTable[0][1];
-        // set DAC to second calibration point
-        screen_FastString6x8("Setting to 180mA...", 0, 3);
-        load.DACoverride = 57800;
-        timer_waitms(100);
-        calData.currentSetTable[1][0] = 57800;
-        screen_FastString6x8("Sampling meter...", 0, 4);
-        calData.currentSetTable[1][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
-        screen_FastString6x8("Sampling ADC...", 0, 5);
-        calData.currentSenseTable[1][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
-                &cal.rawADCcurrent);
-        calData.currentSenseTable[1][1] = calData.currentSetTable[1][1];
-        // set current back to zero
-        load.DACoverride = 0;
-        // check values for plausibility
-        if (calData.currentSetTable[0][1] >= calData.currentSetTable[1][1]) {
-            errorIndicator = CAL_ERROR_METER_MONOTONIC;
-            cal_DisplayError(errorIndicator);
-            break;
+        button = hal_getButton();
+        if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
+            cal.active = 0;
+            return;
         }
-        if (calData.currentSenseTable[0][0]
-                >= calData.currentSenseTable[1][0]) {
-            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
-            cal_DisplayError(errorIndicator);
-            break;
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+
+    screen_Clear();
+    hal_SelectADCChannel(HAL_ADC_CURRENT);
+    uint32_t i;
+    // set DAC to first calibration point
+    screen_FastString6x8("Setting to 2mA...", 0, 0);
+    int32_t dac = common_Map(2000, calData.currentSetTable[0][1],
+            calData.currentSetTable[1][1], calData.currentSetTable[0][0],
+            calData.currentSetTable[1][0]);
+    if (dac < 0)
+        dac = 0;
+    load.DACoverride = dac;
+    timer_waitms(100);
+    int32_t currentLow = cal_GetRealValue(CAL_VALUE_CURRENT, 2000);
+    screen_Clear();
+    // set DAC to second calibration point
+    screen_FastString6x8("Setting to 200mA...", 0, 0);
+    settings.powerMode = 1;
+    timer_waitms(100);
+    int32_t currentHigh = cal_GetRealValue(CAL_VALUE_CURRENT, 200000);
+    // set current back to zero
+    load.DACoverride = 0;
+    // check values for plausibility
+    if (currentLow >= currentHigh) {
+        cal_DisplayError(CAL_ERROR_METER_MONOTONIC);
+    }
+    // calculate factor between the shunts
+    calData.shuntFactor = currentHigh * 100 / currentLow;
+    cal.unsavedData = 1;
+    settings.powerMode = 0;
+    cal.active = 0;
+}
+
+void cal_VoltageCalibration(void) {
+    uint32_t button;
+    while (hal_getButton())
+        ;
+
+    cal.active = 1;
+    settings.powerMode = 0;
+    load.powerOn = 0;
+    load.DACoverride = 0;
+    load.mode = FUNCTION_CC;
+    // show setup
+    screen_Clear();
+    screen_Text6x8("Apply about 1V", 0, 0);
+
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("Start", 2);
+
+    do {
+        button = hal_getButton();
+        if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
+            cal.active = 0;
+            return;
         }
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
 
-    } while (errorIndicator);
+    screen_Clear();
+    hal_SelectADCChannel(HAL_ADC_VOLTAGE);
+    timer_waitms(100);
+    screen_FastString6x8("Sampling ADC...", 0, 0);
+    calData.voltageSenseTable[0][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+            &cal.rawADCvoltage);
+    calData.voltageSenseTable[0][1] = cal_GetRealValue(CAL_VALUE_VOLTAGE, 1000000);
+    screen_Clear();
+    screen_Text6x8("Apply about 30V", 0, 0);
 
+    screen_SetSoftButton("Abort", 0);
+    screen_SetSoftButton("Start", 2);
+
+    do {
+        button = hal_getButton();
+        if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
+            cal.active = 0;
+            return;
+        }
+    } while (!(button & HAL_BUTTON_SOFT2));
+    while (hal_getButton())
+        ;
+    timer_waitms(100);
+    screen_FastString6x8("Sampling ADC...", 0, 0);
+    calData.voltageSenseTable[1][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+            &cal.rawADCvoltage);
+    calData.voltageSenseTable[1][1] = cal_GetRealValue(CAL_VALUE_VOLTAGE, 30000000);
+    // check values for plausibility
+    if (calData.voltageSenseTable[0][1] >= calData.voltageSenseTable[1][1]) {
+        cal_DisplayError(CAL_ERROR_METER_MONOTONIC);
+    }
+    if (calData.voltageSenseTable[0][0] >= calData.voltageSenseTable[1][0]) {
+        cal_DisplayError(CAL_ERROR_ADC_MONOTONIC);
+    }
+    cal.unsavedData = 1;
+    cal.active = 0;
+}
+
+//void calibrationProcessAutomatic(void) {
+//    uint32_t button;
+//    uint8_t setupOK;
+//    while (hal_getButton())
+//        ;
+//
+//    cal.active = 1;
+//
+//    uint8_t errorIndicator;
+//
+//    /****************************************
+//     * Step 1: voltage calibration
+//     * Two point calibration, calibrate
+//     * ADC + DAC by comparing with multimeter
+//     ***************************************/
+//    errorIndicator = 0;
+//    do {
+//        load.mode = FUNCTION_CV;
+//        settings.powerMode = 0;
+//        load.powerOn = 0;
+//        load.DACoverride = HAL_DAC_MAX;
+//        // show setup
+//        screen_Clear();
+//        screen_Text6x8("Connect a PSU with at least"
+//                " 30V via a 1k resistor. Use"
+//                " the meter in the 'V'"
+//                " range at the load.", 0, 0);
+//
+//        screen_SetSoftButton("Abort", 0);
+//
+//        do {
+//            button = hal_getButton();
+//            if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
+//                cal.active = 0;
+//                return;
+//            }
+//            setupOK = 1;
+//            if (!timer_TimeoutElapsed(meter.timeout)) {
+//                if (meter.function != UT61E_FUNCTION_VOLTAGE) {
+//                    screen_FastString6x8("!Switch to V range! ", 0, 5);
+//                    setupOK = 0;
+//                } else if (!meter.DC) {
+//                    screen_FastString6x8("!Switch to DC!      ", 0, 5);
+//                    setupOK = 0;
+//                } else if (!meter.AUTO) {
+//                    screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
+//                    setupOK = 0;
+//                } else if (load.state.voltage < 28000000) {
+//                    screen_FastString6x8("!Apply at least 30V!", 0, 5);
+//                    setupOK = 0;
+//                }
+//            } else {
+//                // no meter connected
+//                screen_FastString6x8("!No meter connected!", 0, 5);
+//                setupOK = 0;
+//            }
+//            if (setupOK) {
+//                screen_FastString6x8("                     ", 0, 5);
+//                screen_SetSoftButton("Start", 2);
+//            }
+//            timer_waitms(100);
+//        } while (!(button & HAL_BUTTON_SOFT2) || !setupOK);
+//        while (hal_getButton())
+//            ;
+//
+//        screen_Clear();
+//        uint32_t i;
+//        errorIndicator = 0;
+//        // set DAC to first calibration point
+//        screen_FastString6x8("Setting to 20V...", 0, 0);
+//        load.DACoverride = 12480;
+//        timer_waitms(100);
+//        calData.voltageSetTable[0][0] = 12480;
+//        screen_FastString6x8("Sampling meter...", 0, 1);
+//        calData.voltageSetTable[0][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
+//        screen_FastString6x8("Sampling ADC...", 0, 2);
+//        calData.voltageSenseTable[0][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+//                &cal.rawADCvoltage);
+//        calData.voltageSenseTable[0][1] = calData.voltageSetTable[0][1];
+//        // set DAC to second calibration point
+//        screen_FastString6x8("Setting to 10V...", 0, 3);
+//        load.DACoverride = 6240;
+//        timer_waitms(100);
+//        calData.voltageSetTable[1][0] = 6240;
+//        screen_FastString6x8("Sampling meter...", 0, 4);
+//        calData.voltageSetTable[1][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
+//        screen_FastString6x8("Sampling ADC...", 0, 5);
+//        calData.voltageSenseTable[1][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+//                &cal.rawADCvoltage);
+//        calData.voltageSenseTable[1][1] = calData.voltageSetTable[1][1];
+//        cal.unsavedData = 1;
+//        // set current back to zero
+//        load.DACoverride = 0;
+//        load.mode = FUNCTION_CC;
+//        // check values for plausibility
+//        if (calData.voltageSetTable[0][1] <= calData.voltageSetTable[1][1]) {
+//            errorIndicator = CAL_ERROR_METER_MONOTONIC;
+//            cal_DisplayError(errorIndicator);
+//            break;
+//        }
+//        if (calData.voltageSenseTable[0][0]
+//                <= calData.voltageSenseTable[1][0]) {
+//            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
+//            cal_DisplayError(errorIndicator);
+//            break;
+//        }
+//
+//    } while (errorIndicator);
+//    /****************************************
+//     * Step 2: low range current calibration
+//     * Two point calibration, calibrate
+//     * ADC + DAC by comparing with multimeter
+//     ***************************************/
+//    errorIndicator = 0;
+//    do {
+//        settings.powerMode = 0;
+//        load.powerOn = 0;
+//        load.DACoverride = 0;
+//        load.mode = FUNCTION_CC;
+//        // show setup
+//        screen_Clear();
+//        screen_Text6x8("Connect a 10V 300mA"
+//                " PSU and the meter in"
+//                " series in the mA range.", 0, 0);
+//
+//        screen_SetSoftButton("Abort", 0);
+//
+//        do {
+//            button = hal_getButton();
+//            if (button & (HAL_BUTTON_SOFT0 | HAL_BUTTON_ESC)) {
+//                cal.active = 0;
+//                return;
+//            }
+//            setupOK = 1;
+//            if (!timer_TimeoutElapsed(meter.timeout)) {
+//                if (meter.function != UT61E_FUNCTION_CURRENT_MA) {
+//                    screen_FastString6x8("!Switch to mA range!", 0, 5);
+//                    setupOK = 0;
+//                } else if (!meter.DC) {
+//                    screen_FastString6x8("!Switch to DC!      ", 0, 5);
+//                    setupOK = 0;
+//                } else if (!meter.AUTO) {
+//                    screen_FastString6x8("!Switch to AUTO!    ", 0, 5);
+//                    setupOK = 0;
+//                } else if (load.state.voltage > 12000000
+//                        || load.state.voltage < 8000000) {
+//                    screen_FastString6x8("!Apply 10V!         ", 0, 5);
+//                    setupOK = 0;
+//                }
+//            } else {
+//                // no meter connected
+//                screen_FastString6x8("!No meter connected!", 0, 5);
+//                setupOK = 0;
+//            }
+//            if (setupOK) {
+//                screen_SetSoftButton("Start", 2);
+//            }
+//            timer_waitms(100);
+//        } while (!(button & HAL_BUTTON_SOFT2) || !setupOK);
+//        while (hal_getButton())
+//            ;
+//
+//        screen_Clear();
+//        hal_SelectADCChannel(HAL_ADC_CURRENT);
+//        uint32_t i;
+//        errorIndicator = 0;
+//        // set DAC to first calibration point
+//        screen_FastString6x8("Setting to 20mA...", 0, 0);
+//        load.DACoverride = 6422;
+//        timer_waitms(100);
+//        calData.currentSetTable[0][0] = 6422;
+//        screen_FastString6x8("Sampling meter...", 0, 1);
+//        calData.currentSetTable[0][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
+//        screen_FastString6x8("Sampling ADC...", 0, 2);
+//        calData.currentSenseTable[0][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+//                &cal.rawADCcurrent);
+//        calData.currentSenseTable[0][1] = calData.currentSetTable[0][1];
+//        // set DAC to second calibration point
+//        screen_FastString6x8("Setting to 180mA...", 0, 3);
+//        load.DACoverride = 57800;
+//        timer_waitms(100);
+//        calData.currentSetTable[1][0] = 57800;
+//        screen_FastString6x8("Sampling meter...", 0, 4);
+//        calData.currentSetTable[1][1] = cal_sampleMeter(CAL_METER_NSAMPLES);
+//        screen_FastString6x8("Sampling ADC...", 0, 5);
+//        calData.currentSenseTable[1][0] = cal_sampleADC(CAL_ADC_NSAMPLES,
+//                &cal.rawADCcurrent);
+//        calData.currentSenseTable[1][1] = calData.currentSetTable[1][1];
+//        // set current back to zero
+//        load.DACoverride = 0;
+//        // check values for plausibility
+//        if (calData.currentSetTable[0][1] >= calData.currentSetTable[1][1]) {
+//            errorIndicator = CAL_ERROR_METER_MONOTONIC;
+//            cal_DisplayError(errorIndicator);
+//            break;
+//        }
+//        if (calData.currentSenseTable[0][0]
+//                >= calData.currentSenseTable[1][0]) {
+//            errorIndicator = CAL_ERROR_ADC_MONOTONIC;
+//            cal_DisplayError(errorIndicator);
+//            break;
+//        }
+//
+//    } while (errorIndicator);
+//
 //    /****************************************
 //     * Step 3: measure factor between the
 //     * two shunts by applying the same DAC
@@ -636,26 +883,26 @@ void calibrationProcessAutomatic(void) {
 //            break;
 //        }
 //    } while (errorIndicator);
-
-    screen_Clear();
-    screen_FastString6x8("Calibration finished", 0, 0);
-    screen_SetSoftButton("Abort", 0);
-    screen_SetSoftButton("Save", 2);
-    do {
-        button = hal_getButton();
-        if (button & HAL_BUTTON_SOFT0) {
-            cal.active = 0;
-            return;
-        }
-    } while (!(button & HAL_BUTTON_SOFT2));
-    while (hal_getButton())
-        ;
-
-    // save calibration values in FLASH
-    cal_writeToFlash();
-
-    cal.active = 0;
-}
+//
+//    screen_Clear();
+//    screen_FastString6x8("Calibration finished", 0, 0);
+//    screen_SetSoftButton("Abort", 0);
+//    screen_SetSoftButton("Save", 2);
+//    do {
+//        button = hal_getButton();
+//        if (button & HAL_BUTTON_SOFT0) {
+//            cal.active = 0;
+//            return;
+//        }
+//    } while (!(button & HAL_BUTTON_SOFT2));
+//    while (hal_getButton())
+//        ;
+//
+//// save calibration values in FLASH
+//    cal_writeToFlash();
+//
+//    cal.active = 0;
+//}
 
 void cal_DisplayError(uint8_t error) {
     screen_Clear();
@@ -681,18 +928,6 @@ void cal_DisplayError(uint8_t error) {
         ;
     while (hal_getButton())
         ;
-}
-
-/**
- * \brief Starts and executes the calibration process.
- *
- * Stand-alone function, start from main thread, depends on interrupts
- * to update display and  to get user inputs.
- * IMPORTANT: disable all functions dealing with the DAC, this is all
- * done internally in this function
- */
-void calibrationProcessManual(void) {
-
 }
 
 void calibrationProcessHardware(void) {
@@ -872,7 +1107,7 @@ void calibrationProcessHardware(void) {
             break;
         }
     } while (calibrationStep < 5);
-    // set default mode
+// set default mode
     load.mode = FUNCTION_CC;
     settings.powerMode = 0;
     load.DACoverride = 0;
