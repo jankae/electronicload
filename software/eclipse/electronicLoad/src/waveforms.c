@@ -124,7 +124,6 @@ void waveform_Update(void) {
     static uint32_t phaseAcc;
     phaseAcc += (UINT32_MAX / waveform.period);
     waveform.phase = phaseAcc >> 16;
-    phaseAcc &= 0x0000FFFF;
 
     if (waveform.form == WAVE_NONE)
         return;
