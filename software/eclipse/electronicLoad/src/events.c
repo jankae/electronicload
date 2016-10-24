@@ -4,7 +4,7 @@ const char eventSrcNames[EV_NUM_SOURCETYPES][21] = { "DISABLED", "TRIGGER RISE",
         "TRIGGER FALL", "PAR LOWER THAN", "PAR HIGHER THAN", "TIMER ZERO",
         "WAVEFORM PHASE" };
 
-const char eventDestNames[EV_NUM_DESTTYPES][21] = { "TRIGGER HIGH",
+const char eventDestNames[EV_NUM_DESTTYPES][21] = { "NONE", "TRIGGER HIGH",
         "TRIGGER LOW", "SET PARAMETER", "SET TIMER", "SET LOAD MODE",
         "INPUT ON", "INPUT OFF" };
 
@@ -46,13 +46,16 @@ void events_Init(void) {
         events.evlist[i].srcParamNum = 0;
         events.evlist[i].srcLimit = 0;
         events.evlist[i].srcTimerNum = 0;
-        events.evlist[i].destMode = FUNCTION_CC;
-        events.evlist[i].destParam = eventSetParamPointers[0];
-        events.evlist[i].destParamNum = 0;
-        events.evlist[i].destSetValue = 0;
-        events.evlist[i].destTimerNum = 0;
-        events.evlist[i].destTimerValue = 0;
-        events.evlist[i].destType = EV_DEST_LOAD_OFF;
+        uint8_t j;
+        for (j = 0; j < EV_MAXEFFECTS; j++) {
+            events.evlist[i].effects[j].destMode = FUNCTION_CC;
+            events.evlist[i].effects[j].destParam = eventSetParamPointers[0];
+            events.evlist[i].effects[j].destParamNum = 0;
+            events.evlist[i].effects[j].destSetValue = 0;
+            events.evlist[i].effects[j].destTimerNum = 0;
+            events.evlist[i].effects[j].destTimerValue = 0;
+            events.evlist[i].effects[j].destType = EV_DEST_NOTHING;
+        }
     }
 }
 
@@ -119,29 +122,33 @@ uint8_t events_isEventSourceTriggered(uint8_t ev) {
 }
 
 void events_triggerEventDestination(uint8_t ev) {
-    switch (events.evlist[ev].destType) {
-    case EV_DEST_SET_PARAM:
-        *(events.evlist[ev].destParam) = events.evlist[ev].destSetValue;
-        break;
-    case EV_DEST_SET_TIMER:
-        events.evTimers[events.evlist[ev].destTimerNum] =
-                events.evlist[ev].destTimerValue;
-        break;
-    case EV_DEST_TRIG_HIGH:
-        hal_setTriggerOut(1);
-        break;
-    case EV_DEST_TRIG_LOW:
-        hal_setTriggerOut(0);
-        break;
-    case EV_DEST_LOAD_MODE:
-        load_setMode(events.evlist[ev].destMode);
-        break;
-    case EV_DEST_LOAD_ON:
-        load.powerOn = 1;
-        break;
-    case EV_DEST_LOAD_OFF:
-        load.powerOn = 0;
-        break;
+    uint8_t i;
+    for (i = 0; i < EV_MAXEFFECTS; i++) {
+        switch (events.evlist[ev].effects[i].destType) {
+        case EV_DEST_SET_PARAM:
+            *(events.evlist[ev].effects[i].destParam) =
+                    events.evlist[ev].effects[i].destSetValue;
+            break;
+        case EV_DEST_SET_TIMER:
+            events.evTimers[events.evlist[ev].effects[i].destTimerNum] =
+                    events.evlist[ev].effects[i].destTimerValue;
+            break;
+        case EV_DEST_TRIG_HIGH:
+            hal_setTriggerOut(1);
+            break;
+        case EV_DEST_TRIG_LOW:
+            hal_setTriggerOut(0);
+            break;
+        case EV_DEST_LOAD_MODE:
+            load_setMode(events.evlist[ev].effects[i].destMode);
+            break;
+        case EV_DEST_LOAD_ON:
+            load.powerOn = 1;
+            break;
+        case EV_DEST_LOAD_OFF:
+            load.powerOn = 0;
+            break;
+        }
     }
 }
 
@@ -163,83 +170,81 @@ void events_updateWaveformPhase(void) {
     events.waveformPhase = ((uint64_t) (waveform.phase) * 360000UL) / 65536;
 }
 
-void events_getDescr(uint8_t ev, char* descr) {
-    if (events.evlist[ev].srcType == EV_SRC_DISABLED) {
-        descr[0] = ev + '0';
-        descr[1] = ':';
-        string_copy(&descr[2], "DISABLED");
-        return;
-    }
+void events_getSrcDescr(struct event ev, char* descr) {
 // construct source description
-    switch (events.evlist[ev].srcType) {
+    switch (ev.srcType) {
+    case EV_SRC_DISABLED:
+        strcpy(descr, "DISABLED");
+        break;
     case EV_SRC_PARAM_HIGHER:
-        string_copy(descr, "P>:      ");
-        string_copyn(&descr[3],
-                eventCompParamNames[events.evlist[ev].srcParamNum], 6);
+        strcpy(descr, "Par>:      ");
+        strncpy(&descr[5], eventCompParamNames[ev.srcParamNum], 14);
         break;
     case EV_SRC_PARAM_LOWER:
-        string_copy(descr, "P<:      ");
-        string_copyn(&descr[3],
-                eventCompParamNames[events.evlist[ev].srcParamNum], 6);
+        strcpy(descr, "Par<:      ");
+        string_copyn(&descr[5], eventCompParamNames[ev.srcParamNum], 14);
         break;
     case EV_SRC_TIM_ZERO:
-        string_copy(descr, "Timer  =0");
-        descr[5] = (events.evlist[ev].srcTimerNum / 10) + '0';
-        descr[6] = (events.evlist[ev].srcTimerNum % 10) + '0';
+        strcpy(descr, "Timer  =0");
+        descr[5] = (ev.srcTimerNum / 10) + '0';
+        descr[6] = (ev.srcTimerNum % 10) + '0';
         break;
     case EV_SRC_TRIG_FALL:
-        string_copy(descr, "TrigFall\x19");
+        strcpy(descr, "Trigger Fall\x19");
         break;
     case EV_SRC_TRIG_RISE:
-        string_copy(descr, "TrigRise\x18");
+        strcpy(descr, "Trigger Rise\x18");
         break;
     case EV_SRC_WAVEFORM_PHASE:
-        string_copy(descr, "WavePhase");
+        strcpy(descr, "WavePhase");
         break;
     }
+    descr[20] = 0;
+}
 
-    descr[9] = 0x1A; // right arrow
-
-// construct destination description
-    switch (events.evlist[ev].destType) {
+void events_getEffectDescr(struct effect ef, char *descr) {
+    switch (ef.destType) {
+    case EV_DEST_NOTHING:
+        strcpy(descr, "No effect");
+        break;
     case EV_DEST_LOAD_MODE:
-        string_copy(&descr[10], "Mode C ");
-        switch (events.evlist[ev].destMode) {
+        switch (ef.destMode) {
         case FUNCTION_CC:
-            descr[16] = 'C';
+            strcpy(descr, "Set mode to CC");
             break;
         case FUNCTION_CV:
-            descr[16] = 'V';
-            break;
-        case FUNCTION_CR:
-            descr[16] = 'R';
+            strcpy(descr, "Set mode to CV");
             break;
         case FUNCTION_CP:
-            descr[16] = 'P';
+            strcpy(descr, "Set mode to CP");
             break;
+        case FUNCTION_CR:
+            strcpy(descr, "Set mode to CR");
+            break;
+        default:
+            strcpy(descr, "ERROR");
         }
         break;
     case EV_DEST_LOAD_OFF:
-        string_copy(&descr[10], "InputOff");
+        strcpy(descr, "Turn load off");
         break;
     case EV_DEST_LOAD_ON:
-        string_copy(&descr[10], "InputOn");
+        strcpy(descr, "Turn load on");
         break;
     case EV_DEST_SET_PARAM:
-        string_copy(&descr[10], "P=:       ");
-        string_copyn(&descr[13],
-                eventCompParamNames[events.evlist[ev].destParamNum], 7);
+        strcpy(descr, "Par=:      ");
+        strncpy(&descr[5], eventSetParamNames[ef.destParamNum], 14);
         break;
     case EV_DEST_SET_TIMER:
-        string_copy(&descr[10], "SetTim   ");
-        descr[17] = (events.evlist[ev].destTimerNum / 10) + '0';
-        descr[18] = (events.evlist[ev].destTimerNum % 10) + '0';
+        strcpy(descr, "Set timer   ");
+        descr[10] = (ef.destTimerNum / 10) + '0';
+        descr[11] = (ef.destTimerNum % 10) + '0';
         break;
     case EV_DEST_TRIG_HIGH:
-        string_copy(&descr[10], "TrigHigh\x18");
+        strcpy(descr, "Trigger high");
         break;
     case EV_DEST_TRIG_LOW:
-        string_copy(&descr[10], "TrigLow\x19");
+        strcpy(descr, "Trigger low");
         break;
     }
 }
@@ -251,7 +256,7 @@ void events_menu(void) {
     int8_t ev = 0;
     do {
         for (i = 0; i < EV_MAXEVENTS; i++) {
-            events_getDescr(i, eventDescr[i]);
+            events_getSrcDescr(events.evlist[i], eventDescr[i]);
             descrList[i] = eventDescr[i];
         }
         ev = menu_ItemChooseDialog(
@@ -259,22 +264,50 @@ void events_menu(void) {
                 descrList,
                 EV_MAXEVENTS, ev);
         if (ev >= 0) {
-            events_editEventMenu(ev);
+            events_editEventMenu(&events.evlist[ev]);
         }
     } while (ev >= 0);
 }
 
-void events_editEventMenu(uint8_t ev) {
+void events_effectMenu(struct event *ev) {
+    char effectDescr[EV_MAXEFFECTS][21];
+    char *descrList[EV_MAXEFFECTS];
+    uint8_t i;
+    int8_t ef = 0;
+    do {
+        for (i = 0; i < EV_MAXEFFECTS; i++) {
+            events_getEffectDescr(ev->effects[i], effectDescr[i]);
+            descrList[i] = effectDescr[i];
+        }
+        ef = menu_ItemChooseDialog(
+                "\xCD\xCD\xCD\xCD\xCD" "EFFECT LIST\xCD\xCD\xCD\xCD\xCD",
+                descrList,
+                EV_MAXEFFECTS, ef);
+        if (ef >= 0) {
+            events_editEffectMenu(&ev->effects[ef]);
+        }
+    } while (ef >= 0);
+}
 
-    uint8_t selectedRow = 1;
+void events_editEventMenu(struct event *ev) {
+    volatile uint8_t selectedRow = 1;
     uint32_t button;
     int32_t encoder;
+#define EV_ROW_SRC_SRC          1
+#define EV_ROW_SRC_TIMER        2
+#define EV_ROW_SRC_PARAM        3
+#define EV_ROW_SRC_VALUE        4
+#define EV_ROW_SRC_PHASE        5
+#define EV_ROW_SRC_EFFECTS      6
+    uint8_t rowContent[8];
     do {
         while (hal_getButton())
             ;
 
-        evSourceType_t src = events.evlist[ev].srcType;
-        evDestType_t dest = events.evlist[ev].destType;
+        int8_t i;
+        for (i = 0; i < 8; i++)
+            rowContent[i] = 0;
+        evSourceType_t src = ev->srcType;
         // create menu display
         screen_Clear();
         screen_FastString6x8(
@@ -283,61 +316,34 @@ void events_editEventMenu(uint8_t ev) {
         // source display
         screen_FastString6x8("Src:", 6, 1);
         screen_FastString6x8(eventSrcNames[src], 30, 1);
-        if (src == EV_SRC_TIM_ZERO) {
+        rowContent[1] = EV_ROW_SRC_SRC;
+        char value[11];
+        switch (src) {
+        case EV_SRC_TIM_ZERO:
             screen_FastString6x8("Timer:", 6, 2);
-            screen_FastChar6x8(events.evlist[ev].srcTimerNum + '0', 48, 2);
-        } else if (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER) {
+            screen_FastChar6x8(ev->srcTimerNum + '0', 48, 2);
+            rowContent[2] = EV_ROW_SRC_TIMER;
+            break;
+        case EV_SRC_PARAM_HIGHER:
+        case EV_SRC_PARAM_LOWER:
             screen_FastString6x8("Param:", 6, 2);
-            screen_FastString6x8(
-                    eventCompParamNames[events.evlist[ev].srcParamNum], 48, 2);
+            screen_FastString6x8(eventCompParamNames[ev->srcParamNum], 48, 2);
+            rowContent[2] = EV_ROW_SRC_PARAM;
             screen_FastString6x8("Value:", 6, 3);
-            char value[11];
-            string_fromUint(events.evlist[ev].srcLimit, value, 9, 3);
+            string_fromUint(ev->srcLimit, value, 9, 3);
             screen_FastString6x8(value, 48, 3);
-        } else if (src == EV_SRC_WAVEFORM_PHASE) {
+            rowContent[3] = EV_ROW_SRC_VALUE;
+            break;
+        case EV_SRC_WAVEFORM_PHASE:
             screen_FastString6x8("Phase:", 6, 2);
-            char value[11];
-            string_fromUint(events.evlist[ev].srcLimit, value, 9, 3);
+            string_fromUint(ev->srcLimit, value, 9, 3);
             screen_FastString6x8(value, 48, 2);
+            rowContent[2] = EV_ROW_SRC_PHASE;
+            break;
         }
         if (src != EV_SRC_DISABLED) {
-            // source is enabled -> we must have a destination
-            // destination display
-            screen_FastString6x8("Dest:", 6, 5);
-            screen_FastString6x8(eventDestNames[dest], 36, 5);
-            if (dest == EV_DEST_SET_TIMER) {
-                screen_FastString6x8("Timer:", 6, 6);
-                screen_FastChar6x8(events.evlist[ev].destTimerNum + '0', 48, 6);
-                screen_FastString6x8("Value:", 6, 7);
-                char value[11];
-                string_fromUint(events.evlist[ev].destTimerValue, value, 9, 3);
-                screen_FastString6x8(value, 48, 7);
-            } else if (dest == EV_DEST_SET_PARAM) {
-                screen_FastString6x8("Param:", 6, 6);
-                screen_FastString6x8(
-                        eventSetParamNames[events.evlist[ev].destParamNum], 48,
-                        6);
-                screen_FastString6x8("Value:", 6, 7);
-                char value[11];
-                string_fromUint(events.evlist[ev].destSetValue, value, 9, 3);
-                screen_FastString6x8(value, 48, 7);
-            } else if (dest == EV_DEST_LOAD_MODE) {
-                screen_FastString6x8("Mode: C", 6, 6);
-                switch (events.evlist[ev].destMode) {
-                case FUNCTION_CC:
-                    screen_FastChar6x8('C', 48, 6);
-                    break;
-                case FUNCTION_CV:
-                    screen_FastChar6x8('V', 48, 6);
-                    break;
-                case FUNCTION_CR:
-                    screen_FastChar6x8('R', 48, 6);
-                    break;
-                case FUNCTION_CP:
-                    screen_FastChar6x8('P', 48, 6);
-                    break;
-                }
-            }
+            screen_FastString6x8("Event effects", 6, 7);
+            rowContent[7] = EV_ROW_SRC_EFFECTS;
         }
         screen_FastChar6x8(0x1A, 0, selectedRow);
         // wait for user input
@@ -348,62 +354,27 @@ void events_editEventMenu(uint8_t ev) {
 
         if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
             // move one entry down (if possible)
-            switch (selectedRow) {
-            case 1:
-                if (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER
-                        || src == EV_SRC_TIM_ZERO
-                        || src == EV_SRC_WAVEFORM_PHASE)
-                    // selected source has settings -> move to first setting
-                    selectedRow = 2;
-                else if (src != EV_SRC_DISABLED)
-                    // selected source has no settings -> move directly to destination
-                    selectedRow = 5;
-                break;
-            case 2:
-                if (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)
-                    // selected source has setting value
-                    selectedRow = 3;
-                else
-                    // no additional setting value -> directly to destination
-                    selectedRow = 5;
-                break;
-            case 3:
-                selectedRow = 5;
-                break;
-            case 5:
-                if (dest == EV_DEST_SET_PARAM || dest == EV_DEST_SET_TIMER
-                        || dest == EV_DEST_LOAD_MODE)
-                    // selected destination has settings -> move to first setting
-                    selectedRow = 6;
-                break;
-            case 6:
-                if (dest == EV_DEST_SET_PARAM || dest == EV_DEST_SET_TIMER)
-                    // move to second setting
-                    selectedRow = 7;
-                break;
+            for (i = selectedRow + 1; i < 8; i++) {
+                if (rowContent[i] > 0) {
+                    selectedRow = i;
+                    break;
+                }
             }
         }
 
         if ((button & HAL_BUTTON_UP) || encoder < 0) {
             // move one entry up
-            if (selectedRow != 1 && selectedRow != 5) {
-                // not at the top of source or destination -> can move one row up
-                selectedRow--;
-            } else if (selectedRow == 5) {
-                // at top of destination -> can move up but next position depends
-                // on source setting
-                if (src == EV_SRC_PARAM_LOWER || src == EV_SRC_PARAM_HIGHER)
-                    selectedRow = 3;
-                else if (src == EV_SRC_TIM_ZERO || EV_SRC_WAVEFORM_PHASE)
-                    selectedRow = 2;
-                else
-                    selectedRow = 1;
+            for (i = selectedRow - 1; i > 0; i--) {
+                if (rowContent[i] > 0) {
+                    selectedRow = i;
+                    break;
+                }
             }
         }
 
         if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
-            // change selected setting
-            if (selectedRow == 1) {
+            switch (rowContent[selectedRow]) {
+            case EV_ROW_SRC_SRC: {
                 // change source settings
                 char descr[EV_NUM_SOURCETYPES][21];
                 char *itemList[EV_NUM_SOURCETYPES];
@@ -414,12 +385,13 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select event source:",
                         itemList,
-                        EV_NUM_SOURCETYPES, events.evlist[ev].srcType);
+                        EV_NUM_SOURCETYPES, ev->srcType);
                 if (sel >= 0) {
-                    events.evlist[ev].srcType = sel;
+                    ev->srcType = sel;
                 }
-            } else if (selectedRow == 2
-                    && (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)) {
+            }
+                break;
+            case EV_ROW_SRC_PARAM: {
                 // change compare parameter
                 char descr[EV_NUM_COMPPARAMS][21];
                 char *itemList[EV_NUM_COMPPARAMS];
@@ -430,36 +402,147 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
                         itemList,
-                        EV_NUM_COMPPARAMS, events.evlist[ev].srcParamNum);
+                        EV_NUM_COMPPARAMS, ev->srcParamNum);
                 if (sel >= 0) {
-                    events.evlist[ev].srcParamNum = sel;
-                    events.evlist[ev].srcParam = eventCompParamPointers[sel];
+                    ev->srcParamNum = sel;
+                    ev->srcParam = eventCompParamPointers[sel];
                 }
-            } else if (selectedRow == 3
-                    && (src == EV_SRC_PARAM_HIGHER || src == EV_SRC_PARAM_LOWER)) {
+            }
+                break;
+            case EV_ROW_SRC_VALUE: {
                 // change compare value
                 uint32_t val;
                 if (menu_getInputValue(&val, "param limit", 0, 1000000,
-                        eventCompParamUnits0[events.evlist[ev].srcParamNum],
-                        eventCompParamUnits3[events.evlist[ev].srcParamNum],
-                        eventCompParamUnits6[events.evlist[ev].srcParamNum])) {
-                    events.evlist[ev].srcLimit = val;
+                        eventCompParamUnits0[ev->srcParamNum],
+                        eventCompParamUnits3[ev->srcParamNum],
+                        eventCompParamUnits6[ev->srcParamNum])) {
+                    ev->srcLimit = val;
                 }
-            } else if (selectedRow == 2 && src == EV_SRC_TIM_ZERO) {
+            }
+                break;
+            case EV_ROW_SRC_TIMER: {
                 // select timer
                 uint32_t tim;
                 if (menu_getInputValue(&tim, "timer number", 0,
                 EV_MAXTIMERS - 1, "Timer", NULL, NULL)) {
-                    events.evlist[ev].srcTimerNum = tim;
+                    ev->srcTimerNum = tim;
                 }
-            } else if (selectedRow == 2 && src == EV_SRC_WAVEFORM_PHASE) {
+            }
+                break;
+            case EV_ROW_SRC_PHASE: {
                 // change phase value
                 uint32_t val;
                 if (menu_getInputValue(&val, "Phase:", 0, 360000, "mDeg",
                         "Degree", NULL)) {
-                    events.evlist[ev].srcLimit = val;
+                    ev->srcLimit = val;
                 }
-            } else if (selectedRow == 5) {
+            }
+                break;
+            case EV_ROW_SRC_EFFECTS:
+                events_effectMenu(ev);
+                break;
+            }
+        }
+    } while (!(button & HAL_BUTTON_ESC));
+}
+
+void events_editEffectMenu(struct effect *ef) {
+    uint8_t selectedRow = 1;
+    uint32_t button;
+    int32_t encoder;
+#define EV_ROW_EFF_EFFECT       1
+#define EV_ROW_EFF_TIMER        2
+#define EV_ROW_EFF_TIMVAL       3
+#define EV_ROW_EFF_PARAM        4
+#define EV_ROW_EFF_PHASE        5
+#define EV_ROW_EFF_VALUE        6
+#define EV_ROW_EFF_MODE         7
+    uint8_t rowContent[8];
+    do {
+        while (hal_getButton())
+            ;
+
+        int8_t i;
+        for (i = 0; i < 8; i++)
+            rowContent[i] = 0;
+        // create menu display
+        screen_Clear();
+        screen_FastString6x8(
+                "\xCD\xCD\xCD\xCD\xCD" "EDIT EFFECT\xCD\xCD\xCD\xCD\xCD", 0, 0);
+        // destination display
+        screen_FastString6x8("Effect:", 6, 1);
+        screen_FastString6x8(eventDestNames[ef->destType], 48, 1);
+        rowContent[1] = EV_ROW_EFF_EFFECT;
+        char value[11];
+        switch (ef->destType) {
+        case EV_DEST_SET_TIMER:
+            screen_FastString6x8("Timer:", 6, 2);
+            screen_FastChar6x8(ef->destTimerNum + '0', 48, 2);
+            rowContent[2] = EV_ROW_EFF_TIMER;
+            screen_FastString6x8("Value:", 6, 3);
+            string_fromUint(ef->destTimerValue, value, 9, 3);
+            screen_FastString6x8(value, 48, 3);
+            rowContent[3] = EV_ROW_EFF_TIMVAL;
+            break;
+        case EV_DEST_SET_PARAM:
+            screen_FastString6x8("Param:", 6, 2);
+            screen_FastString6x8(eventSetParamNames[ef->destParamNum], 48, 2);
+            rowContent[2] = EV_ROW_EFF_PARAM;
+            screen_FastString6x8("Value:", 6, 3);
+            string_fromUint(ef->destSetValue, value, 9, 3);
+            screen_FastString6x8(value, 48, 3);
+            rowContent[3] = EV_ROW_EFF_VALUE;
+            break;
+        case EV_DEST_LOAD_MODE:
+            screen_FastString6x8("Mode: C", 6, 2);
+            switch (ef->destMode) {
+            case FUNCTION_CC:
+                screen_FastChar6x8('C', 48, 2);
+                break;
+            case FUNCTION_CV:
+                screen_FastChar6x8('V', 48, 2);
+                break;
+            case FUNCTION_CR:
+                screen_FastChar6x8('R', 48, 2);
+                break;
+            case FUNCTION_CP:
+                screen_FastChar6x8('P', 48, 2);
+                break;
+            }
+            rowContent[2] = EV_ROW_EFF_MODE;
+            break;
+        }
+
+        screen_FastChar6x8(0x1A, 0, selectedRow);
+        // wait for user input
+        do {
+            button = hal_getButton();
+            encoder = hal_getEncoderMovement();
+        } while (!button && !encoder);
+
+        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
+            // move one entry down (if possible)
+            for (i = selectedRow + 1; i < 8; i++) {
+                if (rowContent[i] > 0) {
+                    selectedRow = i;
+                    break;
+                }
+            }
+        }
+
+        if ((button & HAL_BUTTON_UP) || encoder < 0) {
+            // move one entry up
+            for (i = selectedRow - 1; i > 0; i--) {
+                if (rowContent[i] > 0) {
+                    selectedRow = i;
+                    break;
+                }
+            }
+        }
+
+        if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
+            switch (rowContent[selectedRow]) {
+            case EV_ROW_EFF_EFFECT: {
                 // change destination settings
                 char descr[EV_NUM_DESTTYPES][21];
                 char *itemList[EV_NUM_DESTTYPES];
@@ -468,13 +551,14 @@ void events_editEventMenu(uint8_t ev) {
                     string_copy(descr[i], eventDestNames[i]);
                     itemList[i] = descr[i];
                 }
-                int8_t sel = menu_ItemChooseDialog("Select event dest.:",
-                        itemList,
-                        EV_NUM_DESTTYPES, events.evlist[ev].destType);
+                int8_t sel = menu_ItemChooseDialog("Select effect:", itemList,
+                EV_NUM_DESTTYPES, ef->destType);
                 if (sel >= 0) {
-                    events.evlist[ev].destType = sel;
+                    ef->destType = sel;
                 }
-            } else if (selectedRow == 6 && dest == EV_DEST_SET_PARAM) {
+            }
+                break;
+            case EV_ROW_EFF_PARAM: {
                 // change set parameter
                 char descr[EV_NUM_SETPARAMS][21];
                 char *itemList[EV_NUM_SETPARAMS];
@@ -485,44 +569,53 @@ void events_editEventMenu(uint8_t ev) {
                 }
                 int8_t sel = menu_ItemChooseDialog("Select parameter:",
                         itemList,
-                        EV_NUM_SETPARAMS, events.evlist[ev].destParamNum);
+                        EV_NUM_SETPARAMS, ef->destParamNum);
                 if (sel >= 0) {
-                    events.evlist[ev].destParamNum = sel;
-                    events.evlist[ev].destParam = eventSetParamPointers[sel];
+                    ef->destParamNum = sel;
+                    ef->destParam = eventSetParamPointers[sel];
                 }
-            } else if (selectedRow == 7 && dest == EV_DEST_SET_PARAM) {
+            }
+                break;
+            case EV_ROW_EFF_VALUE: {
                 // change compare value
                 uint32_t val;
                 if (menu_getInputValue(&val, "param value", 0, 1000000,
-                        eventSetParamUnits0[events.evlist[ev].destParamNum],
-                        eventSetParamUnits3[events.evlist[ev].destParamNum],
-                        eventSetParamUnits6[events.evlist[ev].destParamNum])) {
-                    events.evlist[ev].destSetValue = val;
+                        eventSetParamUnits0[ef->destParamNum],
+                        eventSetParamUnits3[ef->destParamNum],
+                        eventSetParamUnits6[ef->destParamNum])) {
+                    ef->destSetValue = val;
                 }
-            } else if (selectedRow == 6 && dest == EV_DEST_SET_TIMER) {
+            }
+                break;
+            case EV_ROW_EFF_TIMER: {
                 // select timer
                 uint32_t tim;
                 if (menu_getInputValue(&tim, "timer number", 0,
                 EV_MAXTIMERS - 1, "Timer", NULL, NULL)) {
-                    events.evlist[ev].destTimerNum = tim;
+                    ef->destTimerNum = tim;
                 }
-            } else if (selectedRow == 7 && dest == EV_DEST_SET_TIMER) {
+            }
+                break;
+            case EV_ROW_EFF_TIMVAL: {
                 // change timer start value
                 uint32_t time;
                 if (menu_getInputValue(&time, "time", 0, 3600000, "ms", "s",
                 NULL)) {
-                    events.evlist[ev].destTimerValue = time;
+                    ef->destTimerValue = time;
                 }
-            } else if (selectedRow == 6 && dest == EV_DEST_LOAD_MODE) {
+            }
+                break;
+            case EV_ROW_EFF_MODE: {
                 // change load mode
                 char *modeList[4] = { "CC", "CV", "CR", "CP" };
                 int8_t sel = menu_ItemChooseDialog("Select load mode:",
-                        modeList, 4, events.evlist[ev].destMode);
+                        modeList, 4, ef->destMode);
                 if (sel >= 0) {
-                    events.evlist[ev].destMode = sel;
+                    ef->destMode = sel;
                 }
             }
+                break;
+            }
         }
-
     } while (!(button & HAL_BUTTON_ESC));
 }

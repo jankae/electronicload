@@ -8,10 +8,11 @@
 #include "uart.h"
 
 #define EV_MAXEVENTS        10
+#define EV_MAXEFFECTS       5
 #define EV_MAXTIMERS        5
 
 #define EV_NUM_SOURCETYPES  7
-#define EV_NUM_DESTTYPES    7
+#define EV_NUM_DESTTYPES    8
 #define EV_NUM_COMPPARAMS   7
 #define EV_NUM_SETPARAMS    4
 
@@ -27,25 +28,17 @@ typedef enum {
     EV_SRC_WAVEFORM_PHASE = 6
 } evSourceType_t;
 typedef enum {
-    EV_DEST_TRIG_HIGH = 0,
-    EV_DEST_TRIG_LOW = 1,
-    EV_DEST_SET_PARAM = 2,
-    EV_DEST_SET_TIMER = 3,
-    EV_DEST_LOAD_MODE = 4,
-    EV_DEST_LOAD_ON = 5,
-    EV_DEST_LOAD_OFF = 6
+    EV_DEST_NOTHING = 0,
+    EV_DEST_TRIG_HIGH = 1,
+    EV_DEST_TRIG_LOW = 2,
+    EV_DEST_SET_PARAM = 3,
+    EV_DEST_SET_TIMER = 4,
+    EV_DEST_LOAD_MODE = 5,
+    EV_DEST_LOAD_ON = 6,
+    EV_DEST_LOAD_OFF = 7
 } evDestType_t;
 
-struct event {
-    /******************************
-     * event source parameters
-     *****************************/
-    evSourceType_t srcType;
-    // variables for param lower/higher
-    uint32_t *srcParam;
-    uint8_t srcParamNum;
-    uint32_t srcLimit;
-    uint8_t srcTimerNum;
+struct effect {
     /******************************
      * event destination parameters
      *****************************/
@@ -59,6 +52,20 @@ struct event {
     uint32_t destTimerValue;
     // variable for load mode
     loadMode_t destMode;
+};
+
+struct event {
+    /******************************
+     * event source parameters
+     *****************************/
+    evSourceType_t srcType;
+    // variables for param lower/higher
+    uint32_t *srcParam;
+    uint8_t srcParamNum;
+    uint32_t srcLimit;
+    uint8_t srcTimerNum;
+
+    struct effect effects[EV_MAXEFFECTS];
 };
 
 struct {
@@ -112,10 +119,18 @@ void events_updateWaveformPhase(void);
 /**
  * \brief Constructs a short description of an event
  *
- * \param ev        Number of the event that will be described
+ * \param ev        Event that will be described
  * \param *descr    Pointer to the char array (at least of size 21) that will contain the description
  */
-void events_getDescr(uint8_t ev, char *descr);
+void events_getSrcDescr(struct event ev, char *descr);
+
+/**
+ * \brief Constructs a short description of an effect
+ *
+ * \param ef        Effect that will be described
+ * \param *descr    Pointer to the char array (at least of size 21) that will contain the description
+ */
+void events_getEffectDescr(struct effect ef, char *descr);
 
 /**
  * \brief Display the 'event list' menu
@@ -125,8 +140,12 @@ void events_menu(void);
 /**
  * \brief Displays a menu which enables the user to edit an event entry
  *
- * \param ev    Number of the event that will be edited
+ * \param ev    Event that will be edited
  */
-void events_editEventMenu(uint8_t ev);
+void events_editEventMenu(struct event *ev);
+
+void events_effectMenu(struct event *ev);
+
+void events_editEffectMenu(struct effect *ef);
 
 #endif
