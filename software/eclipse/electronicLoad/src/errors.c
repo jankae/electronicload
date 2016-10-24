@@ -79,8 +79,8 @@ void errors_Check(void) {
      * Load drawing current while input is switched off
      *****************************************************************/
     if (!load.powerOn
-            && (((load.state.current > 100) && !settings.powerMode)
-                    || load.state.current > 10000)) {
+            && (((load.state.current > 1000) && !settings.powerMode)
+                    || load.state.current > 100000)) {
         // input is switched off but load is still drawing more than 100uA
         if (error.Duration[LOAD_ERROR_OFF_CURRENT] < 254)
             error.Duration[LOAD_ERROR_OFF_CURRENT] += 2;
