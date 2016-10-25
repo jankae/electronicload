@@ -18,5 +18,6 @@
 #include "selftest.h"
 #include "test.h"
 #include "errors.h"
+#include "arbitrary.h"
 
 #endif

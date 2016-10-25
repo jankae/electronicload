@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     }
     events_Init();
     waveform_Init();
+    arb_Init();
     load_Init();
     com_Init();
     stats_Reset();
@@ -63,10 +64,11 @@ int main(int argc, char* argv[]) {
     // setup main menu
     menu_AddMainMenuEntry("Waveforms", waveform_Menu);
     menu_AddMainMenuEntry("Events", events_menu);
+    menu_AddMainMenuEntry("Arbitrary Sequence", arb_editSequence);
     menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
-    menu_AddMainMenuEntry("Calibration", calibrationMenu);
     menu_AddMainMenuEntry("Statistics", stats_Display);
     menu_AddMainMenuEntry("Settings", settings_Menu);
+    menu_AddMainMenuEntry("Calibration", calibrationMenu);
     menu_AddMainMenuEntry("Tests", test_Menu);
     menu_AddMainMenuEntry("Errors", error_Menu);
 
