@@ -216,34 +216,40 @@ void arb_editSequence(void) {
             arbitrary.points[selectedPoint].time += encoder * inkrement / 256;
             if (arbitrary.points[selectedPoint].time < 0)
                 arbitrary.points[selectedPoint].time = 0;
-            // check whether two points have changed places
-            if (selectedPoint > 0) {
-                if (arbitrary.points[selectedPoint].time
-                        < arbitrary.points[selectedPoint - 1].time) {
-                    int32_t timeBuf = arbitrary.points[selectedPoint].time;
-                    int32_t valBuf = arbitrary.points[selectedPoint].value;
-                    arbitrary.points[selectedPoint].time =
-                            arbitrary.points[selectedPoint - 1].time;
-                    arbitrary.points[selectedPoint].value =
-                            arbitrary.points[selectedPoint - 1].value;
-                    arbitrary.points[selectedPoint - 1].time = timeBuf;
-                    arbitrary.points[selectedPoint - 1].value = valBuf;
-                    selectedPoint--;
-                }
+            if (button & HAL_BUTTON_ENTER) {
+                // enter new value
+                menu_getInputValue(&arbitrary.points[selectedPoint].time,
+                        "New time:", 0, 30000, "ms", "s",
+                        NULL);
+                while ((button = hal_getButton()))
+                    ;
             }
-            if (selectedPoint < arbitrary.numPoints - 1) {
-                if (arbitrary.points[selectedPoint].time
-                        > arbitrary.points[selectedPoint + 1].time) {
-                    int32_t timeBuf = arbitrary.points[selectedPoint].time;
-                    int32_t valBuf = arbitrary.points[selectedPoint].value;
-                    arbitrary.points[selectedPoint].time =
-                            arbitrary.points[selectedPoint + 1].time;
-                    arbitrary.points[selectedPoint].value =
-                            arbitrary.points[selectedPoint + 1].value;
-                    arbitrary.points[selectedPoint + 1].time = timeBuf;
-                    arbitrary.points[selectedPoint + 1].value = valBuf;
-                    selectedPoint++;
-                }
+            // check whether two points have changed places
+            while (selectedPoint > 0
+                    && arbitrary.points[selectedPoint].time
+                            < arbitrary.points[selectedPoint - 1].time) {
+                int32_t timeBuf = arbitrary.points[selectedPoint].time;
+                int32_t valBuf = arbitrary.points[selectedPoint].value;
+                arbitrary.points[selectedPoint].time =
+                        arbitrary.points[selectedPoint - 1].time;
+                arbitrary.points[selectedPoint].value =
+                        arbitrary.points[selectedPoint - 1].value;
+                arbitrary.points[selectedPoint - 1].time = timeBuf;
+                arbitrary.points[selectedPoint - 1].value = valBuf;
+                selectedPoint--;
+            }
+            while (selectedPoint < arbitrary.numPoints - 1
+                    && arbitrary.points[selectedPoint].time
+                            > arbitrary.points[selectedPoint + 1].time) {
+                int32_t timeBuf = arbitrary.points[selectedPoint].time;
+                int32_t valBuf = arbitrary.points[selectedPoint].value;
+                arbitrary.points[selectedPoint].time =
+                        arbitrary.points[selectedPoint + 1].time;
+                arbitrary.points[selectedPoint].value =
+                        arbitrary.points[selectedPoint + 1].value;
+                arbitrary.points[selectedPoint + 1].time = timeBuf;
+                arbitrary.points[selectedPoint + 1].value = valBuf;
+                selectedPoint++;
             }
         }
             break;
@@ -254,6 +260,16 @@ void arb_editSequence(void) {
             arbitrary.points[selectedPoint].value += encoder * inkrement / 64;
             if (arbitrary.points[selectedPoint].value < 0)
                 arbitrary.points[selectedPoint].value = 0;
+            if (button & HAL_BUTTON_ENTER) {
+                // enter new value
+                menu_getInputValue(&arbitrary.points[selectedPoint].value,
+                        "New value:", 0, 200000000,
+                        arbParamUnits0[arbitrary.paramNum],
+                        arbParamUnits3[arbitrary.paramNum],
+                        arbParamUnits6[arbitrary.paramNum]);
+                while ((button = hal_getButton()))
+                    ;
+            }
         }
             break;
         }
