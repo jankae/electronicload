@@ -166,6 +166,7 @@ void load_update(void) {
         events_updateWaveformPhase();
         events_HandleEvents();
 
+        arb_Update();
         waveform_Update();
         characteristic_Update();
         load_ConstrainSettings();

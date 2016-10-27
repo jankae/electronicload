@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     // setup main menu
     menu_AddMainMenuEntry("Waveforms", waveform_Menu);
     menu_AddMainMenuEntry("Events", events_menu);
-    menu_AddMainMenuEntry("Arbitrary Sequence", arb_editSequence);
+    menu_AddMainMenuEntry("Arbitrary Sequence", arb_Menu);
     menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
     menu_AddMainMenuEntry("Statistics", stats_Display);
     menu_AddMainMenuEntry("Settings", settings_Menu);

@@ -3,23 +3,22 @@
 const char arbParamNames[ARB_NUM_PARAMS][21] = { "CURRENT", "VOLTAGE",
         "RESISTANCE", "POWER" };
 
+uint32_t *arbSetParamPointers[4] = { &load.current, &load.voltage,
+        &load.resistance, &load.power };
+
 const char arbParamUnits0[ARB_NUM_PARAMS][6] = { "uA", "uV", "mOhm", "uW" };
 const char arbParamUnits3[ARB_NUM_PARAMS][6] = { "mA", "mV", "Ohm", "mW" };
 const char arbParamUnits6[ARB_NUM_PARAMS][6] = { "A", "V", "kOhm", "W" };
 
 void arb_Init(void) {
-    arbitrary.active = 0;
-    arbitrary.numPoints = 4;
+    arbitrary.status = ARB_DISABLED;
+    arbitrary.mode = ARB_CONTINUOUS;
+    arbitrary.numPoints = 1;
     arbitrary.param = &load.current;
     arbitrary.paramNum = 0;
-    arbitrary.points[0].time = 1000;
+    arbitrary.sequenceLength = 1000;
+    arbitrary.points[0].time = 0;
     arbitrary.points[0].value = 0;
-    arbitrary.points[1].time = 2000;
-    arbitrary.points[1].value = 1000;
-    arbitrary.points[2].time = 3000;
-    arbitrary.points[2].value = 0;
-    arbitrary.points[3].time = 4000;
-    arbitrary.points[3].value = 1000;
 }
 
 int32_t arb_getValue(uint32_t time) {
@@ -54,17 +53,161 @@ int32_t arb_getValue(uint32_t time) {
             break;
         case 1:
             // FOH
-            value = common_Map(time, 0, arbitrary.points[0].time,
+            value = common_Map(time,
+                    arbitrary.points[arbitrary.numPoints - 1].time
+                            - arbitrary.sequenceLength,
+                    arbitrary.points[0].time,
                     arbitrary.points[arbitrary.numPoints - 1].value,
                     arbitrary.points[0].value);
             break;
         }
     } else {
         // time is passed last data point
-        // shouldn't happen but just in case use its value
-        value = arbitrary.points[arbitrary.numPoints - 1].value;
+        switch (arbitrary.points[arbitrary.numPoints - 1].hold) {
+        case 0:
+            // ZOH
+            value = arbitrary.points[arbitrary.numPoints - 1].value;
+            break;
+        case 1:
+            // FOH
+            value = common_Map(time,
+                    arbitrary.points[arbitrary.numPoints - 1].time,
+                    arbitrary.sequenceLength + arbitrary.points[0].time,
+                    arbitrary.points[arbitrary.numPoints - 1].value,
+                    arbitrary.points[0].value);
+            break;
+        }
     }
     return value;
+}
+
+void arb_Update(void) {
+    if (arbitrary.status == ARB_ARMED && load.powerOn) {
+        // load turned on, trigger arbitrary sequence
+        arbitrary.time = 0;
+        arbitrary.status = ARB_RUNNING;
+    }
+    if (arbitrary.status == ARB_RUNNING) {
+        arbitrary.time++;
+        if (arbitrary.time > arbitrary.sequenceLength) {
+            arbitrary.time = 0;
+            if (arbitrary.mode == ARB_SINGLE_SHOT) {
+                // only one sequence at a time
+                arbitrary.status = ARB_ARMED;
+                load.powerOn = 0;
+            }
+        }
+    }
+    if (arbitrary.status == ARB_RUNNING && arbitrary.param) {
+        *(arbitrary.param) = arb_getValue(arbitrary.time);
+    }
+}
+
+void arb_Menu(void) {
+    char *entries[5];
+    int8_t sel = 0;
+    do {
+        char edit[21] = "Edit sequence";
+        entries[0] = edit;
+
+        char length[21] = "Length:";
+        string_fromUintUnit(arbitrary.sequenceLength, &length[7], 4, 3, 's');
+        entries[1] = length;
+
+        char param[21] = "Param:";
+        strcpy(&param[6], arbParamNames[arbitrary.paramNum]);
+        entries[2] = param;
+
+        char mode[21];
+        if (arbitrary.mode == ARB_SINGLE_SHOT) {
+            strcpy(mode, "Mode: single shot");
+        } else {
+            strcpy(mode, "Mode: continuous");
+        }
+        entries[3] = mode;
+
+        char status[21];
+        if (arbitrary.status == ARB_DISABLED) {
+            strcpy(status, "State: OFF");
+        } else if (arbitrary.status == ARB_ARMED) {
+            strcpy(status, "State: ARMED");
+        } else {
+            strcpy(status, "State: ON");
+        }
+        entries[4] = status;
+
+        sel = menu_ItemChooseDialog(
+                "\xCD\xCD\xCD\xCD" "SEQUENCE MENU\xCD\xCD\xCD\xCD", entries, 5,
+                sel);
+        switch (sel) {
+        case 0:
+            arb_editSequence();
+            break;
+        case 1:
+            menu_getInputValue(&arbitrary.sequenceLength, "Sequence length:", 2,
+                    30000, "ms", "s", NULL);
+            arb_AdjustPointsToLength();
+            break;
+        case 2: {
+            // change set parameter
+            const char *itemList[4] = { arbParamNames[0], arbParamNames[1],
+                    arbParamNames[2], arbParamNames[3] };
+            int8_t sel = menu_ItemChooseDialog("Select parameter:", itemList, 4,
+                    arbitrary.paramNum);
+            if (sel >= 0) {
+                arbitrary.paramNum = sel;
+                arbitrary.param = arbSetParamPointers[sel];
+                if (arbitrary.status != ARB_DISABLED) {
+                    // set load in correct mode
+                    // This works correctly because load.mode and paramNum
+                    // are using the same coding for the 4 different
+                    // modes/parameters
+                    load.mode = arbitrary.paramNum;
+                }
+            }
+        }
+            break;
+        case 3:
+            // change mode
+            if (arbitrary.mode == ARB_SINGLE_SHOT) {
+                arbitrary.mode = ARB_CONTINUOUS;
+            } else {
+                arbitrary.mode = ARB_SINGLE_SHOT;
+            }
+            break;
+        case 4:
+            // change status
+            if (arbitrary.status == ARB_DISABLED) {
+                arbitrary.status = ARB_ARMED;
+                load.powerOn = 0;
+            } else if (arbitrary.status == ARB_ARMED) {
+                arbitrary.status = ARB_RUNNING;
+                arbitrary.time = 0;
+                load.powerOn = 0;
+            } else {
+                arbitrary.status = ARB_DISABLED;
+            }
+            break;
+        }
+    } while (sel >= 0);
+}
+
+void arb_AdjustPointsToLength(void) {
+    uint8_t i;
+    for (i = 0; i < arbitrary.numPoints; i++) {
+        if (arbitrary.points[i].time > arbitrary.sequenceLength) {
+            // this point (and all following it) are out of sequence length
+            // -> delete
+            arbitrary.numPoints = i;
+        }
+    }
+    if (arbitrary.numPoints == 0) {
+        // can't have zero points
+        // create point at 0ms with value of 0
+        arbitrary.numPoints = 1;
+        arbitrary.points[0].time = 0;
+        arbitrary.points[0].value = 0;
+    }
 }
 
 void arb_editSequence(void) {
@@ -87,11 +230,9 @@ void arb_editSequence(void) {
             ;
         // display current sequence
         // find maximum and minimum
-        int32_t minValue = INT32_MAX, maxValue = INT32_MIN, maxTime = INT32_MIN;
+        int32_t minValue = INT32_MAX, maxValue = INT32_MIN;
         uint8_t i;
         for (i = 0; i < arbitrary.numPoints; i++) {
-            if (arbitrary.points[i].time > maxTime)
-                maxTime = arbitrary.points[i].time;
             if (arbitrary.points[i].value > maxValue)
                 maxValue = arbitrary.points[i].value;
             if (arbitrary.points[i].value < minValue)
@@ -101,14 +242,14 @@ void arb_editSequence(void) {
         int32_t rangeValue = maxValue - minValue;
         maxValue += rangeValue / 20 + 1;
         minValue -= rangeValue / 20 + 1;
-        maxTime++;
 #define ARB_VIEWWIN_HEIGHT      32
         screen_Clear();
 
         if (grabPoint == ARB_GRAB_NONE) {
             // calculate cursorY position
             // find points next to cursor
-            cursorTime = common_Map(cursorX, 1, 126, 0, maxTime);
+            cursorTime = common_Map(cursorX, 1, 126, 0,
+                    arbitrary.sequenceLength);
             uint32_t maxDist = UINT32_MAX;
             for (i = 0; i < arbitrary.numPoints; i++) {
                 int32_t dist = arbitrary.points[i].time - cursorTime;
@@ -126,7 +267,8 @@ void arb_editSequence(void) {
             // cursor locked to selected point
             cursorValue = arbitrary.points[selectedPoint].value;
             cursorTime = arbitrary.points[selectedPoint].time;
-            cursorX = common_Map(cursorTime, 0, maxTime, 1, 126);
+            cursorX = common_Map(cursorTime, 0, arbitrary.sequenceLength, 1,
+                    126);
             cursorY = common_Map(cursorValue, maxValue, minValue, 1,
             ARB_VIEWWIN_HEIGHT - 1);
         }
@@ -141,8 +283,8 @@ void arb_editSequence(void) {
         // display points and connecting lines
         screen_Rectangle(0, 0, 127, ARB_VIEWWIN_HEIGHT);
         for (i = 0; i < arbitrary.numPoints; i++) {
-            uint8_t x = common_Map(arbitrary.points[i].time, 0, maxTime, 1,
-                    126);
+            uint8_t x = common_Map(arbitrary.points[i].time, 0,
+                    arbitrary.sequenceLength, 1, 126);
             uint8_t y = common_Map(arbitrary.points[i].value, maxValue,
                     minValue, 1,
                     ARB_VIEWWIN_HEIGHT - 1);
@@ -155,7 +297,7 @@ void arb_editSequence(void) {
         for (i = 2; i <= 126; i++) {
             uint8_t _y = y;
             // calculate time
-            uint32_t time = common_Map(i, 1, 126, 0, maxTime);
+            uint32_t time = common_Map(i, 1, 126, 0, arbitrary.sequenceLength);
             y = common_Map(arb_getValue(time), maxValue, minValue, 1,
             ARB_VIEWWIN_HEIGHT - 1);
             screen_Line(i - 1, _y, i, y);
@@ -210,7 +352,7 @@ void arb_editSequence(void) {
             }
             break;
         case ARB_GRAB_TIME: {
-            int32_t inkrement = maxTime;
+            int32_t inkrement = arbitrary.sequenceLength;
             if (inkrement < 256)
                 inkrement = 256;
             arbitrary.points[selectedPoint].time += encoder * inkrement / 256;
@@ -219,36 +361,33 @@ void arb_editSequence(void) {
             if (button & HAL_BUTTON_ENTER) {
                 // enter new value
                 menu_getInputValue(&arbitrary.points[selectedPoint].time,
-                        "New time:", 0, 30000, "ms", "s",
+                        "New time:", 0, arbitrary.sequenceLength, "ms", "s",
                         NULL);
                 while ((button = hal_getButton()))
                     ;
             }
+            if (arbitrary.points[selectedPoint].time < 0)
+                arbitrary.points[selectedPoint].time = 0;
+            else if (arbitrary.points[selectedPoint].time
+                    > arbitrary.sequenceLength)
+                arbitrary.points[selectedPoint].time = arbitrary.sequenceLength;
             // check whether two points have changed places
             while (selectedPoint > 0
                     && arbitrary.points[selectedPoint].time
                             < arbitrary.points[selectedPoint - 1].time) {
-                int32_t timeBuf = arbitrary.points[selectedPoint].time;
-                int32_t valBuf = arbitrary.points[selectedPoint].value;
-                arbitrary.points[selectedPoint].time =
-                        arbitrary.points[selectedPoint - 1].time;
-                arbitrary.points[selectedPoint].value =
-                        arbitrary.points[selectedPoint - 1].value;
-                arbitrary.points[selectedPoint - 1].time = timeBuf;
-                arbitrary.points[selectedPoint - 1].value = valBuf;
+                struct arbDataPoint buf = arbitrary.points[selectedPoint];
+                arbitrary.points[selectedPoint] = arbitrary.points[selectedPoint
+                        - 1];
+                arbitrary.points[selectedPoint - 1] = buf;
                 selectedPoint--;
             }
             while (selectedPoint < arbitrary.numPoints - 1
                     && arbitrary.points[selectedPoint].time
                             > arbitrary.points[selectedPoint + 1].time) {
-                int32_t timeBuf = arbitrary.points[selectedPoint].time;
-                int32_t valBuf = arbitrary.points[selectedPoint].value;
-                arbitrary.points[selectedPoint].time =
-                        arbitrary.points[selectedPoint + 1].time;
-                arbitrary.points[selectedPoint].value =
-                        arbitrary.points[selectedPoint + 1].value;
-                arbitrary.points[selectedPoint + 1].time = timeBuf;
-                arbitrary.points[selectedPoint + 1].value = valBuf;
+                struct arbDataPoint buf = arbitrary.points[selectedPoint];
+                arbitrary.points[selectedPoint] = arbitrary.points[selectedPoint
+                        + 1];
+                arbitrary.points[selectedPoint + 1] = buf;
                 selectedPoint++;
             }
         }
@@ -287,19 +426,18 @@ void arb_editSequence(void) {
                 }
                 // move points after cursor one up
                 for (i = arbitrary.numPoints; i > nextPoint; i--) {
-                    arbitrary.points[i].value = arbitrary.points[i - 1].value;
-                    arbitrary.points[i].time = arbitrary.points[i - 1].time;
+                    arbitrary.points[i] = arbitrary.points[i - 1];
                 }
                 // add point at current cursorposition
                 arbitrary.points[nextPoint].value = cursorValue;
                 arbitrary.points[nextPoint].time = cursorTime;
+                arbitrary.points[nextPoint].hold = 0;
                 arbitrary.numPoints++;
             }
             if ((button & HAL_BUTTON_SOFT0) && arbitrary.numPoints > 1) {
                 // move points after selected point one down
                 for (i = selectedPoint; i < arbitrary.numPoints; i++) {
-                    arbitrary.points[i].value = arbitrary.points[i + 1].value;
-                    arbitrary.points[i].time = arbitrary.points[i + 1].time;
+                    arbitrary.points[i] = arbitrary.points[i + 1];
                 }
                 arbitrary.numPoints--;
             }

@@ -15,6 +15,7 @@
 #include "settings.h"
 #include "characteristic.h"
 #include "errors.h"
+#include "arbitrary.h"
 
 #define LOAD_MAX_TEMP           100
 #define LOAD_FANON_TEMP         35

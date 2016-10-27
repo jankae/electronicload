@@ -37,6 +37,8 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString12x16("UNSTABLE", 16, 4);
         } else if (waveform.form != WAVE_NONE) {
             screen_FastString12x16("WAVE ON", 22, 4);
+        } else if(arbitrary.status==ARB_RUNNING){
+            screen_FastString12x16("ARB SEQ ON", 4, 4);
         }
 
         uint32_t current, voltage, power;
