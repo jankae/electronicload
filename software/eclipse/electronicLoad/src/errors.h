@@ -4,7 +4,7 @@
 #include "loadFunctions.h"
 
 // time in ms after which an error condition is reported (max 254ms)
-#define LOAD_MAX_ERROR_DURATION 200
+#define LOAD_MAX_ERROR_DURATION 20
 // error bits encoded into load.error:
 // load draws current while input is switched off
 #define LOAD_ERROR_OFF_CURRENT              0x01
