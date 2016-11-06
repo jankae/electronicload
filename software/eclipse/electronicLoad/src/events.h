@@ -73,6 +73,7 @@ struct {
     struct event evlist[EV_MAXEVENTS];
     // 0: no change, 1: rising edge, -1: falling edge
     int8_t triggerInState;
+    int8_t triggerOutState;
     /******************************
      * waveform phase paramters
      *****************************/

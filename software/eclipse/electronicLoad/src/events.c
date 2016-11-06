@@ -134,10 +134,10 @@ void events_triggerEventDestination(uint8_t ev) {
                     events.evlist[ev].effects[i].destTimerValue;
             break;
         case EV_DEST_TRIG_HIGH:
-            hal_setTriggerOut(1);
+            events.triggerOutState = 1;
             break;
         case EV_DEST_TRIG_LOW:
-            hal_setTriggerOut(0);
+            events.triggerOutState = -1;
             break;
         case EV_DEST_LOAD_MODE:
             load_setMode(events.evlist[ev].effects[i].destMode);
