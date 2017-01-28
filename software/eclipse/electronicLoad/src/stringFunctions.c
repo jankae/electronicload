@@ -115,6 +115,9 @@ void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
         dot = 3;
         unit = unit3;
     }
+    if(!dot) {
+        *dest++ = ' ';
+    }
     for (; firstDigit > 0; firstDigit--) {
         if (!digits)
             break;

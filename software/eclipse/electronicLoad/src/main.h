@@ -19,5 +19,8 @@
 #include "test.h"
 #include "errors.h"
 #include "arbitrary.h"
+#include "GUI/button.h"
+#include "GUI/container.h"
+#include "GUI/entry.h"
 
 #endif

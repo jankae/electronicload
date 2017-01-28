@@ -10,13 +10,16 @@
 #define SCREEN_H_
 
 #include <stringFunctions.h>
+#include "GUI/font.h"
 #include "display.h"
 #include "currentSink.h"
 #include "calibration.h"
 #include "loadFunctions.h"
 
+#define SCREEN_DISPLAY_TIMEOUT      10
+
 typedef enum {
-    PIXEL_OFF, PIXEL_ON
+    PIXEL_OFF, PIXEL_ON, PIXEL_INVERT
 } PixelState_t;
 
 /**
@@ -83,6 +86,7 @@ void screen_Circle(int x0, int y0, int radius);
  * \param y2    Y-coordinate of bottom right corner
  */
 void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
+void screen_InvertRectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 
 /**
  * \brief Writes a 12x16 font character into the display data buffer
@@ -95,6 +99,7 @@ void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
  * \param c Character to be displayed
  */
 void screen_FastChar12x16(char c, uint8_t x, uint8_t ypage);
+void screen_Char12x16(char c, uint8_t x, uint8_t y);
 
 void screen_InvertChar12x16(uint8_t x, uint8_t ypage);
 
@@ -109,6 +114,9 @@ void screen_InvertChar12x16(uint8_t x, uint8_t ypage);
  * \param c Character to be displayed
  */
 void screen_FastChar6x8(char c, uint8_t x, uint8_t ypage);
+void screen_Char6x8(char c, uint8_t x, uint8_t y);
+
+void screen_Char4x6(char c, uint8_t x, uint8_t y);
 
 void screen_InvertChar6x8(uint8_t x,uint8_t ypage);
 
@@ -123,6 +131,7 @@ void screen_InvertChar6x8(uint8_t x,uint8_t ypage);
  * \param ypage Y-coordinate (up = 0, down = 6)
  */
 void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage);
+void screen_String12x16(const char *src, uint8_t x, uint8_t y);
 
 /**
  * \brief Writes a 6x8 string into the display data buffer
@@ -135,7 +144,11 @@ void screen_FastString12x16(const char *src, uint8_t x, uint8_t ypage);
  * \param ypage Y-coordinate (up = 0, down = 7)
  */
 void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage);
+void screen_String6x8(const char *src, uint8_t x, uint8_t y);
 
+void screen_String4x6(const char *src, uint8_t x, uint8_t y);
+
+void screen_String(const char *src, font_t font, uint8_t x, uint8_t y);
 /**
  * \brief Displays a soft button
  *
@@ -145,5 +158,7 @@ void screen_FastString6x8(const char *src, uint8_t x, uint8_t ypage);
 void screen_SetSoftButton(const char *descr, uint8_t num);
 
 void screen_Text6x8(const char *src, uint8_t x, uint8_t ypage);
+
+
 
 #endif

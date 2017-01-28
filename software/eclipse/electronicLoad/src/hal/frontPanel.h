@@ -76,6 +76,8 @@
 #define HAL_BUTTON_SOFT1    0x00100000
 #define HAL_BUTTON_SOFT2    0x00200000
 
+#define HAL_BUTTON_SOFT     0x00380000
+
 #define HAL_BUTTON_ISDIGIT  0x000003ff
 /** \} */
 
