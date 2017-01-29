@@ -117,6 +117,8 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
     entry_t *e = (entry_t*) w;
     /* calculate corners */
     coords_t upperLeft = offset;
+    upperLeft.x += e->base.position.x;
+    upperLeft.y += e->base.position.y;
     coords_t lowerRight = upperLeft;
     lowerRight.x += e->base.size.x - 1;
     lowerRight.y += e->base.size.y - 1;
@@ -221,6 +223,8 @@ GUISignal_t entry_input(widget_t *w, GUISignal_t signal) {
             *e->value = entry_constrainValue(e, val);
             signal.clicked &= ~HAL_BUTTON_SOFT;
             e->flags.editing = 0;
+            if(e->changeCallback)
+                e->changeCallback();
         }
     } else if (e->flags.encoderEdit) {
         /* leave editing mode by escape */
@@ -249,7 +253,11 @@ GUISignal_t entry_input(widget_t *w, GUISignal_t signal) {
             /* entry field is in encoder edit mode */
             uint32_t increment = entry_getIncrement(e);
             uint32_t tempValue = *e->value + signal.encoder * increment;
-            *e->value = entry_constrainValue(e, tempValue);
+            if (*e->value != entry_constrainValue(e, tempValue)) {
+                *e->value = entry_constrainValue(e, tempValue);
+                if (e->changeCallback)
+                    e->changeCallback();
+            }
             string_fromUintUnits(*e->value, e->inputString, e->digits,
                     unitNames[e->unit][0], unitNames[e->unit][1],
                     unitNames[e->unit][2]);
