@@ -7,13 +7,14 @@ void container_create(container_t *c, uint8_t width, uint8_t height) {
     c->base.func.draw = container_draw;
     c->base.func.input = container_input;
     c->flags.editing = 0;
+    c->flags.focussed = 0;
 }
 
 GUIResult_t container_attach(container_t *c, widget_t *w, uint8_t x, uint8_t y) {
     /* check whether there is space for the widget */
     if (x + w->size.x > c->base.size.x || y + w->size.y > c->base.size.y) {
         /* widget extends over the edges of the container */
-        return GUI_ERROR;
+        return GUI_UNABLE;
     }
     if (c->base.firstChild) {
         /* find end of children list */
@@ -77,6 +78,10 @@ GUISignal_t container_input(widget_t *w, GUISignal_t signal) {
         if(signal.clicked & HAL_BUTTON_ESC) {
             /* leave editing mode */
             c->flags.editing = 0;
+            /* notify parent of focus */
+            if (c->base.parent) {
+                widget_gotFocus(c->base.parent);
+            }
             widget_deselectAll(c->base.firstChild);
             signal.clicked &= ~HAL_BUTTON_ESC;
         }
@@ -86,9 +91,21 @@ GUISignal_t container_input(widget_t *w, GUISignal_t signal) {
             /* start editing mode */
             if(widget_selectFirst(c->base.firstChild)==GUI_OK) {
                 c->flags.editing = 1;
+                /* notify parent of lost focus */
+                if (c->base.parent) {
+                    widget_lostFocus(c->base.parent);
+                }
             }
             signal.clicked &= ~HAL_BUTTON_ENTER;
         }
     }
+    if (signal.lostFocus) {
+        signal.lostFocus = 0;
+        c->flags.focussed = 0;
+    } else if (signal.gotFocus) {
+        signal.gotFocus = 0;
+        c->flags.focussed = 1;
+    }
     return signal;
 }
+
