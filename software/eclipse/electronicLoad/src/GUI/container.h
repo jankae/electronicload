@@ -6,6 +6,9 @@
 
 typedef struct {
     widget_t base;
+    struct {
+        uint8_t editing :1;
+    } flags;
 } container_t;
 
 void container_create(container_t *c, uint8_t width , uint8_t height);

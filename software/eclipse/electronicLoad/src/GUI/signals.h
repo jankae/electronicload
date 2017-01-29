@@ -1,7 +1,7 @@
 #ifndef GUI_SIGNALS_H_
 #define GUI_SIGNALS_H_
 
-typedef enum  {GUI_OK, GUI_ERROR} GUIResult_t;
+typedef enum  {GUI_OK, GUI_ERROR, GUI_UNABLE} GUIResult_t;
 
 typedef struct signal GUISignal_t;
 

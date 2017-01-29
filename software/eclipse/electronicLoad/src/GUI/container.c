@@ -6,6 +6,7 @@ void container_create(container_t *c, uint8_t width, uint8_t height) {
     c->base.size.y = height;
     c->base.func.draw = container_draw;
     c->base.func.input = container_input;
+    c->flags.editing = 0;
 }
 
 GUIResult_t container_attach(container_t *c, widget_t *w, uint8_t x, uint8_t y) {
@@ -25,8 +26,6 @@ GUIResult_t container_attach(container_t *c, widget_t *w, uint8_t x, uint8_t y) 
     } else {
         /* this is the first child */
         c->base.firstChild = w;
-        /* this item has to be active */
-        w->flags.active = 1;
     }
     w->position.x = x;
     w->position.y = y;
@@ -41,57 +40,30 @@ GUIResult_t container_draw(widget_t *w, coords_t offset) {
 
 GUISignal_t container_input(widget_t *w, GUISignal_t signal) {
     container_t *c = (container_t*) w;
-    if (signal.encoder < 0) {
-        /* move active item one up */
-        if (c->base.firstChild) {
-            /* find current active item */
-            widget_t *w = c->base.firstChild;
-            if (w->flags.active == 0) {
-                /* the first item is inactive */
-                /* loop over all items until the active one is found */
-                while (w->next) {
-                    if (w->next->flags.active) {
-                        /* the next item is active */
-                        /* set current item active */
-                        w->flags.active = 1;
-                        /* set next item inactive */
-                        w->next->flags.active = 0;
-                        break;
-                    }
-                    w = w->next;
-                }
-                if (!w->next) {
-                    /* no item was active -> shouldn't happen */
-                    /* set first item active */
-                    c->base.firstChild->flags.active = 1;
-                }
-            }
+    if (c->flags.editing) {
+        if (signal.encoder < 0) {
+            /* move active item one up */
+            widget_selectPrevious(c->base.firstChild);
+        } else if (signal.encoder > 0) {
+            /* move active item one down */
+            widget_selectNext(c->base.firstChild);
         }
-    } else if (signal.encoder > 0) {
-        /* move active item one down */
-        if (c->base.firstChild) {
-            /* find current active item */
-            widget_t *w = c->base.firstChild;
-            while (w) {
-                if (w->flags.active) {
-                    /* this item is active */
-                    if (w->next) {
-                        /* set next item active */
-                        w->next->flags.active = 1;
-                        /* set current item inactive */
-                        w->flags.active = 0;
-                    }
-                    break;
-                }
-                w = w->next;
+        signal.encoder = 0;
+        if(signal.clicked & HAL_BUTTON_ESC) {
+            /* leave editing mode */
+            c->flags.editing = 0;
+            widget_deselectAll(c->base.firstChild);
+            signal.clicked &= ~HAL_BUTTON_ESC;
+        }
+    } else {
+        /* not in editing mode */
+        if(signal.clicked & HAL_BUTTON_ENTER) {
+            /* start editing mode */
+            if(widget_selectFirst(c->base.firstChild)==GUI_OK) {
+                c->flags.editing = 1;
             }
-            if (!w) {
-                /* no item was active -> shouldn't happen */
-                /* set first item active */
-                c->base.firstChild->flags.active = 1;
-            }
+            signal.clicked &= ~HAL_BUTTON_ENTER;
         }
     }
-    signal.encoder = 0;
     return signal;
 }

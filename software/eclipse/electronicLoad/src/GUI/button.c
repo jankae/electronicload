@@ -57,7 +57,7 @@ GUIResult_t button_draw(widget_t *w, coords_t offset) {
         screen_String(b->name, b->font, upperLeft.x + b->fontStart.x,
                 upperLeft.y + b->fontStart.y);
     }
-    if (b->base.flags.active) {
+    if (b->base.flags.selected) {
         /* invert button area */
         screen_InvertRectangle(upperLeft.x + 1, upperLeft.y + 1,
                 lowerRight.x - 2, lowerRight.y - 2);

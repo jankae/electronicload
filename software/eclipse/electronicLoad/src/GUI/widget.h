@@ -29,13 +29,18 @@ struct widget {
 
     struct {
         uint8_t visible :1;
-        uint8_t active :1;
+        uint8_t selected :1;
+        uint8_t selectable :1;
     } flags;
 
     widgetFunctions_t func;
 };
 
 void widget_init(widget_t *w);
+GUIResult_t widget_selectNext(widget_t *first);
+GUIResult_t widget_selectPrevious(widget_t *first);
+GUIResult_t widget_selectFirst(widget_t *first);
+GUIResult_t widget_deselectAll(widget_t *first);
 GUIResult_t widget_draw(widget_t *w, coords_t offset);
 GUISignal_t widget_input(widget_t *w, GUISignal_t signal);
 

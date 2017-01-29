@@ -146,7 +146,7 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
         /* display string */
         screen_String(e->inputString, e->font, upperLeft.x + 1,
                 upperLeft.y + 2);
-        if (e->base.flags.active) {
+        if (e->base.flags.selected) {
             /* invert button area */
             screen_InvertRectangle(upperLeft.x + 1, upperLeft.y + 1,
                     lowerRight.x - 1, lowerRight.y - 1);
