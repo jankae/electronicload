@@ -42,6 +42,8 @@ GUIResult_t button_draw(widget_t *w, coords_t offset) {
     button_t *b = (button_t*) w;
     /* calculate corners */
     coords_t upperLeft = offset;
+    upperLeft.x += b->base.position.x;
+    upperLeft.y += b->base.position.y;
     coords_t lowerRight = upperLeft;
     lowerRight.x += b->base.size.x - 1;
     lowerRight.y += b->base.size.y - 1;

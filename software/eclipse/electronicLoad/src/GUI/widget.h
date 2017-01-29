@@ -41,7 +41,7 @@ GUIResult_t widget_selectNext(widget_t *first);
 GUIResult_t widget_selectPrevious(widget_t *first);
 GUIResult_t widget_selectFirst(widget_t *first);
 GUIResult_t widget_deselectAll(widget_t *first);
-GUIResult_t widget_draw(widget_t *w, coords_t offset);
+//GUIResult_t widget_draw(widget_t *w, coords_t offset);
 GUISignal_t widget_input(widget_t *w, GUISignal_t signal);
 
 

@@ -35,7 +35,22 @@ GUIResult_t container_attach(container_t *c, widget_t *w, uint8_t x, uint8_t y) 
 
 GUIResult_t container_draw(widget_t *w, coords_t offset) {
     /* container itself is invisible */
-    return GUI_OK;
+    GUIResult_t res = GUI_OK;
+    offset.x += w->position.x;
+    offset.y += w->position.y;
+    /* draw its children */
+    widget_t *child = w->firstChild;
+    for (; child; child = child->next) {
+        if (res != GUI_OK) {
+            /* abort on error */
+            break;
+        }
+        if (child->flags.visible) {
+            /* draw this child */
+            res = child->func.draw(child, offset);
+        }
+    }
+    return res;
 }
 
 GUISignal_t container_input(widget_t *w, GUISignal_t signal) {
