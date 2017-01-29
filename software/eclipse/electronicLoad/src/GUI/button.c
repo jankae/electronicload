@@ -1,7 +1,6 @@
 #include "button.h"
 
-void button_create(button_t *button, uint8_t width, uint8_t height, char *name,
-        void *cb) {
+void button_create(button_t *button, char *name, font_t font, uint8_t minWidth, void *cb) {
     /* initialize common widget values */
     widget_init((widget_t*) button);
     /* set widget functions */
@@ -10,30 +9,19 @@ void button_create(button_t *button, uint8_t width, uint8_t height, char *name,
     /* set name and callback */
     button->name = name;
     button->callback = cb;
+    button->font = font;
 
-    /* calculate biggest compatible font */
-    button->base.size.x = width;
-    button->base.size.y = height;
+    uint8_t nameLength = strlen(name);
 
-    uint8_t nameLength = strlen(button->name);
-    button->font = FONT_NUM_SIZES;
-    uint8_t fits = 0;
-    uint8_t spaceHeight = button->base.size.y - 3;
-    uint8_t spaceWidth = button->base.size.x - 3;
-    do {
-        button->font--;
-        if (fontSize[button->font].height <= spaceHeight
-                && fontSize[button->font].width * nameLength <= spaceWidth) {
-            fits = 1;
-        }
-    } while (!fits && button->font);
-    if (!fits) {
-        /* even the smallest font didn't fit */
-        button->name = NULL;
-    }
+    /* calculate size based on the font */
+    button->base.size.y = fontSize[font].height + 4;
+    button->base.size.x = fontSize[font].width * nameLength + 3;
+
+    if(minWidth > button->base.size.x)
+        button->base.size.x = minWidth;
+
     /* calculate font start position */
-    button->fontStart.y = (button->base.size.y - fontSize[button->font].height)
-            / 2;
+    button->fontStart.y = 2;
     button->fontStart.x = (button->base.size.x
             - fontSize[button->font].width * nameLength) / 2;
 }
