@@ -62,7 +62,7 @@ GUIResult_t button_draw(widget_t *w, coords_t offset) {
     if (b->base.flags.selected) {
         /* invert button area */
         screen_FullRectangle(upperLeft.x + 1, upperLeft.y + 1,
-                lowerRight.x - 2, lowerRight.y - 2, PIXEL_ON);
+                lowerRight.x - 2, lowerRight.y - 2, PIXEL_INVERT);
     }
     return GUI_OK;
 }
