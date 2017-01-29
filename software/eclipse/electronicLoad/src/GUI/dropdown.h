@@ -22,7 +22,7 @@ typedef struct {
 } dropdown_t;
 
 void dropdown_create(dropdown_t *d, char **items, uint8_t *value, font_t font,
-        uint8_t minSize, void *cb);
+        uint8_t minSize, void (*cb)(void));
 GUIResult_t dropdown_draw(widget_t *w, coords_t offset);
 GUISignal_t dropdown_input(widget_t *w, GUISignal_t signal);
 

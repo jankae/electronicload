@@ -23,7 +23,7 @@ GUIResult_t notebook_create(notebook_t *n, font_t font, uint8_t x, uint8_t y) {
     return GUI_OK;
 }
 
-GUIResult_t notebook_addPage(notebook_t *n, widget_t *page, char *name) {
+GUIResult_t notebook_addPage(notebook_t *n, widget_t *page, const char *name) {
     if (n->numItems >= NOTEBOOK_MAX_PAGES) {
         /* already at maximum number of pages */
         return GUI_UNABLE;

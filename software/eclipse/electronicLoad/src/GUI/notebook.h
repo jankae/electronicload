@@ -21,7 +21,7 @@ typedef struct {
 } notebook_t;
 
 GUIResult_t notebook_create(notebook_t *n, font_t font, uint8_t x, uint8_t y);
-GUIResult_t notebook_addPage(notebook_t *n, widget_t *page, char *name);
+GUIResult_t notebook_addPage(notebook_t *n, widget_t *page, const char *name);
 GUIResult_t notebook_draw(widget_t *w, coords_t offset);
 GUISignal_t notebook_input(widget_t *w, GUISignal_t signal);
 

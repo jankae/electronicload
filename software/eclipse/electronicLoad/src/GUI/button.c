@@ -1,6 +1,6 @@
 #include "button.h"
 
-void button_create(button_t *button, char *name, font_t font, uint8_t minWidth, void *cb) {
+void button_create(button_t *button, const char *name, font_t font, uint8_t minWidth, void *cb) {
     /* initialize common widget values */
     widget_init((widget_t*) button);
     /* set widget functions */

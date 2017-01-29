@@ -1,7 +1,7 @@
 #include "dropdown.h"
 
 void dropdown_create(dropdown_t *d, char **items, uint8_t *value, font_t font,
-        uint8_t minSize, void *cb) {
+        uint8_t minSize, void (*cb)(void)) {
     widget_init((widget_t*) d);
     /* set widget functions */
     d->base.func.draw = dropdown_draw;
