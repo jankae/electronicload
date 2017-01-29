@@ -40,15 +40,25 @@ GUIResult_t container_draw(widget_t *w, coords_t offset) {
     offset.y += w->position.y;
     /* draw its children */
     widget_t *child = w->firstChild;
+    widget_t *selected = NULL;
     for (; child; child = child->next) {
         if (res != GUI_OK) {
             /* abort on error */
             break;
         }
         if (child->flags.visible) {
-            /* draw this child */
-            res = child->func.draw(child, offset);
+            if(child->flags.selected) {
+                /* store this child for later drawing */
+                selected = child;
+            } else {
+                /* draw this child */
+                res = child->func.draw(child, offset);
+            }
         }
+    }
+    /* always draw selected child last (might overwrite other children) */
+    if(selected) {
+        selected->func.draw(selected, offset);
     }
     return res;
 }
