@@ -16,6 +16,8 @@
 #include "calibration.h"
 #include "loadFunctions.h"
 
+#define SCREEN_HEIGHT               64
+#define SCREEN_WIDTH                128
 #define SCREEN_DISPLAY_TIMEOUT      10
 
 typedef enum {
@@ -86,7 +88,7 @@ void screen_Circle(int x0, int y0, int radius);
  * \param y2    Y-coordinate of bottom right corner
  */
 void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
-void screen_InvertRectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
+void screen_FullRectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, PixelState_t p);
 
 /**
  * \brief Writes a 12x16 font character into the display data buffer

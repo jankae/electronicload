@@ -133,11 +133,11 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
         screen_String(e->inputString, e->font, upperLeft.x + 1,
                 upperLeft.y + 2);
         /* invert char at current edit position */
-        screen_InvertRectangle(
+        screen_FullRectangle(
                 upperLeft.x + 1 + fontSize[e->font].width * e->encEditPos,
                 upperLeft.y + 1,
                 upperLeft.x + 1 + fontSize[e->font].width * (e->encEditPos + 1)
-                        - 1, lowerRight.y - 1);
+                        - 1, lowerRight.y - 1, PIXEL_INVERT);
         screen_SetSoftButton("\x1b", 0);
         screen_SetSoftButton("\x1a", 1);
     } else {
@@ -150,8 +150,8 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
                 upperLeft.y + 2);
         if (e->base.flags.selected) {
             /* invert button area */
-            screen_InvertRectangle(upperLeft.x + 1, upperLeft.y + 1,
-                    lowerRight.x - 1, lowerRight.y - 1);
+            screen_FullRectangle(upperLeft.x + 1, upperLeft.y + 1,
+                    lowerRight.x - 1, lowerRight.y - 1, PIXEL_INVERT);
         }
     }
 

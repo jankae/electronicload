@@ -142,11 +142,11 @@ void screen_Rectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
         screen_SetPixel(x2, i, PIXEL_ON);
     }
 }
-void screen_InvertRectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2){
+void screen_FullRectangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, PixelState_t p){
     uint8_t i, j;
     for (i = x1; i <= x2; i++) {
         for (j = y1; j <= y2; j++) {
-            screen_SetPixel(i, j, PIXEL_INVERT);
+            screen_SetPixel(i, j, p);
         }
     }
 }
