@@ -7,7 +7,11 @@ void label_create(label_t *l, char *name, font_t font) {
     l->base.func.draw = label_draw;
     l->base.func.input = label_input;
     l->font = font;
-    l->name = name;
+    uint8_t i = 0;
+    while (*name && i < LABEL_MAX_NAME) {
+        l->name[i++] = *name++;
+    }
+    l->name[i] = 0;
     l->base.flags.selectable = 0;
     /* calculate size */
     l->base.size.y = fontSize[font].height;

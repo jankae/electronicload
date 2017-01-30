@@ -1,4 +1,3 @@
-
 #ifndef GUI_LABEL_H_
 #define GUI_LABEL_H_
 
@@ -6,9 +5,11 @@
 #include "screen.h"
 #include "font.h"
 
+#define LABEL_MAX_NAME      16
+
 typedef struct {
     widget_t base;
-    char *name;
+    char name[LABEL_MAX_NAME + 1];
     font_t font;
 } label_t;
 
