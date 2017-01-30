@@ -63,7 +63,7 @@ void characteristic_Run(void) {
     screen_Rectangle(3, 22, 124, 41);
     // disable waveform generation
     // (it mustn't mess with the characteristic tracing)
-    waveform.form = WAVE_NONE;
+    waveform.switchedOn = 0;
     // reset characteristic state variables
     characteristic.timeCount = 0;
     characteristic.pointCount = 0;

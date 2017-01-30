@@ -8,5 +8,6 @@
 #include "label.h"
 #include "notebook.h"
 #include "message.h"
+#include "checkbox.h"
 
 #endif

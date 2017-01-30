@@ -100,7 +100,7 @@ uint8_t events_isEventSourceTriggered(uint8_t ev) {
             triggered = 1;
         break;
     case EV_SRC_WAVEFORM_PHASE:
-        if (waveform.form != WAVE_NONE) {
+        if (waveform.switchedOn) {
             // check whether phase limit has been passed since last cycle
             if (events.waveformPhase >= events.waveformOldPhase) {
                 // phase hasn't passed 360°

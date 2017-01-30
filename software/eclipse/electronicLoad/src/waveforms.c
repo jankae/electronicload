@@ -103,10 +103,9 @@ static const uint16_t wave_SineLookup[1025] = { 0, 101, 201, 302, 402, 503, 603,
         65524, 65526, 65527, 65529, 65530, 65531, 65532, 65533, 65534, 65534,
         65535, 65535, 65535 };
 
-static const char waveform_Names[5][9] = { "OFF", "SINE", "SAW", "SQUARE",
-        "TRIANGLE" };
-static const char *waveformItems[6] = { waveform_Names[0], waveform_Names[1],
-        waveform_Names[2], waveform_Names[3], waveform_Names[4], NULL };
+static const char waveform_Names[4][9] = { "SINE", "SAW", "SQUARE", "TRIANGLE" };
+static const char *waveformItems[5] = { waveform_Names[0], waveform_Names[1],
+        waveform_Names[2], waveform_Names[3], NULL };
 
 static const char waveSetParamNames[4][11] = { "CURRENT", "VOLTAGE",
         "RESISTANCE", "POWER" };
@@ -120,13 +119,15 @@ static container_t c;
 static dropdown_t dWave, dParam;
 static entry_t eMin, eMax, eAmplitude, eOffset, ePeriod, eFreq;
 static label_t lWave, lParam, lMin, lMax, lAmplitude, lOffset, lPeriod, lFreq;
+static checkbox_t bOn;
 
 static uint32_t minPeriod = 1, maxPeriod = 500000;
 static uint32_t minFreq = 2, maxFreq = 1000000;
 
 void waveform_Init(void) {
     waveform.amplitude = 1000;
-    waveform.form = WAVE_NONE;
+    waveform.form = WAVE_SINE;
+    waveform.switchedOn = 0;
     waveform.offset = 1000;
     waveform_AmplitudeOffsetChanged();
     waveform.param = &load.current;
@@ -143,6 +144,8 @@ void waveform_Init(void) {
     label_create(&lOffset, "Offset:", FONT_MEDIUM);
     label_create(&lPeriod, "Period:", FONT_MEDIUM);
     label_create(&lFreq, "Frequency:", FONT_MEDIUM);
+
+    checkbox_create(&bOn, &waveform.switchedOn, NULL);
 
     dropdown_create(&dWave, waveformItems, &waveform.form, FONT_MEDIUM, 0,
             waveform_WaveChanged);
@@ -173,7 +176,8 @@ void waveform_Init(void) {
     container_attach(&c, &lPeriod, 0, 74);
     container_attach(&c, &lFreq, 0, 86);
 
-    container_attach(&c, &dWave, 30, 0);
+    container_attach(&c, &bOn, 36, 0);
+    container_attach(&c, &dWave, 48, 0);
     container_attach(&c, &dParam, 36, 12);
     container_attach(&c, &eMin, 60, 24);
     container_attach(&c, &eMax, 60, 36);
@@ -197,6 +201,7 @@ void waveform_ParamChanged(void) {
     eMax.unit = waveform.paramNum;
     eAmplitude.unit = waveform.paramNum;
     eOffset.unit = waveform.paramNum;
+    waveform.param = waveSetParamPointers[waveform.paramNum];
 }
 
 void waveform_MinMaxChanged(void) {
@@ -230,7 +235,7 @@ void waveform_Update(void) {
     phaseAcc += (UINT32_MAX / waveform.period);
     waveform.phase = phaseAcc >> 16;
 
-    if (waveform.form == WAVE_NONE)
+    if (!waveform.switchedOn)
         return;
     if (waveform.param) {
         *(waveform.param) = waveform_GetValue(waveform.phase);
@@ -240,9 +245,6 @@ void waveform_Update(void) {
 int32_t waveform_GetValue(uint16_t wavetime) {
     int32_t value;
     switch (waveform.form) {
-    case WAVE_NONE:
-        value = 0;
-        break;
     case WAVE_SQUARE:
         if (wavetime < 32768)
             value = waveform.amplitude;
@@ -290,199 +292,199 @@ int32_t waveform_Sine(uint16_t arg) {
     return retvalue * sign;
 }
 
-void waveform_Menu(void) {
-    uint8_t selectedRow = 1;
-    uint32_t button;
-    int32_t encoder;
-    do {
-        while (hal_getButton())
-            ;
-        // create menu display
-        screen_Clear();
-        screen_FastString6x8("\xCD\xCD\xCD\xCDWAVEFORM MENU\xCD\xCD\xCD\xCD", 0,
-                0);
-        screen_FastString6x8("Waveform:", 6, 1);
-        screen_FastString6x8(waveform_Names[waveform.form], 66, 1);
-
-        char baseUnit;
-        uint8_t dotPosition;
-        uint32_t maxValue;
-        uint32_t minValue;
-        char unit0_s[5];
-        char unit3_s[5];
-        char unit6_s[5];
-        char *unit0 = unit0_s;
-        char *unit3 = unit3_s;
-        char *unit6 = unit6_s;
-        switch (waveform.paramNum) {
-        case 0:
-            baseUnit = 'A';
-            dotPosition = 6;
-            maxValue = settings.maxCurrent;
-            minValue = 0;
-            unit0 = NULL;
-            strcpy(unit3_s, "mA");
-            strcpy(unit6_s, "A");
-            break;
-        case 1:
-            baseUnit = 'V';
-            dotPosition = 6;
-            maxValue = settings.maxVoltage;
-            minValue = settings.minVoltage;
-            unit0 = NULL;
-            strcpy(unit3_s, "mV");
-            strcpy(unit6_s, "V");
-            break;
-        case 2:
-            baseUnit = 'R';
-            dotPosition = 3;
-            maxValue = settings.maxResistance;
-            minValue = settings.minResistance;
-            strcpy(unit0_s, "mOhm");
-            strcpy(unit3_s, "Ohm");
-            strcpy(unit6_s, "kOhm");
-            break;
-        case 3:
-            baseUnit = 'W';
-            dotPosition = 6;
-            maxValue = settings.maxPower;
-            minValue = 0;
-            unit0 = NULL;
-            strcpy(unit3, "mW");
-            strcpy(unit6, "W");
-            break;
-        }
-
-        screen_FastString6x8("Amplitude:", 6, 2);
-        char value[11];
-        string_fromUintUnit(waveform.amplitude, value, 4, dotPosition,
-                baseUnit);
-        screen_FastString6x8(value, 66, 2);
-
-        screen_FastString6x8("Offset:", 6, 3);
-        string_fromUintUnit(waveform.offset, value, 4, dotPosition, baseUnit);
-        screen_FastString6x8(value, 66, 3);
-
-        screen_FastString6x8("Period:", 6, 4);
-        string_fromUintUnit(waveform.period, value, 4, 3, 's');
-        screen_FastString6x8(value, 66, 4);
-
-        screen_FastString6x8("Param:", 6, 5);
-        screen_FastString6x8(waveSetParamNames[waveform.paramNum], 66, 5);
-
-        // display selected line
-        screen_FastChar6x8(0x1A, 0, selectedRow);
-
-        /*
-         * display waveform in last two rows
-         */
-        // display offset line
-        uint8_t i;
-        for (i = 0; i < 128; i += 2) {
-            screen_SetPixel(i, 55, PIXEL_ON);
-        }
-        // display period lines
-        for (i = 48; i < 64; i += 2) {
-            screen_SetPixel(32, i, PIXEL_ON);
-            screen_SetPixel(96, i, PIXEL_ON);
-        }
-        // display waveform
-        uint8_t y_last = -(waveform_GetValue(32768) - waveform.offset) * 8
-                / waveform.amplitude + 55;
-        for (i = 1; i < 128; i++) {
-            uint8_t y = -(waveform_GetValue(i * 1024 + 32768) - waveform.offset)
-                    * 8 / waveform.amplitude + 55;
-            screen_Line(i, y, i - 1, y_last);
-            y_last = y;
-        }
-
-        // wait for user input
-        do {
-            button = hal_getButton();
-            encoder = hal_getEncoderMovement();
-        } while (!button && !encoder);
-
-        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
-            // move one entry down (if possible)
-            if (selectedRow < 5)
-                selectedRow++;
-        }
-
-        if ((button & HAL_BUTTON_UP) || encoder < 0) {
-            // move one entry up
-            if (selectedRow > 1) {
-                selectedRow--;
-            }
-        }
-
-        if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
-            // change selected setting
-            if (selectedRow == 1) {
-                // change waveform
-                char *itemList[5];
-                uint8_t i;
-                for (i = 0; i < 5; i++) {
-                    itemList[i] = waveform_Names[i];
-                }
-                int8_t sel = menu_ItemChooseDialog("Select waveform:", itemList,
-                        5, waveform.form);
-                if (sel >= 0) {
-                    waveform.form = sel;
-                    load.powerOn = 0;
-                    if (waveform.form != WAVE_NONE) {
-                        // set load in correct mode
-                        // This works correctly because load.mode and paramNum
-                        // are using the same coding for the 4 different
-                        // modes/paramters
-                        load.mode = waveform.paramNum;
-                    }
-                }
-            } else if (selectedRow == 2) {
-                // change amplitude
-                uint32_t val;
-                if (menu_getInputValue(&val, "Amplitude:", minValue, maxValue,
-                        unit0, unit3, unit6)) {
-                    waveform.amplitude = val;
-                    load.powerOn = 0;
-                }
-            } else if (selectedRow == 3) {
-                // change offset
-                uint32_t val;
-                if (menu_getInputValue(&val, "Offset:", minValue, maxValue,
-                        unit0, unit3, unit6)) {
-                    waveform.offset = val;
-                    load.powerOn = 0;
-                }
-            } else if (selectedRow == 4) {
-                // change period
-                uint32_t val;
-                if (menu_getInputValue(&val, "Period:", 0, 30000, "ms", "s",
-                NULL)) {
-                    waveform.period = val;
-                    load.powerOn = 0;
-                }
-            } else if (selectedRow == 5) {
-                // change set parameter
-                char *itemList[4];
-                uint8_t i;
-                for (i = 0; i < 4; i++) {
-                    itemList[i] = waveSetParamNames[i];
-                }
-                int8_t sel = menu_ItemChooseDialog("Select parameter:",
-                        itemList, EV_NUM_SETPARAMS, waveform.paramNum);
-                if (sel >= 0) {
-                    waveform.paramNum = sel;
-                    waveform.param = waveSetParamPointers[sel];
-                    if (waveform.form != WAVE_NONE) {
-                        // set load in correct mode
-                        // This works correctly because load.mode and paramNum
-                        // are using the same coding for the 4 different
-                        // modes/paramters
-                        load.mode = waveform.paramNum;
-                    }
-                }
-            }
-        }
-
-    } while (button != HAL_BUTTON_ESC);
-}
+//void waveform_Menu(void) {
+//    uint8_t selectedRow = 1;
+//    uint32_t button;
+//    int32_t encoder;
+//    do {
+//        while (hal_getButton())
+//            ;
+//        // create menu display
+//        screen_Clear();
+//        screen_FastString6x8("\xCD\xCD\xCD\xCDWAVEFORM MENU\xCD\xCD\xCD\xCD", 0,
+//                0);
+//        screen_FastString6x8("Waveform:", 6, 1);
+//        screen_FastString6x8(waveform_Names[waveform.form], 66, 1);
+//
+//        char baseUnit;
+//        uint8_t dotPosition;
+//        uint32_t maxValue;
+//        uint32_t minValue;
+//        char unit0_s[5];
+//        char unit3_s[5];
+//        char unit6_s[5];
+//        char *unit0 = unit0_s;
+//        char *unit3 = unit3_s;
+//        char *unit6 = unit6_s;
+//        switch (waveform.paramNum) {
+//        case 0:
+//            baseUnit = 'A';
+//            dotPosition = 6;
+//            maxValue = settings.maxCurrent;
+//            minValue = 0;
+//            unit0 = NULL;
+//            strcpy(unit3_s, "mA");
+//            strcpy(unit6_s, "A");
+//            break;
+//        case 1:
+//            baseUnit = 'V';
+//            dotPosition = 6;
+//            maxValue = settings.maxVoltage;
+//            minValue = settings.minVoltage;
+//            unit0 = NULL;
+//            strcpy(unit3_s, "mV");
+//            strcpy(unit6_s, "V");
+//            break;
+//        case 2:
+//            baseUnit = 'R';
+//            dotPosition = 3;
+//            maxValue = settings.maxResistance;
+//            minValue = settings.minResistance;
+//            strcpy(unit0_s, "mOhm");
+//            strcpy(unit3_s, "Ohm");
+//            strcpy(unit6_s, "kOhm");
+//            break;
+//        case 3:
+//            baseUnit = 'W';
+//            dotPosition = 6;
+//            maxValue = settings.maxPower;
+//            minValue = 0;
+//            unit0 = NULL;
+//            strcpy(unit3, "mW");
+//            strcpy(unit6, "W");
+//            break;
+//        }
+//
+//        screen_FastString6x8("Amplitude:", 6, 2);
+//        char value[11];
+//        string_fromUintUnit(waveform.amplitude, value, 4, dotPosition,
+//                baseUnit);
+//        screen_FastString6x8(value, 66, 2);
+//
+//        screen_FastString6x8("Offset:", 6, 3);
+//        string_fromUintUnit(waveform.offset, value, 4, dotPosition, baseUnit);
+//        screen_FastString6x8(value, 66, 3);
+//
+//        screen_FastString6x8("Period:", 6, 4);
+//        string_fromUintUnit(waveform.period, value, 4, 3, 's');
+//        screen_FastString6x8(value, 66, 4);
+//
+//        screen_FastString6x8("Param:", 6, 5);
+//        screen_FastString6x8(waveSetParamNames[waveform.paramNum], 66, 5);
+//
+//        // display selected line
+//        screen_FastChar6x8(0x1A, 0, selectedRow);
+//
+//        /*
+//         * display waveform in last two rows
+//         */
+//        // display offset line
+//        uint8_t i;
+//        for (i = 0; i < 128; i += 2) {
+//            screen_SetPixel(i, 55, PIXEL_ON);
+//        }
+//        // display period lines
+//        for (i = 48; i < 64; i += 2) {
+//            screen_SetPixel(32, i, PIXEL_ON);
+//            screen_SetPixel(96, i, PIXEL_ON);
+//        }
+//        // display waveform
+//        uint8_t y_last = -(waveform_GetValue(32768) - waveform.offset) * 8
+//                / waveform.amplitude + 55;
+//        for (i = 1; i < 128; i++) {
+//            uint8_t y = -(waveform_GetValue(i * 1024 + 32768) - waveform.offset)
+//                    * 8 / waveform.amplitude + 55;
+//            screen_Line(i, y, i - 1, y_last);
+//            y_last = y;
+//        }
+//
+//        // wait for user input
+//        do {
+//            button = hal_getButton();
+//            encoder = hal_getEncoderMovement();
+//        } while (!button && !encoder);
+//
+//        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
+//            // move one entry down (if possible)
+//            if (selectedRow < 5)
+//                selectedRow++;
+//        }
+//
+//        if ((button & HAL_BUTTON_UP) || encoder < 0) {
+//            // move one entry up
+//            if (selectedRow > 1) {
+//                selectedRow--;
+//            }
+//        }
+//
+//        if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
+//            // change selected setting
+//            if (selectedRow == 1) {
+//                // change waveform
+//                char *itemList[5];
+//                uint8_t i;
+//                for (i = 0; i < 5; i++) {
+//                    itemList[i] = waveform_Names[i];
+//                }
+//                int8_t sel = menu_ItemChooseDialog("Select waveform:", itemList,
+//                        5, waveform.form);
+//                if (sel >= 0) {
+//                    waveform.form = sel;
+//                    load.powerOn = 0;
+//                    if (waveform.form != WAVE_NONE) {
+//                        // set load in correct mode
+//                        // This works correctly because load.mode and paramNum
+//                        // are using the same coding for the 4 different
+//                        // modes/paramters
+//                        load.mode = waveform.paramNum;
+//                    }
+//                }
+//            } else if (selectedRow == 2) {
+//                // change amplitude
+//                uint32_t val;
+//                if (menu_getInputValue(&val, "Amplitude:", minValue, maxValue,
+//                        unit0, unit3, unit6)) {
+//                    waveform.amplitude = val;
+//                    load.powerOn = 0;
+//                }
+//            } else if (selectedRow == 3) {
+//                // change offset
+//                uint32_t val;
+//                if (menu_getInputValue(&val, "Offset:", minValue, maxValue,
+//                        unit0, unit3, unit6)) {
+//                    waveform.offset = val;
+//                    load.powerOn = 0;
+//                }
+//            } else if (selectedRow == 4) {
+//                // change period
+//                uint32_t val;
+//                if (menu_getInputValue(&val, "Period:", 0, 30000, "ms", "s",
+//                NULL)) {
+//                    waveform.period = val;
+//                    load.powerOn = 0;
+//                }
+//            } else if (selectedRow == 5) {
+//                // change set parameter
+//                char *itemList[4];
+//                uint8_t i;
+//                for (i = 0; i < 4; i++) {
+//                    itemList[i] = waveSetParamNames[i];
+//                }
+//                int8_t sel = menu_ItemChooseDialog("Select parameter:",
+//                        itemList, EV_NUM_SETPARAMS, waveform.paramNum);
+//                if (sel >= 0) {
+//                    waveform.paramNum = sel;
+//                    waveform.param = waveSetParamPointers[sel];
+//                    if (waveform.form != WAVE_NONE) {
+//                        // set load in correct mode
+//                        // This works correctly because load.mode and paramNum
+//                        // are using the same coding for the 4 different
+//                        // modes/paramters
+//                        load.mode = waveform.paramNum;
+//                    }
+//                }
+//            }
+//        }
+//
+//    } while (button != HAL_BUTTON_ESC);
+//}

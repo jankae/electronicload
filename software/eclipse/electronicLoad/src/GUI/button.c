@@ -17,7 +17,7 @@ void button_create(button_t *button, const char *name, font_t font, uint8_t minW
 
     /* calculate size based on the font */
     button->base.size.y = fontSize[font].height + 4;
-    button->base.size.x = fontSize[font].width * i + 3;
+    button->base.size.x = fontSize[font].width * i + 4;
 
     if(minWidth > button->base.size.x)
         button->base.size.x = minWidth;
@@ -25,7 +25,7 @@ void button_create(button_t *button, const char *name, font_t font, uint8_t minW
     /* calculate font start position */
     button->fontStart.y = 2;
     button->fontStart.x = (button->base.size.x
-            - fontSize[button->font].width * i) / 2;
+            - fontSize[button->font].width * i - 1) / 2;
 }
 
 GUIResult_t button_draw(widget_t *w, coords_t offset) {

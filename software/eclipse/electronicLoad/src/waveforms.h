@@ -5,11 +5,10 @@
 #include "screen.h"
 
 typedef enum {
-    WAVE_NONE = 0,
-    WAVE_SINE = 1,
-    WAVE_SAW = 2,
-    WAVE_SQUARE = 3,
-    WAVE_TRIANGLE = 4
+    WAVE_SINE = 0,
+    WAVE_SAW = 1,
+    WAVE_SQUARE = 2,
+    WAVE_TRIANGLE = 3
 } Waveform_t;
 
 struct {
@@ -22,6 +21,7 @@ struct {
     uint32_t frequency;
     int32_t *param;
     uint8_t paramNum;
+    uint8_t switchedOn;
     uint16_t phase;
 } waveform;
 

@@ -35,9 +35,9 @@ void menu_DefaultScreenHandler(void) {
             screen_FastString12x16("INPUT OFF", 10, 4);
         } else if (!hal_isStable()) {
             screen_FastString12x16("UNSTABLE", 16, 4);
-        } else if (waveform.form != WAVE_NONE) {
+        } else if (waveform.switchedOn) {
             screen_FastString12x16("WAVE ON", 22, 4);
-        } else if(arbitrary.status==ARB_RUNNING){
+        } else if (arbitrary.status == ARB_RUNNING) {
             screen_FastString12x16("ARB SEQ ON", 4, 4);
         }
 
@@ -181,28 +181,28 @@ void menu_DefaultScreenHandler(void) {
                     settings.maxCurrent, NULL, "mA", "A")) {
                 load.mode = FUNCTION_CC;
                 load.powerOn = 0;
-                waveform.form = WAVE_NONE;
+                waveform.switchedOn = 0;
                 encoderPosition = 0;
             }
         }
         if (button & HAL_BUTTON_CV) {
             if (menu_getInputValue(&load.voltage, "'load voltage'",
-                    settings.minVoltage,
-                    settings.maxVoltage, NULL, "mV", "V")) {
+                    settings.minVoltage, settings.maxVoltage, NULL, "mV",
+                    "V")) {
                 load.mode = FUNCTION_CV;
                 load.powerOn = 0;
-                waveform.form = WAVE_NONE;
+                waveform.switchedOn = 0;
                 encoderPosition = 0;
             }
         }
         if (button & HAL_BUTTON_CR) {
             if (menu_getInputValue(&load.resistance, "'load resistance'",
-                    settings.minResistance,
-                    settings.maxResistance, "mOhm", "Ohm",
+                    settings.minResistance, settings.maxResistance, "mOhm",
+                    "Ohm",
                     NULL)) {
                 load.mode = FUNCTION_CR;
                 load.powerOn = 0;
-                waveform.form = WAVE_NONE;
+                waveform.switchedOn = 0;
                 encoderPosition = 0;
             }
         }
@@ -211,7 +211,7 @@ void menu_DefaultScreenHandler(void) {
                     settings.maxPower, NULL, "mW", "W")) {
                 load.mode = FUNCTION_CP;
                 load.powerOn = 0;
-                waveform.form = WAVE_NONE;
+                waveform.switchedOn = 0;
                 encoderPosition = 0;
             }
         }
