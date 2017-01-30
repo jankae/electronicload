@@ -88,7 +88,7 @@ GUIResult_t notebook_draw(widget_t *w, coords_t offset) {
             startSelected - n->pageStartOffset + 1);
     screen_HorizontalLine(upperLeft.x + stopSelected - n->pageStartOffset,
             upperLeft.y + fontSize[n->font].height + 2,
-            lowerRight.x - stopSelected + n->pageStartOffset);
+            lowerRight.x - stopSelected + n->pageStartOffset + 1);
 
     /* draw page names */
     int32_t poffset = -n->pageStartOffset;
@@ -153,11 +153,13 @@ GUISignal_t notebook_input(widget_t *w, GUISignal_t signal) {
     if (n->flags.editing) {
         if (signal.encoder < 0) {
             /* move active item one up */
-            if (widget_selectPrevious(n->base.firstChild) == GUI_OK)
+            if (n->selectedPage > 0
+                    && widget_selectPrevious(n->base.firstChild) == GUI_OK)
                 n->selectedPage--;
         } else if (signal.encoder > 0) {
             /* move active item one down */
-            if (widget_selectNext(n->base.firstChild) == GUI_OK)
+            if (n->selectedPage < n->numItems - 1
+                    && widget_selectNext(n->base.firstChild) == GUI_OK)
                 n->selectedPage++;
         }
 
