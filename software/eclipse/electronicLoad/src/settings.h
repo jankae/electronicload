@@ -28,7 +28,7 @@
 #define LOAD_MINRESISTANCE_HIGHP        100
 #define LOAD_MAXPOWER_HIGHP             200000000
 
-#define SETTINGS_DEF_BAUDRATE           3
+#define SETTINGS_DEF_BAUDRATE           2
 
 struct {
     uint32_t baudrate;

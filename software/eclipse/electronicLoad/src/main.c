@@ -127,12 +127,13 @@ int main(int argc, char* argv[]) {
 
     notebook_t n;
 
-
     notebook_create(&n, FONT_SMALL, 128, 64);
-    const char settings[] = "SETTINGS";
-    notebook_addPage(&n, settings_getWidget(), settings);
+    const char waveform[] = "WAVEFORM";
+    notebook_addPage(&n, waveform_getWidget(), waveform);
     const char characteristics[] = "U/I-CURVE";
     notebook_addPage(&n, characteristic_getWidget(), characteristics);
+    const char settings[] = "SETTINGS";
+    notebook_addPage(&n, settings_getWidget(), settings);
 
     GUISignal_t signal;
     memset(&signal, 0, sizeof(signal));

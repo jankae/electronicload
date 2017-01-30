@@ -5,5 +5,6 @@ const char unitNames[UNIT_NUM][3][3] = {
     {"nV", "mV", "V"},
     {"mR", "R", "kR"},
     {"nW", "mW", "W"},
-    {"ms", "s", NULL}
+    {"ms", "s", "\0"},
+    {"\0", "Hz", "\0"}
 };

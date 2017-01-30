@@ -101,21 +101,31 @@ void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
             break;
         firstDigit--;
     }
-    for (; firstDigit < digits; digits--) {
-        *dest++ = ' ';
-    }
     char prefix = 0;
     uint8_t dot = 0;
     char *unit = unit0;
     // calculate prefix
-    if (firstDigit > 6 && unit6) {
+    if (firstDigit > 6 && unit6 && *unit6) {
         dot = 6;
         unit = unit6;
-    } else if (firstDigit > 3 && unit3) {
+    } else if (firstDigit > 3 && unit3 && *unit3) {
         dot = 3;
         unit = unit3;
+    } else if (!unit0 || !*unit0) {
+        /* no dot necessary but no unit0 specified */
+        if (unit3 && *unit3 && digits > 3) {
+            unit = unit3;
+            dot = 3;
+            while (firstDigit < 4) {
+                divider *= 10;
+                firstDigit++;
+            }
+        }
     }
-    if(!dot) {
+    for (; firstDigit < digits; digits--) {
+        *dest++ = ' ';
+    }
+    if (!dot) {
         *dest++ = ' ';
     }
     for (; firstDigit > 0; firstDigit--) {
