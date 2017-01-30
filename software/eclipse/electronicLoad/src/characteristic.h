@@ -1,7 +1,7 @@
 #ifndef CHARACTERISTIC_H_
 #define CHARACTERISTIC_H_
 
-#include "menu.h"
+#include "GUI/gui.h"
 #include "common.h"
 
 struct {
@@ -16,7 +16,11 @@ struct {
     uint32_t timeCount;
 } characteristic;
 
-void characteristic_Menu(void);
+void characteristic_Init(void);
+
+widget_t* characteristic_getWidget(void);
+
+//void characteristic_Menu(void);
 
 void characteristic_Run(void);
 

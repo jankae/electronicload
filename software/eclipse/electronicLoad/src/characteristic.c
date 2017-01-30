@@ -1,104 +1,58 @@
 #include "characteristic.h"
 
-void characteristic_Menu(void) {
-    uint8_t selectedRow = 1;
-    uint32_t button;
-    int32_t encoder;
-    if (characteristic.deltaT == 0)
-        characteristic.deltaT = 10;
-    do {
-        while (hal_getButton())
-            ;
-        // create menu display
-        screen_Clear();
-        screen_FastString6x8("\xCDU/I-Characteristics\xCD", 0, 0);
-        screen_FastString6x8("I_Start:", 6, 1);
-        char value[11];
-        string_fromUintUnit(characteristic.currentStart, value, 4, 6, 'A');
-        screen_FastString6x8(value, 84, 1);
+static container_t c;
+static button_t bStart, bView, bTransmit;
+static entry_t eStartI, eStopI, eAbortV, eDeltaT;
+static label_t lStartI, lStopI, lAbortV, lDeltaT;
+static int32_t minDelta = 1, maxDelta = 1000;
 
-        screen_FastString6x8("I_Stop:", 6, 2);
-        string_fromUintUnit(characteristic.currentStop, value, 4, 6, 'A');
-        screen_FastString6x8(value, 84, 2);
+void characteristic_Init(void) {
+    /* set default values */
+    characteristic.currentStart = 0;
+    characteristic.currentStop = settings.maxCurrent;
+    characteristic.abortVoltage = 0;
+    characteristic.deltaT = 10;
 
-        screen_FastString6x8("U_Abort:", 6, 3);
-        string_fromUintUnit(characteristic.abortVoltage, value, 4, 6, 'V');
-        screen_FastString6x8(value, 84, 3);
+    /* create GUI elements */
+    label_create(&lStartI, "I start:", FONT_MEDIUM);
+    label_create(&lStopI, "I stop:", FONT_MEDIUM);
+    label_create(&lAbortV, "U abort:", FONT_MEDIUM);
+    label_create(&lDeltaT, "T delta:", FONT_MEDIUM);
 
-        screen_FastString6x8("Delta T:", 6, 4);
-        string_fromUintUnit(characteristic.deltaT, value, 4, 3, 's');
-        screen_FastString6x8(value, 84, 4);
+    entry_create(&eStartI, &characteristic.currentStart, &settings.maxCurrent,
+    NULL, FONT_MEDIUM, 4, UNIT_CURRENT, NULL);
+    entry_create(&eStopI, &characteristic.currentStop, &settings.maxCurrent,
+    NULL, FONT_MEDIUM, 4, UNIT_CURRENT, NULL);
+    entry_create(&eAbortV, &characteristic.abortVoltage, &settings.maxVoltage,
+    NULL, FONT_MEDIUM, 4, UNIT_VOLTAGE, NULL);
+    entry_create(&eDeltaT, &characteristic.deltaT, &maxDelta, &minDelta,
+            FONT_MEDIUM, 4, UNIT_TIME, NULL);
 
-        screen_FastString6x8("START", 6, 5);
+    button_create(&bStart, "Start", FONT_MEDIUM, 0, characteristic_Run);
+    button_create(&bView, "View", FONT_MEDIUM, 0,
+            characteristic_ViewResult);
+    button_create(&bTransmit, "Transmit", FONT_MEDIUM, 0,
+            characteristic_TransmitResult);
 
-        if (characteristic.resultValid)
-            screen_FastString6x8("Transmit results", 6, 6);
+    container_create(&c, 128, 55);
 
-        // display selected line
-        screen_FastChar6x8(0x1A, 0, selectedRow);
+    container_attach(&c, &lStartI, 0, 2);
+    container_attach(&c, &lStopI, 0, 14);
+    container_attach(&c, &lAbortV, 0, 26);
+    container_attach(&c, &lDeltaT, 0, 38);
 
-        // wait for user input
-        do {
-            button = hal_getButton();
-            encoder = hal_getEncoderMovement();
-        } while (!button && !encoder);
+    container_attach(&c, &eStartI, 60, 0);
+    container_attach(&c, &eStopI, 60, 12);
+    container_attach(&c, &eAbortV, 60, 24);
+    container_attach(&c, &eDeltaT, 60, 36);
 
-        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
-            // move one entry down (if possible)
-            if (selectedRow < 5
-                    || (characteristic.resultValid && selectedRow < 6))
-                selectedRow++;
-        }
+    container_attach(&c, &bStart, 0, 48);
+    container_attach(&c, &bView, 38, 48);
+    container_attach(&c, &bTransmit, 70, 48);
+}
 
-        if ((button & HAL_BUTTON_UP) || encoder < 0) {
-            // move one entry up
-            if (selectedRow > 1) {
-                selectedRow--;
-            }
-        }
-
-        if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
-            switch (selectedRow) {
-            case 1:
-                if (menu_getInputValue(&characteristic.currentStart,
-                        "Start current", 0,
-                        settings.maxCurrent, NULL, "mA",
-                        "A")) {
-                    characteristic.resultValid = 0;
-                }
-                break;
-            case 2:
-                if (menu_getInputValue(&characteristic.currentStop,
-                        "Stop current", 0,
-                        settings.maxCurrent, NULL, "mA",
-                        "A")) {
-                    characteristic.resultValid = 0;
-                }
-                break;
-            case 3:
-                if (menu_getInputValue(&characteristic.abortVoltage,
-                        "Abort voltage", 0,
-                        settings.maxVoltage, NULL, "mV",
-                        "V")) {
-                    characteristic.resultValid = 0;
-                }
-                break;
-            case 4:
-                if (menu_getInputValue(&characteristic.deltaT, "Delta T", 0,
-                        60000, "ms", "s", NULL)) {
-                    characteristic.resultValid = 0;
-                }
-                break;
-            case 5:
-                characteristic_Run();
-                break;
-            case 6:
-                characteristic_TransmitResult();
-                break;
-            }
-        }
-
-    } while (button != HAL_BUTTON_ESC);
+widget_t* characteristic_getWidget(void) {
+    return (widget_t*) &c;
 }
 
 void characteristic_Run(void) {
@@ -147,13 +101,13 @@ void characteristic_TransmitResult(void) {
     uart_writeString("U/I-characteristic result:\n");
     uart_writeString("Starting at ");
     char value[11];
-    string_fromUint(characteristic.currentStart, value, 5, 3);
+    string_fromUint(characteristic.currentStart, value, 8, 6);
     uart_writeString(value);
     uart_writeString("A\nStopping at ");
-    string_fromUint(characteristic.currentStop, value, 5, 3);
+    string_fromUint(characteristic.currentStop, value, 8, 6);
     uart_writeString(value);
     uart_writeString("A or ");
-    string_fromUint(characteristic.abortVoltage, value, 6, 3);
+    string_fromUint(characteristic.abortVoltage, value, 9, 6);
     uart_writeString(value);
     uart_writeString("V\nTime between datapoints: ");
     string_fromUint(characteristic.deltaT, value, 6, 3);
@@ -264,6 +218,8 @@ void characteristic_ViewResult(void) {
         }
     } while (!(button & HAL_BUTTON_ESC));
     hal_setEncoderSensitivity(HAL_DEFAULT_ENCODER_SENSITIVITY);
+    while (hal_getButton())
+        ;
 }
 
 void characteristic_Update(void) {

@@ -82,12 +82,13 @@ int main(int argc, char* argv[]) {
 
     events_Init();
     waveform_Init();
+    characteristic_Init();
     arb_Init();
     load_Init();
     com_Init();
     stats_Reset();
 
-    timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
+    timer_SetupPeriodicFunction(3, MS_TO_TICKS(5), hal_updateDisplay, 12);
 
     selftest_Run();
 
@@ -130,6 +131,8 @@ int main(int argc, char* argv[]) {
     notebook_create(&n, FONT_SMALL, 128, 64);
     const char settings[] = "SETTINGS";
     notebook_addPage(&n, settings_getWidget(), settings);
+    const char characteristics[] = "U/I-CURVE";
+    notebook_addPage(&n, characteristic_getWidget(), characteristics);
 
     GUISignal_t signal;
     memset(&signal, 0, sizeof(signal));

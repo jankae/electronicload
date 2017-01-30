@@ -1,14 +1,14 @@
 #include "settings.h"
 
-container_t c;
-dropdown_t dBaud;
-entry_t eMaxCurrent, eMaxPower, eMinVoltage, eMaxVoltage, eMinResist,
+static container_t c;
+static dropdown_t dBaud;
+static entry_t eMaxCurrent, eMaxPower, eMinVoltage, eMaxVoltage, eMinResist,
         eMaxResist;
-label_t lbaud, lMaxCurrent, lMaxPower, lMinVoltage, lMaxVoltage, lMinResist,
-        lMaxResist;
-button_t bDefLow, bDefHigh, bLoad, bSave;
-char *entries[8];
-const char availableBaudrates[7][7] = { "1200", "4800", "9600", "19200",
+static label_t lbaud, lMaxCurrent, lMaxPower, lMinVoltage, lMaxVoltage,
+        lMinResist, lMaxResist;
+static button_t bDefLow, bDefHigh, bLoad, bSave;
+static char *entries[8];
+static const char availableBaudrates[7][7] = { "1200", "4800", "9600", "19200",
         "38400", "57600", "115200" };
 
 void settings_Init(void) {
@@ -26,7 +26,8 @@ void settings_Init(void) {
     label_create(&lMinResist, "Min. R:", FONT_MEDIUM);
     label_create(&lMaxResist, "Max. R:", FONT_MEDIUM);
     /* create buttons */
-    button_create(&bDefLow, "DEFAULT LOW", FONT_SMALL, 0, settings_setDefaultLow);
+    button_create(&bDefLow, "DEFAULT LOW", FONT_SMALL, 0,
+            settings_setDefaultLow);
     button_create(&bDefHigh, "DEFAULT HIGH", FONT_SMALL, 0,
             settings_setDefaultHigh);
     button_create(&bLoad, "Load", FONT_MEDIUM, 0, settings_LoadMenu);
@@ -38,8 +39,7 @@ void settings_Init(void) {
     }
     entries[7] = 0;
     dropdown_create(&dBaud, entries, (uint8_t*) &settings.baudrate, FONT_MEDIUM,
-            0,
-            NULL);
+            0, settings_UpdateBaudrate);
     /* create entries */
     entry_create(&eMaxCurrent, &settings.maxCurrent, NULL, NULL, FONT_MEDIUM, 4,
             UNIT_CURRENT, settings_ChangedValue);
