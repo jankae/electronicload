@@ -47,6 +47,4 @@ int32_t waveform_GetValue(uint16_t wavetime);
 
 int32_t waveform_Sine(uint16_t arg);
 
-//void waveform_Menu(void);
-
 #endif

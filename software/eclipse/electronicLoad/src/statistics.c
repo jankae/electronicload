@@ -6,6 +6,90 @@
  */
 #include "statistics.h"
 
+static container_t c;
+static label_t lMin, lMax, lAvg, lEnergy;
+static entry_t eCurrentMin, eCurrentAvg, eCurrentMax;
+static entry_t eVoltageMin, eVoltageAvg, eVoltageMax;
+static entry_t ePowerMin, ePowerAvg, ePowerMax;
+static entry_t eEnergy;
+static button_t bReset;
+
+void stats_Init() {
+    stats_Reset();
+
+    /* build GUI */
+    label_create(&lMin, "MIN:", FONT_SMALL);
+    label_create(&lAvg, "AVG:", FONT_SMALL);
+    label_create(&lMax, "MAX:", FONT_SMALL);
+    label_create(&lEnergy, "ENERGY:", FONT_SMALL);
+
+    entry_create(&eCurrentMin, &stats.current.min, NULL, NULL, FONT_SMALL, 4,
+            UNIT_CURRENT, NULL);
+    entry_create(&eCurrentAvg, &stats.current.avg, NULL, NULL, FONT_SMALL, 4,
+            UNIT_CURRENT, NULL);
+    entry_create(&eCurrentMax, &stats.current.max, NULL, NULL, FONT_SMALL, 4,
+            UNIT_CURRENT, NULL);
+
+    entry_create(&eVoltageMin, &stats.voltage.min, NULL, NULL, FONT_SMALL, 4,
+            UNIT_VOLTAGE, NULL);
+    entry_create(&eVoltageAvg, &stats.voltage.avg, NULL, NULL, FONT_SMALL, 4,
+            UNIT_VOLTAGE, NULL);
+    entry_create(&eVoltageMax, &stats.voltage.max, NULL, NULL, FONT_SMALL, 4,
+            UNIT_VOLTAGE, NULL);
+
+    entry_create(&ePowerMin, &stats.power.min, NULL, NULL, FONT_SMALL, 4,
+            UNIT_POWER, NULL);
+    entry_create(&ePowerAvg, &stats.power.avg, NULL, NULL, FONT_SMALL, 4,
+            UNIT_POWER, NULL);
+    entry_create(&ePowerMax, &stats.power.max, NULL, NULL, FONT_SMALL, 4,
+            UNIT_POWER, NULL);
+
+    entry_create(&eEnergy, &stats.energyConsumed, NULL, NULL, FONT_SMALL, 7,
+            UNIT_ENERGY, NULL);
+
+    /* all entries are read-only */
+    // TODO replace entries with something like a textfield widget */
+    eCurrentMin.base.flags.selectable = 0;
+    eCurrentAvg.base.flags.selectable = 0;
+    eCurrentMax.base.flags.selectable = 0;
+    eVoltageMin.base.flags.selectable = 0;
+    eVoltageAvg.base.flags.selectable = 0;
+    eVoltageMax.base.flags.selectable = 0;
+    ePowerMin.base.flags.selectable = 0;
+    ePowerAvg.base.flags.selectable = 0;
+    ePowerMax.base.flags.selectable = 0;
+    eEnergy.base.flags.selectable = 0;
+
+    button_create(&bReset, "Reset", FONT_MEDIUM, 0, stats_Reset);
+
+    container_create(&c, 128, 55);
+
+    container_attach(&c, &lMin, 0, 3);
+    container_attach(&c, &lAvg, 0, 13);
+    container_attach(&c, &lMax, 0, 23);
+    container_attach(&c, &lEnergy, 0, 38);
+
+    container_attach(&c, &eCurrentMin, 16, 1);
+    container_attach(&c, &eCurrentAvg, 16, 11);
+    container_attach(&c, &eCurrentMax, 16, 21);
+
+    container_attach(&c, &eVoltageMin, 48, 1);
+    container_attach(&c, &eVoltageAvg, 48, 11);
+    container_attach(&c, &eVoltageMax, 48, 21);
+
+    container_attach(&c, &ePowerMin, 80, 1);
+    container_attach(&c, &ePowerAvg, 80, 11);
+    container_attach(&c, &ePowerMax, 80, 21);
+
+    container_attach(&c, &eEnergy, 32, 36);
+
+    container_attach(&c, &bReset, 94, 43);
+}
+
+widget_t* stats_getWidget(void) {
+    return (widget_t*) &c;
+}
+
 void stats_ResetValue(struct statStruct *s) {
     s->max = 0;
     s->min = UINT32_MAX;
@@ -32,94 +116,10 @@ void stats_Reset(void) {
 }
 
 void stats_Update(void) {
-    // update min/max/avg values
+// update min/max/avg values
     stats_UpdateValue(&stats.voltage, load.state.voltage);
     stats_UpdateValue(&stats.current, load.state.current);
     stats_UpdateValue(&stats.power, load.state.power);
-    // update consumed energy
+// update consumed energy
     stats.energyConsumed = stats.power.sum / 3600000UL;
-}
-
-void stats_Display(void) {
-    uint32_t button;
-    // 0: max
-    // 1: min
-    // 2: average
-    // 3: Energy consumed
-    uint8_t mode = 0;
-    do {
-        // display statistic information
-        screen_Clear();
-        screen_SetSoftButton("Reset", 1);
-        if (mode < 3) {
-            uint32_t voltage;
-            uint32_t current;
-            uint32_t power;
-            switch (mode) {
-            case 0:
-                voltage = stats.voltage.max;
-                current = stats.current.max;
-                power = stats.power.max;
-                screen_SetSoftButton("Min", 0);
-                screen_FastString6x8("Max.", 0, 0);
-                break;
-            case 1:
-                voltage = stats.voltage.min;
-                current = stats.current.min;
-                power = stats.power.min;
-                screen_SetSoftButton("Avg", 0);
-                screen_FastString6x8("Min.", 0, 0);
-                break;
-            case 2:
-                voltage = stats.voltage.avg;
-                current = stats.current.avg;
-                power = stats.power.avg;
-                screen_SetSoftButton("Max", 0);
-                screen_FastString6x8("Avg.", 0, 0);
-                break;
-            }
-            screen_FastString6x8("value", 0, 1);
-            char buf[15];
-            string_fromUintUnit(voltage, buf, 4, 6, 'V');
-            screen_FastString12x16(buf, 40, 0);
-            string_fromUintUnit(current, buf, 4, 6, 'A');
-            screen_FastString12x16(buf, 40, 2);
-            string_fromUintUnit(power, buf, 4, 6, 'W');
-            screen_FastString12x16(buf, 40, 4);
-            screen_SetSoftButton("Wh", 2);
-        } else {
-            char buf[15];
-            string_fromUintUnit(stats.energyConsumed, buf, 6, 6, 'W');
-            screen_FastString6x8("Consumed energy:", 0, 0);
-            screen_FastString12x16(buf, 0, 2);
-            screen_FastChar12x16('h', 108, 2);
-            screen_SetSoftButton("Max", 0);
-        }
-
-        while(hal_getButton());
-        // wait for 500ms or until a button is pressed
-        uint8_t i;
-        for (i = 0; i < 50; i++) {
-            timer_waitms(10);
-            button = hal_getButton();
-            if (button & HAL_BUTTON_ESC) {
-                break;
-            }
-            if (button & HAL_BUTTON_SOFT1) {
-                stats_Reset();
-                break;
-            }
-            if ((button & HAL_BUTTON_SOFT2) && mode < 3) {
-                mode = 3;
-                break;
-            }
-            if (button & HAL_BUTTON_SOFT0) {
-                if (mode == 3)
-                    mode = 0;
-                else
-                    mode = (mode + 1) % 3;
-                break;
-            }
-        }
-    } while (!(button & HAL_BUTTON_ESC));
 }

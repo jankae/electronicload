@@ -20,8 +20,6 @@ void characteristic_Init(void);
 
 widget_t* characteristic_getWidget(void);
 
-//void characteristic_Menu(void);
-
 void characteristic_Run(void);
 
 void characteristic_ViewResult(void);

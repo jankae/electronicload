@@ -86,44 +86,13 @@ int main(int argc, char* argv[]) {
     arb_Init();
     load_Init();
     com_Init();
-    stats_Reset();
+    stats_Init();
 
     timer_SetupPeriodicFunction(3, MS_TO_TICKS(5), hal_updateDisplay, 12);
 
     selftest_Run();
 
-    if (cal_readFromFlash()) {
-        // no valid calibration data available
-        cal_setDefaultCalibration();
-        uart_writeString("WARNING: not calibrated\n");
-        screen_Clear();
-        screen_FastString12x16("WARNING", 22, 0);
-        screen_FastString6x8("Not calibrated.", 0, 2);
-        screen_FastString6x8("Continue anyway?", 0, 3);
-        screen_SetSoftButton("Yes", 2);
-        while (!(hal_getButton() & HAL_BUTTON_SOFT2))
-            ;
-        while (hal_getButton())
-            ;
-    } else {
-        uart_writeString("calibration loaded\n");
-    }
-
-//    screen_Clear();
-//    screen_InvertChar12x16(0, 0);
-//    screen_InvertChar12x16(12, 0);
-//    screen_InvertChar12x16(24, 0);
-//    screen_Char4x6('A', 0, 0);
-//    screen_Char4x6('A', 4, 1);
-//    screen_Char4x6('A', 8, 2);
-//    screen_Char4x6('A', 12, 3);
-//    screen_Char4x6('A', 16, 4);
-//    screen_Char4x6('A', 20, 5);
-//    screen_Char4x6('A', 24, 6);
-//    screen_Char4x6('A', 28, 7);
-
-//    while(1);
-    // TODO remove widget test
+    cal_Init();
 
     notebook_t n;
 
@@ -132,13 +101,15 @@ int main(int argc, char* argv[]) {
     notebook_addPage(&n, waveform_getWidget(), waveform);
     const char characteristics[] = "U/I-CURVE";
     notebook_addPage(&n, characteristic_getWidget(), characteristics);
+    const char stats[] = "STATISTIC";
+    notebook_addPage(&n, stats_getWidget(), stats);
     const char settings[] = "SETTINGS";
     notebook_addPage(&n, settings_getWidget(), settings);
+    const char calib[] = "CALIBRATION";
+    notebook_addPage(&n, cal_getWidget(), calib);
 
     GUISignal_t signal;
     memset(&signal, 0, sizeof(signal));
-    coords_t origin = { .x = 0, .y = 0 };
-    screen_Clear();
     n.flags.focussed = 1;
     n.base.flags.selected = 1;
     while (1) {
@@ -149,20 +120,19 @@ int main(int argc, char* argv[]) {
         while (hal_getButton())
             ;
         widget_input(&n, signal);
-        screen_Clear();
-        n.base.func.draw(&n, origin);
+        widget_Redraw(&n);
     }
 
 //    // setup main menu
 //    menu_AddMainMenuEntry("Waveforms", waveform_Menu);
-//    menu_AddMainMenuEntry("Events", events_menu);
-//    menu_AddMainMenuEntry("Arbitrary Sequence", arb_Menu);
+    menu_AddMainMenuEntry("Events", events_menu);
+    menu_AddMainMenuEntry("Arbitrary Sequence", arb_Menu);
 //    menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
 //    menu_AddMainMenuEntry("Statistics", stats_Display);
 //    menu_AddMainMenuEntry("Settings", settings_Menu);
 //    menu_AddMainMenuEntry("Calibration", calibrationMenu);
-//    menu_AddMainMenuEntry("Tests", test_Menu);
-//    menu_AddMainMenuEntry("Errors", error_Menu);
+    menu_AddMainMenuEntry("Tests", test_Menu);
+    menu_AddMainMenuEntry("Errors", error_Menu);
 //
 //    menu_DefaultScreenHandler();
 }

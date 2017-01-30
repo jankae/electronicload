@@ -7,6 +7,52 @@
  */
 #include "calibration.h"
 
+static container_t c;
+static button_t bCurrent, bShunt, bVoltage, bHardware, bSave, bMultInfo;
+
+void cal_Init(void) {
+    if (cal_readFromFlash()) {
+        // no valid calibration data available
+        cal_setDefaultCalibration();
+        uart_writeString("WARNING: not calibrated\n");
+        screen_Clear();
+        screen_FastString12x16("WARNING", 22, 0);
+        screen_FastString6x8("Not calibrated.", 0, 2);
+        screen_FastString6x8("Continue anyway?", 0, 3);
+        screen_SetSoftButton("Yes", 2);
+        while (!(hal_getButton() & HAL_BUTTON_SOFT2))
+            ;
+        while (hal_getButton())
+            ;
+    } else {
+        uart_writeString("calibration loaded\n");
+    }
+    /* create GUI elements */
+    button_create(&bCurrent, "Current", FONT_MEDIUM, 51,
+            cal_CurrentCalibration);
+    button_create(&bShunt, "Shunt", FONT_MEDIUM, 51, cal_ShuntCalibration);
+    button_create(&bVoltage, "Voltage", FONT_MEDIUM, 51,
+            cal_VoltageCalibration);
+    button_create(&bHardware, "Hardware", FONT_MEDIUM, 51,
+            calibrationProcessHardware);
+    button_create(&bMultInfo, "Meter Info", FONT_MEDIUM, 0,
+            calibrationDisplayMultimeterInfo);
+    button_create(&bSave, "Save", FONT_MEDIUM, 0, cal_writeToFlash);
+
+    container_create(&c, 128, 55);
+
+    container_attach(&c, &bHardware, 0, 1);
+    container_attach(&c, &bCurrent, 0, 14);
+    container_attach(&c, &bShunt, 0, 27);
+    container_attach(&c, &bVoltage, 0, 40);
+    container_attach(&c, &bMultInfo, 63, 27);
+    container_attach(&c, &bSave, 99, 40);
+}
+
+widget_t* cal_getWidget(void) {
+    return (widget_t*) &c;
+}
+
 /**
  * \brief Transfers the calibration values from the end of the FLASH
  *
@@ -40,30 +86,37 @@ uint8_t cal_readFromFlash(void) {
  * Use sparsely to preserve FLASH
  */
 void cal_writeToFlash(void) {
-    FLASH_Unlock();
-    FLASH_ClearFlag(
-    FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);
-    FLASH_ErasePage(0x0807F000);
-    if (sizeof(calData) >= 0x400)
-        FLASH_ErasePage(0x0807F400);
-    if (sizeof(calData) >= 0x800)
-        FLASH_ErasePage(0x0807F800);
-    if (sizeof(calData) >= 0xC00)
-        FLASH_ErasePage(0x0807FC00);
-    // FLASH is ready to be written at this point
-    uint8_t i;
-    uint32_t *from = (uint32_t*) &calData;
-    uint32_t *to = (uint32_t*) FLASH_CALIBRATION_DATA;
-    uint8_t words = (sizeof(calData) + 3) / 4;
-    for (i = 0; i < words; i++) {
-        FLASH_ProgramWord((uint32_t) to, *from);
-        to++;
-        from++;
+    GUIMessageResult_t res = message_Box("Save calibration\nin FLASH?", 2,
+            16, FONT_MEDIUM, MESSAGE_OK_ABORT, &bSave);
+
+    if (res == MESSAGE_RES_OK) {
+        FLASH_Unlock();
+        FLASH_ClearFlag(
+                FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR
+                        | FLASH_FLAG_WRPRTERR);
+        FLASH_ErasePage(0x0807F000);
+        if (sizeof(calData) >= 0x400)
+            FLASH_ErasePage(0x0807F400);
+        if (sizeof(calData) >= 0x800)
+            FLASH_ErasePage(0x0807F800);
+        if (sizeof(calData) >= 0xC00)
+            FLASH_ErasePage(0x0807FC00);
+        // FLASH is ready to be written at this point
+        uint8_t i;
+        uint32_t *from = (uint32_t*) &calData;
+        uint32_t *to = (uint32_t*) FLASH_CALIBRATION_DATA;
+        uint8_t words = (sizeof(calData) + 3) / 4;
+        for (i = 0; i < words; i++) {
+            FLASH_ProgramWord((uint32_t) to, *from);
+            to++;
+            from++;
+        }
+        // set valid data indicator
+        FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR,
+                CAL_INDICATOR);
+        FLASH_Lock();
+        cal.unsavedData = 0;
     }
-    // set valid data indicator
-    FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR, CAL_INDICATOR);
-    FLASH_Lock();
-    cal.unsavedData = 0;
 }
 
 /**
@@ -234,58 +287,6 @@ void cal_setDefaultCalibration(void) {
 
     calData.shuntFactor = 10000;
     cal.unsavedData = 0;
-}
-
-void calibrationMenu(void) {
-    char *entries[6];
-    uint8_t nentries;
-    int8_t sel = 0;
-    do {
-        char current[21] = "Current Calibration";
-        entries[0] = current;
-
-        char shunt[21] = "Shunt Calibration";
-        entries[1] = shunt;
-
-        char voltage[21] = "Voltage Calibration";
-        entries[2] = voltage;
-
-        char info[21] = "Multimeter info";
-        entries[3] = info;
-
-        char hardware[21] = "Hardware Cal.";
-        entries[4] = hardware;
-
-        char save[21] = "Save data in Flash";
-        if (cal.unsavedData) {
-            entries[5] = save;
-            nentries = 6;
-        } else {
-            nentries = 5;
-        }
-
-        sel = menu_ItemChooseDialog("\xCD\xCD" "CALIBRATIONS MENU\xCD\xCD",
-                entries, nentries, sel);
-        switch (sel) {
-        case 0:
-            cal_CurrentCalibration();
-            break;
-        case 1:
-            cal_ShuntCalibration();
-            break;
-        case 2:
-            cal_VoltageCalibration();
-            break;
-        case 3:
-            calibrationDisplayMultimeterInfo();
-            break;
-        case 4:
-            calibrationProcessHardware();
-            break;
-        case 5:
-            cal_writeToFlash();
-        }
-    } while (sel >= 0);
 }
 
 void cal_CurrentCalibration(void) {

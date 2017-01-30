@@ -8,6 +8,7 @@
 #define STATISTICS_H_
 
 #include <stdint.h>
+#include "GUI/gui.h"
 #include "loadFunctions.h"
 
 struct statStruct {
@@ -17,22 +18,20 @@ struct statStruct {
 };
 
 struct {
-    // everything in mV
     struct statStruct voltage;
-    // everyting in mA
     struct statStruct current;
-    // everything in mW
     struct statStruct power;
-    // mWh
     uint32_t energyConsumed;
 } stats;
+
+void stats_Init();
+
+widget_t* stats_getWidget(void);
 
 void stats_ResetValue(struct statStruct *s);
 void stats_UpdateValue(struct statStruct *s, uint32_t currentValue);
 
 void stats_Reset(void);
 void stats_Update(void);
-
-void stats_Display(void);
 
 #endif

@@ -18,7 +18,15 @@ void entry_create(entry_t *e, int32_t *value, int32_t *max, int32_t *min,
     e->flags.encoderEdit = 0;
     e->encEditPos = digits - 1;
     e->base.size.y = fontSize[font].height + 3;
-    e->base.size.x = fontSize[font].width * (digits + 3) + 3;
+    /* get longest unit name */
+    uint8_t longestUnit = 0;
+    uint8_t i;
+    for (i = 0; i < 3; i++) {
+        uint8_t length = strlen(unitNames[unit][i]);
+        if (length > longestUnit)
+            longestUnit = length;
+    }
+    e->base.size.x = fontSize[font].width * (digits + longestUnit + 1) + 3;
 }
 
 uint32_t entry_GetInputStringValue(entry_t *e, uint32_t multiplier) {
@@ -142,8 +150,8 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
         upperLeft.x = (SCREEN_WIDTH - size.x) / 2;
         upperLeft.y = (SCREEN_HEIGHT - size.y) / 2;
         /* clear area */
-        screen_FullRectangle(upperLeft.x-2, upperLeft.y-2, upperLeft.x + size.x + 1,
-                upperLeft.y + size.y + 1, PIXEL_OFF);
+        screen_FullRectangle(upperLeft.x - 2, upperLeft.y - 2,
+                upperLeft.x + size.x + 1, upperLeft.y + size.y + 1, PIXEL_OFF);
         /* draw border */
         screen_Rectangle(upperLeft.x, upperLeft.y, upperLeft.x + size.x - 1,
                 upperLeft.y + size.y - 1);

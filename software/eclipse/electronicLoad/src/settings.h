@@ -58,10 +58,6 @@ void settings_setDefaultLow(void);
 
 void settings_setDefaultHigh(void);
 
-//void settings_Menu(void);
-
-//void settings_SelectBaudrate(void);
-
 void settings_ResetToDefaultMenu(void);
 
 void settings_LoadMenu(void);

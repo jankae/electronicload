@@ -10,6 +10,7 @@
 
 #include <screen.h>
 #include "currentSink.h"
+#include "GUI/gui.h"
 #include "frontPanel.h"
 #include "multimeter.h"
 
@@ -61,7 +62,9 @@ struct {
     uint16_t rawADCvoltage;
 } cal;
 
+void cal_Init(void);
 
+widget_t* cal_getWidget(void);
 
 /**
  * \brief Transfers the calibration values from the end of the FLASH
@@ -117,10 +120,6 @@ int32_t cal_sampleADC(uint16_t samples, uint16_t *ADCdata);
  * Should be used in case of missing calibration data.
  */
 void cal_setDefaultCalibration(void);
-
-void calibrationMenu(void);
-
-//void calibrationProcessAutomatic(void);
 
 void cal_DisplayError(uint8_t error);
 

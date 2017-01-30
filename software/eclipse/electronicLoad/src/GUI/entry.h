@@ -7,7 +7,7 @@
 #include "font.h"
 #include "units.h"
 
-#define ENTRY_INPUT_MAX_LENGTH      9
+#define ENTRY_INPUT_MAX_LENGTH      12
 
 typedef struct {
     widget_t base;
