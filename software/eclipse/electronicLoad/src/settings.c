@@ -1,21 +1,85 @@
 #include "settings.h"
 
+container_t c;
+dropdown_t dBaud;
+entry_t eMaxCurrent, eMaxPower, eMinVoltage, eMaxVoltage, eMinResist,
+        eMaxResist;
+label_t lbaud, lMaxCurrent, lMaxPower, lMinVoltage, lMaxVoltage, lMinResist,
+        lMaxResist;
+button_t bDefLow, bDefHigh, bLoad, bSave;
+char *entries[8];
+const char availableBaudrates[7][7] = { "1200", "4800", "9600", "19200",
+        "38400", "57600", "115200" };
+
 void settings_Init(void) {
     settings.baudrate = SETTINGS_DEF_BAUDRATE;
-    settings.powerMode = 0;
-    settings.maxCurrent[0] = LOAD_MAXCURRENT_LOWP;
-    settings.maxPower[0] = LOAD_MAXPOWER_LOWP;
-    settings.minVoltage[0] = LOAD_MINVOLTAGE_LOWP;
-    settings.maxVoltage[0] = LOAD_MAXVOLTAGE_LOWP;
-    settings.minResistance[0] = LOAD_MINRESISTANCE_LOWP;
-    settings.maxResistance[0] = LOAD_MAXRESISTANCE_LOWP;
-    settings.maxCurrent[1] = LOAD_MAXCURRENT_HIGHP;
-    settings.maxPower[1] = LOAD_MAXPOWER_HIGHP;
-    settings.minVoltage[1] = LOAD_MINVOLTAGE_HIGHP;
-    settings.maxVoltage[1] = LOAD_MAXVOLTAGE_HIGHP;
-    settings.minResistance[1] = LOAD_MINRESISTANCE_HIGHP;
-    settings.maxResistance[1] = LOAD_MAXRESISTANCE_HIGHP;
+    settings_setDefaultLow();
     settings.turnOffOnError = 1;
+
+    /* create GUI elements */
+    /* create labels */
+    label_create(&lbaud, "Baudrate:", FONT_MEDIUM);
+    label_create(&lMaxCurrent, "Max. I:", FONT_MEDIUM);
+    label_create(&lMaxPower, "Max. P:", FONT_MEDIUM);
+    label_create(&lMinVoltage, "Min. V:", FONT_MEDIUM);
+    label_create(&lMaxVoltage, "Max. V:", FONT_MEDIUM);
+    label_create(&lMinResist, "Min. R:", FONT_MEDIUM);
+    label_create(&lMaxResist, "Max. R:", FONT_MEDIUM);
+    /* create buttons */
+    button_create(&bDefLow, "DEFAULT LOW", FONT_SMALL, 0, settings_setDefaultLow);
+    button_create(&bDefHigh, "DEFAULT HIGH", FONT_SMALL, 0,
+            settings_setDefaultHigh);
+    button_create(&bLoad, "Load", FONT_MEDIUM, 0, settings_LoadMenu);
+    button_create(&bSave, "Save", FONT_MEDIUM, 0, settings_SaveMenu);
+    /* create baud chooser */
+    int8_t sel;
+    for (sel = 0; sel < 7; sel++) {
+        entries[sel] = availableBaudrates[sel];
+    }
+    entries[7] = 0;
+    dropdown_create(&dBaud, entries, (uint8_t*) &settings.baudrate, FONT_MEDIUM,
+            0,
+            NULL);
+    /* create entries */
+    entry_create(&eMaxCurrent, &settings.maxCurrent, NULL, NULL, FONT_MEDIUM, 4,
+            UNIT_CURRENT, settings_ChangedValue);
+    entry_create(&eMaxPower, &settings.maxPower, NULL, NULL, FONT_MEDIUM, 4,
+            UNIT_POWER, settings_ChangedValue);
+    entry_create(&eMinVoltage, &settings.minVoltage, NULL, NULL, FONT_MEDIUM, 4,
+            UNIT_VOLTAGE, settings_ChangedValue);
+    entry_create(&eMaxVoltage, &settings.maxVoltage, NULL, NULL, FONT_MEDIUM, 4,
+            UNIT_VOLTAGE, settings_ChangedValue);
+    entry_create(&eMinResist, &settings.minResistance, NULL, NULL, FONT_MEDIUM,
+            4, UNIT_RESISTANCE, settings_ChangedValue);
+    entry_create(&eMaxResist, &settings.maxResistance, NULL, NULL, FONT_MEDIUM,
+            4, UNIT_RESISTANCE, settings_ChangedValue);
+
+    container_create(&c, 128, 55);
+
+    container_attach(&c, &lbaud, 0, 2);
+    container_attach(&c, &dBaud, 60, 0);
+    container_attach(&c, &bDefLow, 0, 12);
+    container_attach(&c, &bDefHigh, 60, 12);
+    container_attach(&c, &lMaxCurrent, 0, 26);
+    container_attach(&c, &lMaxPower, 0, 38);
+    container_attach(&c, &lMinVoltage, 0, 50);
+    container_attach(&c, &lMaxVoltage, 0, 62);
+    container_attach(&c, &lMinResist, 0, 74);
+    container_attach(&c, &lMaxResist, 0, 86);
+
+    container_attach(&c, &eMaxCurrent, 60, 24);
+    container_attach(&c, &eMaxPower, 60, 36);
+    container_attach(&c, &eMinVoltage, 60, 48);
+    container_attach(&c, &eMaxVoltage, 60, 60);
+    container_attach(&c, &eMinResist, 60, 72);
+    container_attach(&c, &eMaxResist, 60, 84);
+
+    container_attach(&c, &bLoad, 60, 97);
+    container_attach(&c, &bSave, 93, 97);
+}
+
+widget_t* settings_getWidget(void) {
+    return (widget_t*) &c;
 }
 
 uint8_t settings_readFromFlash(void) {
@@ -31,6 +95,8 @@ uint8_t settings_readFromFlash(void) {
             to++;
             from++;
         }
+        settings_ChangedValue();
+        settings_UpdateBaudrate();
         return 0;
     }
     return 1;
@@ -63,240 +129,63 @@ void settings_writeToFlash(void) {
     FLASH_Lock();
 }
 
-void settings_Menu(void) {
-    char *entries[SETTINGS_NUM_ENTRIES + 3];
-    int8_t sel = 0;
-    do {
-        uint32_t minRes, maxRes, maxA, minV, maxV, maxW;
-
-        char settingBaudrate[21] = "Baudrate: ";
-        string_fromUintUnit(settings.baudrate, &settingBaudrate[10], 6, 0, 0);
-
-        char maxCurrent[21] = "Max. Current:";
-        char maxPower[21] = "Max. Power:  ";
-        char minVoltage[21] = "Min. Voltage:";
-        char maxVoltage[21] = "Max. Voltage:";
-        char minResist[21] = "Min. Resist: ";
-        char maxResist[21] = "Max. Resist: ";
-        char settingHigh[21];
-        char onError[21];
-
-        if (settings.powerMode) {
-            strcpy(settingHigh, "Mode: high power");
-            minRes = LOAD_MINRESISTANCE_HIGHP;
-            maxRes = LOAD_MAXRESISTANCE_HIGHP;
-            maxA = LOAD_MAXCURRENT_HIGHP;
-            minV = LOAD_MINVOLTAGE_HIGHP;
-            maxV = LOAD_MAXVOLTAGE_HIGHP;
-            maxW = LOAD_MAXPOWER_HIGHP;
-
-        } else {
-            strcpy(settingHigh, "Mode: low power");
-            minRes = LOAD_MINRESISTANCE_LOWP;
-            maxRes = LOAD_MAXRESISTANCE_LOWP;
-            maxA = LOAD_MAXCURRENT_LOWP;
-            minV = LOAD_MINVOLTAGE_LOWP;
-            maxV = LOAD_MAXVOLTAGE_LOWP;
-            maxW = LOAD_MAXPOWER_LOWP;
-        }
-
-        if (settings.turnOffOnError) {
-            strcpy(onError, "On error: turn off");
-        } else {
-            strcpy(onError, "On error: keep on");
-        }
-
-        string_fromUintUnit(settings.maxCurrent[settings.powerMode],
-                &maxCurrent[13], 4, 6, 'A');
-        string_fromUintUnit(settings.maxPower[settings.powerMode],
-                &maxPower[13], 4, 6, 'W');
-        string_fromUintUnit(settings.minVoltage[settings.powerMode],
-                &minVoltage[13], 4, 6, 'V');
-        string_fromUintUnit(settings.maxVoltage[settings.powerMode],
-                &maxVoltage[13], 4, 6, 'V');
-        string_fromUintUnit(settings.minResistance[settings.powerMode],
-                &minResist[13], 4, 3, 'R');
-        string_fromUintUnit(settings.maxResistance[settings.powerMode],
-                &maxResist[13], 4, 3, 'R');
-
-        entries[0] = settingBaudrate;
-        entries[1] = settingHigh;
-        entries[2] = maxCurrent;
-        entries[3] = maxPower;
-        entries[4] = minVoltage;
-        entries[5] = maxVoltage;
-        entries[6] = minResist;
-        entries[7] = maxResist;
-        entries[8] = onError;
-
-        char resetToDefault[21] = "Reset to default";
-        entries[SETTINGS_NUM_ENTRIES] = resetToDefault;
-        char readSaved[21] = "Load saved settings";
-        entries[SETTINGS_NUM_ENTRIES + 1] = readSaved;
-        char writeSaved[21] = "Save settings";
-        entries[SETTINGS_NUM_ENTRIES + 2] = writeSaved;
-
-        sel = menu_ItemChooseDialog(
-                "\xCD\xCD\xCD\xCDSETTINGS MENU\xCD\xCD\xCD\xCD", entries,
-                SETTINGS_NUM_ENTRIES + 3, sel);
-        if (sel >= 0) {
-            switch (sel) {
-            case 0:
-                settings_SelectBaudrate();
-                break;
-            case 1:
-                settings.powerMode = !settings.powerMode;
-                break;
-            case 2:
-                menu_getInputValue(&settings.maxCurrent[settings.powerMode],
-                        maxCurrent, 0, maxA, NULL, "mA", "A");
-                break;
-            case 3:
-                menu_getInputValue(&settings.maxPower[settings.powerMode],
-                        maxPower, 0, maxW, NULL, "mW", "W");
-                break;
-            case 4:
-                menu_getInputValue(&settings.minVoltage[settings.powerMode],
-                        minVoltage, minV, maxV, NULL, "mV", "V");
-                break;
-            case 5:
-                menu_getInputValue(&settings.maxVoltage[settings.powerMode],
-                        maxVoltage, minV, maxV, NULL, "mV", "V");
-                break;
-            case 6:
-                menu_getInputValue(&settings.minResistance[settings.powerMode],
-                        minResist, minRes, maxRes, "mOhm", "Ohm", "kOhm");
-                break;
-            case 7:
-                menu_getInputValue(&settings.maxResistance[settings.powerMode],
-                        maxResist, minRes, maxRes, "mOhm", "Ohm", "kOhm");
-                break;
-            case 8:
-                settings.turnOffOnError = !settings.turnOffOnError;
-                break;
-            case SETTINGS_NUM_ENTRIES:
-                settings_ResetToDefaultMenu();
-                break;
-            case SETTINGS_NUM_ENTRIES + 1:
-                settings_LoadMenu();
-                break;
-            case SETTINGS_NUM_ENTRIES + 2:
-                settings_SaveMenu();
-                break;
-            }
-        }
-    } while (sel >= 0);
-}
-
-void settings_SelectBaudrate(void) {
-    char *entries[7];
-    const char availableBaudrates[7][7] = { "1200", "4800", "9600", "19200",
-            "38400", "57600", "115200" };
-    int8_t sel;
-    for (sel = 0; sel < 7; sel++) {
-        entries[sel] = availableBaudrates[sel];
-    }
-    sel = menu_ItemChooseDialog("\xCD\xCD\xCDSELECT BAUDRATE\xCD\xCD\xCD",
-            entries, 7, 0);
-    uint32_t baudratebuffer = settings.baudrate;
-    switch (sel) {
-    case 0:
-        settings.baudrate = 1200;
-        break;
-    case 1:
-        settings.baudrate = 4800;
-        break;
-    case 2:
-        settings.baudrate = 9600;
-        break;
-    case 3:
-        settings.baudrate = 19200;
-        break;
-    case 4:
-        settings.baudrate = 38400;
-        break;
-    case 5:
-        settings.baudrate = 57600;
-        break;
-    case 6:
-        settings.baudrate = 115200;
-        break;
-    }
-    if (settings.baudrate != baudratebuffer) {
-        // baudrate has changed -> re-init UART
-        // wait for transmission to finish
-        while (uart.busyFlag)
-            ;
-        uart_Init(settings.baudrate);
-    }
-}
-
-void settings_ResetToDefaultMenu(void) {
-    // wait for all buttons to be released
-    while (hal_getButton())
+void settings_UpdateBaudrate(void) {
+    const uint32_t baud[7] = { 1200, 4800, 9600, 19200, 38400, 57600, 115200 };
+    /* wait for ongoing transmission to finish */
+    while (uart.busyFlag)
         ;
-    screen_Clear();
-    screen_FastString6x8("Reset all settings to", 0, 0);
-    screen_FastString6x8("default values?", 0, 1);
-    screen_SetSoftButton("No", 0);
-    screen_SetSoftButton("Yes", 2);
-    uint32_t button;
-    do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT0 | HAL_BUTTON_SOFT2)));
+    uart_Init(baud[settings.baudrate]);
+}
 
-    if (button & HAL_BUTTON_SOFT2) {
-        // reset settings if 'yes' has been selected
-        settings_Init();
+void settings_ChangedValue(void) {
+    /* check if powerMode has to be switched */
+    uint8_t highPower = 0;
+    if (settings.maxCurrent > LOAD_MAXCURRENT_LOWP
+            || settings.maxPower > LOAD_MAXPOWER_LOWP
+            || settings.minResistance < LOAD_MINRESISTANCE_LOWP) {
+        /* can't reach settings in low power mode -> switch to high power */
+        highPower = 1;
     }
+    settings.powerMode = highPower;
+}
+
+void settings_setDefaultLow(void) {
+    settings.maxCurrent = LOAD_MAXCURRENT_LOWP;
+    settings.maxPower = LOAD_MAXPOWER_LOWP;
+    settings.minVoltage = LOAD_MINVOLTAGE_LOWP;
+    settings.maxVoltage = LOAD_MAXVOLTAGE_LOWP;
+    settings.minResistance = LOAD_MINRESISTANCE_LOWP;
+    settings.maxResistance = LOAD_MAXRESISTANCE_LOWP;
+    settings.powerMode = 0;
+}
+
+void settings_setDefaultHigh(void) {
+    settings.maxCurrent = LOAD_MAXCURRENT_HIGHP;
+    settings.maxPower = LOAD_MAXPOWER_HIGHP;
+    settings.minVoltage = LOAD_MINVOLTAGE_HIGHP;
+    settings.maxVoltage = LOAD_MAXVOLTAGE_HIGHP;
+    settings.minResistance = LOAD_MINRESISTANCE_HIGHP;
+    settings.maxResistance = LOAD_MAXRESISTANCE_HIGHP;
+    settings.powerMode = 1;
 }
 
 void settings_LoadMenu(void) {
-    // wait for all buttons to be released
-    while (hal_getButton())
-        ;
-    screen_Clear();
-    screen_FastString6x8("Reset all settings to", 0, 0);
-    screen_FastString6x8("saved values?", 0, 1);
-    screen_SetSoftButton("No", 0);
-    screen_SetSoftButton("Yes", 2);
-    uint32_t button;
-    do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT0 | HAL_BUTTON_SOFT2)));
-
-    if (button & HAL_BUTTON_SOFT2) {
-        // read settings if 'yes' has been selected
+    GUIMessageResult_t res = message_Box("Load values\nfrom FLASH?", 2, 12,
+            FONT_MEDIUM, MESSAGE_OK_ABORT, &bLoad);
+    if (res == MESSAGE_RES_OK) {
         if (settings_readFromFlash()) {
-            // couldn't read data
-            while (hal_getButton())
-                ;
-            screen_Clear();
-            screen_FastString6x8("No saved values", 0, 0);
-            screen_FastString6x8("available", 0, 1);
-            screen_SetSoftButton("OK", 2);
-            while (!(hal_getButton() & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT2)))
-                ;
+            /* failed to read values */
+            message_Box("No data in FLASH", 1, 16, FONT_MEDIUM, MESSAGE_OK,
+                    &bLoad);
         }
     }
 }
 
 void settings_SaveMenu(void) {
-    // wait for all buttons to be released
-    while (hal_getButton())
-        ;
-    screen_Clear();
-    screen_FastString6x8("Use current settings", 0, 0);
-    screen_FastString6x8("as saved values?", 0, 1);
-    screen_SetSoftButton("No", 0);
-    screen_SetSoftButton("Yes", 2);
-    uint32_t button;
-    do {
-        button = hal_getButton();
-    } while (!(button & (HAL_BUTTON_ESC | HAL_BUTTON_SOFT0 | HAL_BUTTON_SOFT2)));
+    GUIMessageResult_t res = message_Box("Save current\nvalues into\nFLASH?", 3,
+            12, FONT_MEDIUM, MESSAGE_OK_ABORT, &bSave);
 
-    if (button & HAL_BUTTON_SOFT2) {
-        // write settings if 'yes' has been selected
+    if (res == MESSAGE_RES_OK) {
         settings_writeToFlash();
     }
 }

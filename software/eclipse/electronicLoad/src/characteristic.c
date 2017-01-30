@@ -62,7 +62,7 @@ void characteristic_Menu(void) {
             case 1:
                 if (menu_getInputValue(&characteristic.currentStart,
                         "Start current", 0,
-                        settings.maxCurrent[settings.powerMode], NULL, "mA",
+                        settings.maxCurrent, NULL, "mA",
                         "A")) {
                     characteristic.resultValid = 0;
                 }
@@ -70,7 +70,7 @@ void characteristic_Menu(void) {
             case 2:
                 if (menu_getInputValue(&characteristic.currentStop,
                         "Stop current", 0,
-                        settings.maxCurrent[settings.powerMode], NULL, "mA",
+                        settings.maxCurrent, NULL, "mA",
                         "A")) {
                     characteristic.resultValid = 0;
                 }
@@ -78,7 +78,7 @@ void characteristic_Menu(void) {
             case 3:
                 if (menu_getInputValue(&characteristic.abortVoltage,
                         "Abort voltage", 0,
-                        settings.maxVoltage[settings.powerMode], NULL, "mV",
+                        settings.maxVoltage, NULL, "mV",
                         "V")) {
                     characteristic.resultValid = 0;
                 }

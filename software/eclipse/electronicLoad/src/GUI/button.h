@@ -5,10 +5,12 @@
 #include "screen.h"
 #include "font.h"
 
+#define BUTTON_MAX_NAME         16
+
 typedef struct {
     widget_t base;
     void (*callback)(void);
-    char *name;
+    char name[BUTTON_MAX_NAME + 1];
     font_t font;
     coords_t fontStart;
 } button_t;

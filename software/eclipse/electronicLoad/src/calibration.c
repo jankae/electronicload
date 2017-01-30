@@ -796,8 +796,8 @@ void calibrationDisplayMultimeterInfo(void) {
 }
 
 void cal_setCurrent(uint32_t uA) {
-    if (uA > settings.maxCurrent[settings.powerMode]) {
-        uA = settings.maxCurrent[settings.powerMode];
+    if (uA > settings.maxCurrent) {
+        uA = settings.maxCurrent;
     }
     if (settings.powerMode) {
         // low shunt active (high power mode)
@@ -814,10 +814,10 @@ void cal_setCurrent(uint32_t uA) {
 }
 
 void cal_setVoltage(uint32_t uV) {
-    if (uV > settings.maxVoltage[settings.powerMode]) {
-        uV = settings.maxVoltage[settings.powerMode];
-    } else if (uV < settings.minVoltage[settings.powerMode]) {
-        uV = settings.minVoltage[settings.powerMode];
+    if (uV > settings.maxVoltage) {
+        uV = settings.maxVoltage;
+    } else if (uV < settings.minVoltage) {
+        uV = settings.minVoltage;
     }
 
     int32_t dac = common_Map(uV, calData.voltageSetTable[0][1],

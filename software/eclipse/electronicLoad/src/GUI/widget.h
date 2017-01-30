@@ -13,7 +13,7 @@ typedef struct {
 typedef struct widgetFunctions widgetFunctions_t;
 typedef struct widget widget_t;
 
-struct widgetFunctions{
+struct widgetFunctions {
     GUIResult_t (*draw)(widget_t *w, coords_t offset);
     GUISignal_t (*input)(widget_t *w, GUISignal_t signal);
 };
@@ -47,6 +47,6 @@ void widget_gotFocus(widget_t *w);
 void widget_lostFocus(widget_t *w);
 //GUIResult_t widget_draw(widget_t *w, coords_t offset);
 GUISignal_t widget_input(widget_t *w, GUISignal_t signal);
-
+GUIResult_t widget_Redraw(widget_t *w);
 
 #endif

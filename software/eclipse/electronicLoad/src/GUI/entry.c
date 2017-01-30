@@ -123,13 +123,7 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
     lowerRight.x += e->base.size.x - 1;
     lowerRight.y += e->base.size.y - 1;
     screen_Rectangle(upperLeft.x, upperLeft.y, lowerRight.x, lowerRight.y);
-    if (e->flags.editing) {
-        screen_String(e->inputString, e->font, upperLeft.x + 1,
-                upperLeft.y + 2);
-        screen_SetSoftButton(unitNames[e->unit][0], 0);
-        screen_SetSoftButton(unitNames[e->unit][1], 1);
-        screen_SetSoftButton(unitNames[e->unit][2], 2);
-    } else if (e->flags.encoderEdit) {
+    if (e->flags.encoderEdit) {
         screen_String(e->inputString, e->font, upperLeft.x + 1,
                 upperLeft.y + 2);
         /* invert char at current edit position */
@@ -140,6 +134,27 @@ GUIResult_t entry_draw(widget_t *w, coords_t offset) {
                         - 1, lowerRight.y - 1, PIXEL_INVERT);
         screen_SetSoftButton("\x1b", 0);
         screen_SetSoftButton("\x1a", 1);
+    } else if (e->flags.editing) {
+        /* "popup" in the middle of the screen */
+        coords_t size;
+        size.x = (e->digits + 1) * fontSize[FONT_BIG].width + 5;
+        size.y = fontSize[FONT_BIG].height + 5;
+        upperLeft.x = (SCREEN_WIDTH - size.x) / 2;
+        upperLeft.y = (SCREEN_HEIGHT - size.y) / 2;
+        /* clear area */
+        screen_FullRectangle(upperLeft.x-2, upperLeft.y-2, upperLeft.x + size.x + 1,
+                upperLeft.y + size.y + 1, PIXEL_OFF);
+        /* draw border */
+        screen_Rectangle(upperLeft.x, upperLeft.y, upperLeft.x + size.x - 1,
+                upperLeft.y + size.y - 1);
+        screen_Rectangle(upperLeft.x + 1, upperLeft.y + 1,
+                upperLeft.x + size.x - 2, upperLeft.y + size.y - 2);
+        /* draw current input string */
+        screen_String(e->inputString, FONT_BIG, upperLeft.x + 2,
+                upperLeft.y + 3);
+        screen_SetSoftButton(unitNames[e->unit][0], 0);
+        screen_SetSoftButton(unitNames[e->unit][1], 1);
+        screen_SetSoftButton(unitNames[e->unit][2], 2);
     } else {
         /* construct value string */
         string_fromUintUnits(*e->value, e->inputString, e->digits,
@@ -223,7 +238,7 @@ GUISignal_t entry_input(widget_t *w, GUISignal_t signal) {
             *e->value = entry_constrainValue(e, val);
             signal.clicked &= ~HAL_BUTTON_SOFT;
             e->flags.editing = 0;
-            if(e->changeCallback)
+            if (e->changeCallback)
                 e->changeCallback();
         }
     } else if (e->flags.encoderEdit) {

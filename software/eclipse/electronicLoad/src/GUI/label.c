@@ -15,7 +15,7 @@ void label_create(label_t *l, char *name, font_t font) {
     l->base.flags.selectable = 0;
     /* calculate size */
     l->base.size.y = fontSize[font].height;
-    l->base.size.x = fontSize[font].width * strlen(name);
+    l->base.size.x = fontSize[font].width * i;
 }
 
 GUIResult_t label_draw(widget_t *w, coords_t offset) {

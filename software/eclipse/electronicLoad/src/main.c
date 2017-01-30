@@ -6,10 +6,43 @@ void _exit(int a) {
 }
 
 uint32_t testVar = 0;
+uint8_t baudrate = 2;
+void baudChange(void) {
+    uint32_t baudratebuffer = settings.baudrate;
+    switch (baudrate) {
+    case 0:
+        settings.baudrate = 1200;
+        break;
+    case 1:
+        settings.baudrate = 4800;
+        break;
+    case 2:
+        settings.baudrate = 9600;
+        break;
+    case 3:
+        settings.baudrate = 19200;
+        break;
+    case 4:
+        settings.baudrate = 38400;
+        break;
+    case 5:
+        settings.baudrate = 57600;
+        break;
+    case 6:
+        settings.baudrate = 115200;
+        break;
+    }
+    if (settings.baudrate != baudratebuffer) {
+        // baudrate has changed -> re-init UART
+        // wait for transmission to finish
+        while (uart.busyFlag)
+            ;
+        uart_Init(settings.baudrate);
+    }
+}
 
 void buttonCallback1(void) {
-    testVar++;
-    uart_writeString("Button1 clicked\n");
+    uart_writeString("Button clicked\n");
 }
 void buttonCallback2(void) {
     testVar += 10;
@@ -44,10 +77,9 @@ int main(int argc, char* argv[]) {
 // (nothing so far)
 
 // Software inits
-    if (settings_readFromFlash()) {
-        // no settings saved in flash -> use default values
-        settings_Init();
-    }
+    settings_Init();
+    settings_readFromFlash();
+
     events_Init();
     waveform_Init();
     arb_Init();
@@ -55,7 +87,7 @@ int main(int argc, char* argv[]) {
     com_Init();
     stats_Reset();
 
-    timer_SetupPeriodicFunction(3, MS_TO_TICKS(5), hal_updateDisplay, 12);
+    timer_SetupPeriodicFunction(3, MS_TO_TICKS(20), hal_updateDisplay, 12);
 
     selftest_Run();
 
@@ -92,30 +124,19 @@ int main(int argc, char* argv[]) {
 //    while(1);
     // TODO remove widget test
 
-    container_t c;
-    container_create(&c, 128, 64);
-    button_t testButton1;
-    char uart[] = "+1";
-    button_create(&testButton1, 20, 10, uart, buttonCallback1);
-    button_t testButton2;
-    char uart2[] = "+10";
-    button_create(&testButton2, 20, 10, uart2, buttonCallback2);
-    button_t testButton3;
-    char uart3[] = "+100";
-    button_create(&testButton3, 20, 10, uart3, buttonCallback3);
+    notebook_t n;
 
-    entry_t display;
-    uint32_t min = 0;
-    uint32_t max = 20000000;
-    entry_create(&display, &testVar, &max, &min, FONT_MEDIUM, 4, UNIT_CURRENT, NULL);
 
-    container_attach(&c, &testButton1, 0, 0);
-    container_attach(&c, &testButton2, 30, 0);
-    container_attach(&c, &testButton3, 60, 0);
-    container_attach(&c, &display, 0, 30);
+    notebook_create(&n, FONT_SMALL, 128, 64);
+    const char settings[] = "SETTINGS";
+    notebook_addPage(&n, settings_getWidget(), settings);
+
     GUISignal_t signal;
+    memset(&signal, 0, sizeof(signal));
     coords_t origin = { .x = 0, .y = 0 };
     screen_Clear();
+    n.flags.focussed = 1;
+    n.base.flags.selected = 1;
     while (1) {
         do {
             signal.clicked = hal_getButton();
@@ -123,22 +144,22 @@ int main(int argc, char* argv[]) {
         } while (!signal.clicked && signal.encoder == 0);
         while (hal_getButton())
             ;
-        widget_input(&c, signal);
+        widget_input(&n, signal);
         screen_Clear();
-        widget_draw(&c, origin);
+        n.base.func.draw(&n, origin);
     }
 
-    // setup main menu
-    menu_AddMainMenuEntry("Waveforms", waveform_Menu);
-    menu_AddMainMenuEntry("Events", events_menu);
-    menu_AddMainMenuEntry("Arbitrary Sequence", arb_Menu);
-    menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
-    menu_AddMainMenuEntry("Statistics", stats_Display);
-    menu_AddMainMenuEntry("Settings", settings_Menu);
-    menu_AddMainMenuEntry("Calibration", calibrationMenu);
-    menu_AddMainMenuEntry("Tests", test_Menu);
-    menu_AddMainMenuEntry("Errors", error_Menu);
-
-    menu_DefaultScreenHandler();
+//    // setup main menu
+//    menu_AddMainMenuEntry("Waveforms", waveform_Menu);
+//    menu_AddMainMenuEntry("Events", events_menu);
+//    menu_AddMainMenuEntry("Arbitrary Sequence", arb_Menu);
+//    menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
+//    menu_AddMainMenuEntry("Statistics", stats_Display);
+//    menu_AddMainMenuEntry("Settings", settings_Menu);
+//    menu_AddMainMenuEntry("Calibration", calibrationMenu);
+//    menu_AddMainMenuEntry("Tests", test_Menu);
+//    menu_AddMainMenuEntry("Errors", error_Menu);
+//
+//    menu_DefaultScreenHandler();
 }
 

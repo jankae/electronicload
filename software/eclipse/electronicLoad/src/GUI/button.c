@@ -7,15 +7,17 @@ void button_create(button_t *button, const char *name, font_t font, uint8_t minW
     button->base.func.draw = button_draw;
     button->base.func.input = button_input;
     /* set name and callback */
-    button->name = name;
+    uint8_t i = 0;
+    while (*name && i < BUTTON_MAX_NAME) {
+        button->name[i++] = *name++;
+    }
+    button->name[i] = 0;
     button->callback = cb;
     button->font = font;
 
-    uint8_t nameLength = strlen(name);
-
     /* calculate size based on the font */
     button->base.size.y = fontSize[font].height + 4;
-    button->base.size.x = fontSize[font].width * nameLength + 3;
+    button->base.size.x = fontSize[font].width * i + 3;
 
     if(minWidth > button->base.size.x)
         button->base.size.x = minWidth;
@@ -23,7 +25,7 @@ void button_create(button_t *button, const char *name, font_t font, uint8_t minW
     /* calculate font start position */
     button->fontStart.y = 2;
     button->fontStart.x = (button->base.size.x
-            - fontSize[button->font].width * nameLength) / 2;
+            - fontSize[button->font].width * i) / 2;
 }
 
 GUIResult_t button_draw(widget_t *w, coords_t offset) {

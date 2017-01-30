@@ -151,6 +151,7 @@ void screen_String6x8(const char *src, uint8_t x, uint8_t y);
 void screen_String4x6(const char *src, uint8_t x, uint8_t y);
 
 void screen_String(const char *src, font_t font, uint8_t x, uint8_t y);
+void screen_Char(char c, font_t font, uint8_t x, uint8_t y);
 /**
  * \brief Displays a soft button
  *

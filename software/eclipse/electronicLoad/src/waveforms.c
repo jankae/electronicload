@@ -213,7 +213,7 @@ void waveform_Menu(void) {
         case 0:
             baseUnit = 'A';
             dotPosition = 6;
-            maxValue = settings.maxCurrent[settings.powerMode];
+            maxValue = settings.maxCurrent;
             minValue = 0;
             unit0 = NULL;
             strcpy(unit3_s, "mA");
@@ -222,8 +222,8 @@ void waveform_Menu(void) {
         case 1:
             baseUnit = 'V';
             dotPosition = 6;
-            maxValue = settings.maxVoltage[settings.powerMode];
-            minValue = settings.minVoltage[settings.powerMode];
+            maxValue = settings.maxVoltage;
+            minValue = settings.minVoltage;
             unit0 = NULL;
             strcpy(unit3_s, "mV");
             strcpy(unit6_s, "V");
@@ -231,8 +231,8 @@ void waveform_Menu(void) {
         case 2:
             baseUnit = 'R';
             dotPosition = 3;
-            maxValue = settings.maxResistance[settings.powerMode];
-            minValue = settings.minResistance[settings.powerMode];
+            maxValue = settings.maxResistance;
+            minValue = settings.minResistance;
             strcpy(unit0_s, "mOhm");
             strcpy(unit3_s, "Ohm");
             strcpy(unit6_s, "kOhm");
@@ -240,7 +240,7 @@ void waveform_Menu(void) {
         case 3:
             baseUnit = 'W';
             dotPosition = 6;
-            maxValue = settings.maxPower[settings.powerMode];
+            maxValue = settings.maxPower;
             minValue = 0;
             unit0 = NULL;
             strcpy(unit3, "mW");

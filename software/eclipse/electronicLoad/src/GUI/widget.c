@@ -112,14 +112,14 @@ GUIResult_t widget_deselectAll(widget_t *first) {
     return GUI_OK;
 }
 
-void widget_gotFocus(widget_t *w){
+void widget_gotFocus(widget_t *w) {
     GUISignal_t s;
     memset(&s, 0, sizeof(s));
     s.gotFocus = 1;
     w->func.input(w, s);
 }
 
-void widget_lostFocus(widget_t *w){
+void widget_lostFocus(widget_t *w) {
     GUISignal_t s;
     memset(&s, 0, sizeof(s));
     s.lostFocus = 1;
@@ -160,4 +160,17 @@ GUISignal_t widget_input(widget_t *w, GUISignal_t signal) {
     /* Then try to handle the signal itself */
     signal = w->func.input(w, signal);
     return signal;
+}
+
+GUIResult_t widget_Redraw(widget_t *w) {
+    if (!w)
+        return GUI_ERROR;
+    /* find root widget */
+    while (w->parent) {
+        w = w->parent;
+    }
+    /* draw root widget */
+    coords_t origin = { .x = 0, .y = 0 };
+    screen_Clear();
+    return w->func.draw(w, origin);
 }

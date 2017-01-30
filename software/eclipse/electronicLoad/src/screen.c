@@ -378,6 +378,20 @@ void screen_String(const char *src, font_t font, uint8_t x, uint8_t y){
     }
 }
 
+void screen_Char(char c, font_t font, uint8_t x, uint8_t y){
+    switch(font) {
+    case FONT_SMALL:
+        screen_Char4x6(c, x, y);
+        break;
+    case FONT_MEDIUM:
+        screen_Char6x8(c, x, y);
+        break;
+    case FONT_BIG:
+        screen_Char12x16(c, x, y);
+        break;
+    }
+}
+
 void screen_SetSoftButton(const char *descr, uint8_t num) {
     // calculate descr length to center text (up to 6 chars)
     uint8_t length;
@@ -385,6 +399,8 @@ void screen_SetSoftButton(const char *descr, uint8_t num) {
         ;
     // calculate text start
     uint8_t start = 20 + 44 * num - length * 6 / 2;
+    /* clear interior of box */
+    screen_FullRectangle(44 * num + 1, 55, 44 * num + 38, 63, PIXEL_OFF);
     // draw box outline
     screen_VerticalLine(44 * num, 55, 9);
     screen_VerticalLine(44 * num + 39, 55, 9);

@@ -17,7 +17,7 @@
 void load_Init(void) {
     load.mode = FUNCTION_CC;
     load.current = 0;
-    load.voltage = settings.maxVoltage[settings.powerMode];
+    load.voltage = settings.maxVoltage;
     load.resistance = LOAD_MAXRESISTANCE_LOWP;
     load.power = 0;
     load.triggerInOld = hal_getTriggerIn();
@@ -91,23 +91,23 @@ void load_setMode(loadMode_t mode) {
 void load_ConstrainSettings(void) {
     if (load.current < 0)
         load.current = 0;
-    else if (load.current > settings.maxCurrent[settings.powerMode])
-        load.current = settings.maxCurrent[settings.powerMode];
+    else if (load.current > settings.maxCurrent)
+        load.current = settings.maxCurrent;
 
-    if (load.voltage < settings.minVoltage[settings.powerMode])
-        load.voltage = settings.minVoltage[settings.powerMode];
-    else if (load.voltage > settings.maxVoltage[settings.powerMode])
-        load.voltage = settings.maxVoltage[settings.powerMode];
+    if (load.voltage < settings.minVoltage)
+        load.voltage = settings.minVoltage;
+    else if (load.voltage > settings.maxVoltage)
+        load.voltage = settings.maxVoltage;
 
-    if (load.resistance < settings.minResistance[settings.powerMode])
-        load.resistance = settings.minResistance[settings.powerMode];
-    else if (load.resistance > settings.maxResistance[settings.powerMode])
-        load.resistance = settings.maxResistance[settings.powerMode];
+    if (load.resistance < settings.minResistance)
+        load.resistance = settings.minResistance;
+    else if (load.resistance > settings.maxResistance)
+        load.resistance = settings.maxResistance;
 
     if (load.power < 0)
         load.power = 0;
-    else if (load.power > settings.maxPower[settings.powerMode])
-        load.power = settings.maxPower[settings.powerMode];
+    else if (load.power > settings.maxPower)
+        load.power = settings.maxPower;
 }
 
 /**
@@ -172,7 +172,7 @@ void load_update(void) {
         load_ConstrainSettings();
 
         uint32_t current = 0;
-//    uint32_t currentLimit = ((uint64_t) settings.maxPower[settings.powerMode]
+//    uint32_t currentLimit = ((uint64_t) settings.maxPower
 //            * 1000000) / load.state.voltage;
 
         uint8_t enableInput = load.powerOn;
