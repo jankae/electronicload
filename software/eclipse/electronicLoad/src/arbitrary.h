@@ -2,6 +2,7 @@
 #ifndef ARBITRARY_H_
 #define ARBITRARY_H_
 
+#include "GUI/gui.h"
 #include "screen.h"
 #include "common.h"
 
@@ -17,7 +18,7 @@ typedef enum {
     ARB_DISABLED = 0,
     ARB_ARMED = 1,
     ARB_RUNNING = 2
-} ArbStatus_t;
+} ArbState_t;
 
 struct arbDataPoint {
     int32_t value;
@@ -31,18 +32,22 @@ struct {
     int32_t *param;
     uint8_t paramNum;
     uint32_t sequenceLength;
-    ArbStatus_t status;
+    ArbState_t state;
     ArbMode_t mode;
     uint32_t time;
 } arbitrary;
 
 void arb_Init(void);
 
+widget_t* arb_getWidget(void);
+
+void arb_ParamChanged(void);
+
+void arb_StatusChanged(void);
+
 int32_t arb_getValue(uint32_t time);
 
 void arb_Update(void);
-
-void arb_Menu(void);
 
 void arb_AdjustPointsToLength(void);
 

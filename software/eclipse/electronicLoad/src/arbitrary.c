@@ -1,17 +1,34 @@
 #include "arbitrary.h"
 
-const char arbParamNames[ARB_NUM_PARAMS][21] = { "CURRENT", "VOLTAGE",
+static const char arbParamNames[ARB_NUM_PARAMS][11] = { "CURRENT", "VOLTAGE",
         "RESISTANCE", "POWER" };
+static const char *paramItems[5] = { arbParamNames[0], arbParamNames[1],
+        arbParamNames[2], arbParamNames[3], NULL };
 
-uint32_t *arbSetParamPointers[4] = { &load.current, &load.voltage,
+static const char arbModeNames[2][12] = { "SINGLE SHOT", "CONTINUOUS" };
+static const char *modeItems[3] = { arbModeNames[0], arbModeNames[1], NULL };
+
+static const char arbStateNames[3][9] = { "DISABLED", "ARMED", "RUNNING" };
+static const char *stateItems[4] = { arbStateNames[0], arbStateNames[1],
+        arbStateNames[2], NULL };
+
+static uint32_t *arbSetParamPointers[4] = { &load.current, &load.voltage,
         &load.resistance, &load.power };
 
 const char arbParamUnits0[ARB_NUM_PARAMS][6] = { "uA", "uV", "mOhm", "uW" };
 const char arbParamUnits3[ARB_NUM_PARAMS][6] = { "mA", "mV", "Ohm", "mW" };
 const char arbParamUnits6[ARB_NUM_PARAMS][6] = { "A", "V", "kOhm", "W" };
 
+static const uint32_t minLength = 2, maxLength = 30000;
+
+container_t c;
+label_t lState, lLength, lParam, lMode;
+entry_t eLength;
+dropdown_t dParam, dMode, dState;
+button_t bEdit;
+
 void arb_Init(void) {
-    arbitrary.status = ARB_DISABLED;
+    arbitrary.state = ARB_DISABLED;
     arbitrary.mode = ARB_CONTINUOUS;
     arbitrary.numPoints = 1;
     arbitrary.param = &load.current;
@@ -19,6 +36,59 @@ void arb_Init(void) {
     arbitrary.sequenceLength = 1000;
     arbitrary.points[0].time = 0;
     arbitrary.points[0].value = 0;
+
+    /* create GUI elements */
+    label_create(&lState, "State:", FONT_MEDIUM);
+    label_create(&lMode, "Mode:", FONT_MEDIUM);
+    label_create(&lParam, "Param:", FONT_MEDIUM);
+    label_create(&lLength, "Length:", FONT_MEDIUM);
+
+    dropdown_create(&dMode, modeItems, &arbitrary.mode, FONT_MEDIUM, 0, NULL);
+    dropdown_create(&dParam, paramItems, &arbitrary.paramNum, FONT_MEDIUM, 0,
+            arb_ParamChanged);
+    dropdown_create(&dState, stateItems, &arbitrary.state, FONT_MEDIUM, 0,
+            arb_StatusChanged);
+
+    entry_create(&eLength, &arbitrary.sequenceLength, &maxLength, &minLength,
+            FONT_MEDIUM, 4, UNIT_TIME, arb_AdjustPointsToLength);
+
+    button_create(&bEdit, "Edit sequence", FONT_MEDIUM, 0, arb_editSequence);
+
+    container_create(&c, 128, 55);
+
+    container_attach(&c, &lState, 0, 2);
+    container_attach(&c, &lMode, 0, 14);
+    container_attach(&c, &lParam, 0, 26);
+    container_attach(&c, &lLength, 0, 38);
+
+    container_attach(&c, &dState, 48, 0);
+    container_attach(&c, &dMode, 30, 12);
+    container_attach(&c, &dParam, 36, 24);
+
+    container_attach(&c, &eLength, 60, 36);
+
+    container_attach(&c, &bEdit, 0, 48);
+}
+
+widget_t* arb_getWidget(void) {
+    return (widget_t*) &c;
+}
+
+void arb_ParamChanged(void) {
+    arbitrary.param = arbSetParamPointers[arbitrary.paramNum];
+    if (arbitrary.state != ARB_DISABLED) {
+        // set load in correct mode
+        // This works correctly because load.mode and paramNum
+        // are using the same coding for the 4 different
+        // modes/parameters
+        load.mode = arbitrary.paramNum;
+    }
+}
+
+void arb_StatusChanged(void) {
+    if (arbitrary.state == ARB_DISABLED || arbitrary.state == ARB_ARMED) {
+        load.powerOn = 0;
+    }
 }
 
 int32_t arb_getValue(uint32_t time) {
@@ -28,8 +98,8 @@ int32_t arb_getValue(uint32_t time) {
         if (time < arbitrary.points[i].time)
             break;
     }
-    // i is next point after time, i-1 is the previous one
-    // handle exceptions
+// i is next point after time, i-1 is the previous one
+// handle exceptions
     if (i > 0 && i < arbitrary.numPoints) {
         // time is between two points
         switch (arbitrary.points[i - 1].hold) {
@@ -82,114 +152,25 @@ int32_t arb_getValue(uint32_t time) {
 }
 
 void arb_Update(void) {
-    if (arbitrary.status == ARB_ARMED && load.powerOn) {
+    if (arbitrary.state == ARB_ARMED && load.powerOn) {
         // load turned on, trigger arbitrary sequence
         arbitrary.time = 0;
-        arbitrary.status = ARB_RUNNING;
+        arbitrary.state = ARB_RUNNING;
     }
-    if (arbitrary.status == ARB_RUNNING) {
+    if (arbitrary.state == ARB_RUNNING) {
         arbitrary.time++;
         if (arbitrary.time > arbitrary.sequenceLength) {
             arbitrary.time = 0;
             if (arbitrary.mode == ARB_SINGLE_SHOT) {
                 // only one sequence at a time
-                arbitrary.status = ARB_ARMED;
+                arbitrary.state = ARB_ARMED;
                 load.powerOn = 0;
             }
         }
     }
-    if (arbitrary.status == ARB_RUNNING && arbitrary.param) {
+    if (arbitrary.state == ARB_RUNNING && arbitrary.param) {
         *(arbitrary.param) = arb_getValue(arbitrary.time);
     }
-}
-
-void arb_Menu(void) {
-    char *entries[5];
-    int8_t sel = 0;
-    do {
-        char edit[21] = "Edit sequence";
-        entries[0] = edit;
-
-        char length[21] = "Length:";
-        string_fromUintUnit(arbitrary.sequenceLength, &length[7], 4, 3, 's');
-        entries[1] = length;
-
-        char param[21] = "Param:";
-        strcpy(&param[6], arbParamNames[arbitrary.paramNum]);
-        entries[2] = param;
-
-        char mode[21];
-        if (arbitrary.mode == ARB_SINGLE_SHOT) {
-            strcpy(mode, "Mode: single shot");
-        } else {
-            strcpy(mode, "Mode: continuous");
-        }
-        entries[3] = mode;
-
-        char status[21];
-        if (arbitrary.status == ARB_DISABLED) {
-            strcpy(status, "State: OFF");
-        } else if (arbitrary.status == ARB_ARMED) {
-            strcpy(status, "State: ARMED");
-        } else {
-            strcpy(status, "State: ON");
-        }
-        entries[4] = status;
-
-        sel = menu_ItemChooseDialog(
-                "\xCD\xCD\xCD\xCD" "SEQUENCE MENU\xCD\xCD\xCD\xCD", entries, 5,
-                sel);
-        switch (sel) {
-        case 0:
-            arb_editSequence();
-            break;
-        case 1:
-            menu_getInputValue(&arbitrary.sequenceLength, "Sequence length:", 2,
-                    30000, "ms", "s", NULL);
-            arb_AdjustPointsToLength();
-            break;
-        case 2: {
-            // change set parameter
-            const char *itemList[4] = { arbParamNames[0], arbParamNames[1],
-                    arbParamNames[2], arbParamNames[3] };
-            int8_t sel = menu_ItemChooseDialog("Select parameter:", itemList, 4,
-                    arbitrary.paramNum);
-            if (sel >= 0) {
-                arbitrary.paramNum = sel;
-                arbitrary.param = arbSetParamPointers[sel];
-                if (arbitrary.status != ARB_DISABLED) {
-                    // set load in correct mode
-                    // This works correctly because load.mode and paramNum
-                    // are using the same coding for the 4 different
-                    // modes/parameters
-                    load.mode = arbitrary.paramNum;
-                }
-            }
-        }
-            break;
-        case 3:
-            // change mode
-            if (arbitrary.mode == ARB_SINGLE_SHOT) {
-                arbitrary.mode = ARB_CONTINUOUS;
-            } else {
-                arbitrary.mode = ARB_SINGLE_SHOT;
-            }
-            break;
-        case 4:
-            // change status
-            if (arbitrary.status == ARB_DISABLED) {
-                arbitrary.status = ARB_ARMED;
-                load.powerOn = 0;
-            } else if (arbitrary.status == ARB_ARMED) {
-                arbitrary.status = ARB_RUNNING;
-                arbitrary.time = 0;
-                load.powerOn = 0;
-            } else {
-                arbitrary.status = ARB_DISABLED;
-            }
-            break;
-        }
-    } while (sel >= 0);
 }
 
 void arb_AdjustPointsToLength(void) {
@@ -223,7 +204,7 @@ void arb_editSequence(void) {
 #define ARB_GRAB_TIME       1
 #define ARB_GRAB_AMPLITUDE  2
     uint8_t grabPoint = ARB_GRAB_NONE;
-    // set encoder sensitivity high for cursor movement
+// set encoder sensitivity high for cursor movement
     hal_setEncoderSensitivity(1);
     do {
         while (hal_getButton())
@@ -473,4 +454,6 @@ void arb_editSequence(void) {
 
     } while (!(button & HAL_BUTTON_ESC));
     hal_setEncoderSensitivity(HAL_DEFAULT_ENCODER_SENSITIVITY);
+    while (hal_getButton())
+        ;
 }
