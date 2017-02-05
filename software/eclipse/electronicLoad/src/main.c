@@ -49,6 +49,8 @@ int main(int argc, char* argv[]) {
     notebook_t n;
 
     /* create main screen */
+    container_t c;
+//    entry_t
 
     notebook_create(&n, FONT_SMALL, 128, 64);
     const char waveform[] = "WAVEFORM";

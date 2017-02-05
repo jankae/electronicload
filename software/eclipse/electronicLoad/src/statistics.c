@@ -8,10 +8,10 @@
 
 static container_t c;
 static label_t lMin, lMax, lAvg, lEnergy;
-static entry_t eCurrentMin, eCurrentAvg, eCurrentMax;
-static entry_t eVoltageMin, eVoltageAvg, eVoltageMax;
-static entry_t ePowerMin, ePowerAvg, ePowerMax;
-static entry_t eEnergy;
+static valueLabel_t eCurrentMin, eCurrentAvg, eCurrentMax;
+static valueLabel_t eVoltageMin, eVoltageAvg, eVoltageMax;
+static valueLabel_t ePowerMin, ePowerAvg, ePowerMax;
+static valueLabel_t eEnergy;
 static button_t bReset;
 
 void stats_Init() {
@@ -23,42 +23,29 @@ void stats_Init() {
     label_createWithText(&lMax, "MAX:", FONT_SMALL);
     label_createWithText(&lEnergy, "ENERGY:", FONT_SMALL);
 
-    entry_create(&eCurrentMin, &stats.current.min, NULL, NULL, FONT_SMALL, 4,
-            UNIT_CURRENT, NULL);
-    entry_create(&eCurrentAvg, &stats.current.avg, NULL, NULL, FONT_SMALL, 4,
-            UNIT_CURRENT, NULL);
-    entry_create(&eCurrentMax, &stats.current.max, NULL, NULL, FONT_SMALL, 4,
-            UNIT_CURRENT, NULL);
+    valueLabel_create(&eCurrentMin, &stats.current.min, FONT_SMALL, 4,
+            UNIT_CURRENT);
+    valueLabel_create(&eCurrentAvg, &stats.current.avg, FONT_SMALL, 4,
+            UNIT_CURRENT);
+    valueLabel_create(&eCurrentMax, &stats.current.max, FONT_SMALL, 4,
+            UNIT_CURRENT);
 
-    entry_create(&eVoltageMin, &stats.voltage.min, NULL, NULL, FONT_SMALL, 4,
-            UNIT_VOLTAGE, NULL);
-    entry_create(&eVoltageAvg, &stats.voltage.avg, NULL, NULL, FONT_SMALL, 4,
-            UNIT_VOLTAGE, NULL);
-    entry_create(&eVoltageMax, &stats.voltage.max, NULL, NULL, FONT_SMALL, 4,
-            UNIT_VOLTAGE, NULL);
+    valueLabel_create(&eVoltageMin, &stats.voltage.min, FONT_SMALL, 4,
+            UNIT_VOLTAGE);
+    valueLabel_create(&eVoltageAvg, &stats.voltage.avg, FONT_SMALL, 4,
+            UNIT_VOLTAGE);
+    valueLabel_create(&eVoltageMax, &stats.voltage.max, FONT_SMALL, 4,
+            UNIT_VOLTAGE);
 
-    entry_create(&ePowerMin, &stats.power.min, NULL, NULL, FONT_SMALL, 4,
-            UNIT_POWER, NULL);
-    entry_create(&ePowerAvg, &stats.power.avg, NULL, NULL, FONT_SMALL, 4,
-            UNIT_POWER, NULL);
-    entry_create(&ePowerMax, &stats.power.max, NULL, NULL, FONT_SMALL, 4,
-            UNIT_POWER, NULL);
+    valueLabel_create(&ePowerMin, &stats.power.min, FONT_SMALL, 4,
+            UNIT_POWER);
+    valueLabel_create(&ePowerAvg, &stats.power.avg, FONT_SMALL, 4,
+            UNIT_POWER);
+    valueLabel_create(&ePowerMax, &stats.power.max, FONT_SMALL, 4,
+            UNIT_POWER);
 
-    entry_create(&eEnergy, &stats.energyConsumed, NULL, NULL, FONT_SMALL, 7,
-            UNIT_ENERGY, NULL);
-
-    /* all entries are read-only */
-    // TODO replace entries with something like a textfield widget */
-    eCurrentMin.base.flags.selectable = 0;
-    eCurrentAvg.base.flags.selectable = 0;
-    eCurrentMax.base.flags.selectable = 0;
-    eVoltageMin.base.flags.selectable = 0;
-    eVoltageAvg.base.flags.selectable = 0;
-    eVoltageMax.base.flags.selectable = 0;
-    ePowerMin.base.flags.selectable = 0;
-    ePowerAvg.base.flags.selectable = 0;
-    ePowerMax.base.flags.selectable = 0;
-    eEnergy.base.flags.selectable = 0;
+    valueLabel_create(&eEnergy, &stats.energyConsumed, FONT_SMALL, 7,
+            UNIT_ENERGY);
 
     button_create(&bReset, "Reset", FONT_MEDIUM, 0, stats_Reset);
 
