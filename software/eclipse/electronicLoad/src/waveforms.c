@@ -136,14 +136,14 @@ void waveform_Init(void) {
     waveform_PeriodChanged();
 
     /* create GUI elements */
-    label_create(&lWave, "Wave:", FONT_MEDIUM);
-    label_create(&lParam, "Param:", FONT_MEDIUM);
-    label_create(&lMin, "Min:", FONT_MEDIUM);
-    label_create(&lMax, "Max:", FONT_MEDIUM);
-    label_create(&lAmplitude, "Amplitude:", FONT_MEDIUM);
-    label_create(&lOffset, "Offset:", FONT_MEDIUM);
-    label_create(&lPeriod, "Period:", FONT_MEDIUM);
-    label_create(&lFreq, "Frequency:", FONT_MEDIUM);
+    label_createWithText(&lWave, "Wave:", FONT_MEDIUM);
+    label_createWithText(&lParam, "Param:", FONT_MEDIUM);
+    label_createWithText(&lMin, "Min:", FONT_MEDIUM);
+    label_createWithText(&lMax, "Max:", FONT_MEDIUM);
+    label_createWithText(&lAmplitude, "Amplitude:", FONT_MEDIUM);
+    label_createWithText(&lOffset, "Offset:", FONT_MEDIUM);
+    label_createWithText(&lPeriod, "Period:", FONT_MEDIUM);
+    label_createWithText(&lFreq, "Frequency:", FONT_MEDIUM);
 
     checkbox_create(&bOn, &waveform.switchedOn, NULL);
 

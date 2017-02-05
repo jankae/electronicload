@@ -14,10 +14,10 @@ void characteristic_Init(void) {
     characteristic.deltaT = 10;
 
     /* create GUI elements */
-    label_create(&lStartI, "I start:", FONT_MEDIUM);
-    label_create(&lStopI, "I stop:", FONT_MEDIUM);
-    label_create(&lAbortV, "U abort:", FONT_MEDIUM);
-    label_create(&lDeltaT, "T delta:", FONT_MEDIUM);
+    label_createWithText(&lStartI, "I start:", FONT_MEDIUM);
+    label_createWithText(&lStopI, "I stop:", FONT_MEDIUM);
+    label_createWithText(&lAbortV, "U abort:", FONT_MEDIUM);
+    label_createWithText(&lDeltaT, "T delta:", FONT_MEDIUM);
 
     entry_create(&eStartI, &characteristic.currentStart, &settings.maxCurrent,
     NULL, FONT_MEDIUM, 4, UNIT_CURRENT, NULL);

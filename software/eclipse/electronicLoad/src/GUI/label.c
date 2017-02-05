@@ -1,6 +1,6 @@
 #include "label.h"
 
-void label_create(label_t *l, char *name, font_t font) {
+void label_createWithText(label_t *l, char *name, font_t font) {
     /* initialize common widget values */
     widget_init((widget_t*) l);
     /* set widget functions */
@@ -16,6 +16,30 @@ void label_create(label_t *l, char *name, font_t font) {
     /* calculate size */
     l->base.size.y = fontSize[font].height;
     l->base.size.x = fontSize[font].width * i;
+}
+
+void label_createWithLength(label_t *l, uint8_t length, font_t font) {
+    /* initialize common widget values */
+    widget_init((widget_t*) l);
+    /* set widget functions */
+    l->base.func.draw = label_draw;
+    l->base.func.input = label_input;
+    l->font = font;
+    /* no text so far */
+    l->name[0] = 0;
+    l->base.flags.selectable = 0;
+    /* calculate size */
+    l->base.size.y = fontSize[font].height;
+    l->base.size.x = fontSize[font].width * length;
+}
+
+void label_SetText(label_t *l, char *text) {
+    uint8_t i = 0;
+    while (*text && i * fontSize[l->font].width <= l->base.size.x
+            && i < LABEL_MAX_NAME) {
+        l->name[i++] = *text++;
+    }
+    l->name[i] = 0;
 }
 
 GUIResult_t label_draw(widget_t *w, coords_t offset) {

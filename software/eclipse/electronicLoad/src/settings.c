@@ -18,13 +18,13 @@ void settings_Init(void) {
 
     /* create GUI elements */
     /* create labels */
-    label_create(&lbaud, "Baudrate:", FONT_MEDIUM);
-    label_create(&lMaxCurrent, "Max. I:", FONT_MEDIUM);
-    label_create(&lMaxPower, "Max. P:", FONT_MEDIUM);
-    label_create(&lMinVoltage, "Min. V:", FONT_MEDIUM);
-    label_create(&lMaxVoltage, "Max. V:", FONT_MEDIUM);
-    label_create(&lMinResist, "Min. R:", FONT_MEDIUM);
-    label_create(&lMaxResist, "Max. R:", FONT_MEDIUM);
+    label_createWithText(&lbaud, "Baudrate:", FONT_MEDIUM);
+    label_createWithText(&lMaxCurrent, "Max. I:", FONT_MEDIUM);
+    label_createWithText(&lMaxPower, "Max. P:", FONT_MEDIUM);
+    label_createWithText(&lMinVoltage, "Min. V:", FONT_MEDIUM);
+    label_createWithText(&lMaxVoltage, "Max. V:", FONT_MEDIUM);
+    label_createWithText(&lMinResist, "Min. R:", FONT_MEDIUM);
+    label_createWithText(&lMaxResist, "Max. R:", FONT_MEDIUM);
     /* create buttons */
     button_create(&bDefLow, "DEFAULT LOW", FONT_SMALL, 0,
             settings_setDefaultLow);

@@ -18,10 +18,10 @@ void stats_Init() {
     stats_Reset();
 
     /* build GUI */
-    label_create(&lMin, "MIN:", FONT_SMALL);
-    label_create(&lAvg, "AVG:", FONT_SMALL);
-    label_create(&lMax, "MAX:", FONT_SMALL);
-    label_create(&lEnergy, "ENERGY:", FONT_SMALL);
+    label_createWithText(&lMin, "MIN:", FONT_SMALL);
+    label_createWithText(&lAvg, "AVG:", FONT_SMALL);
+    label_createWithText(&lMax, "MAX:", FONT_SMALL);
+    label_createWithText(&lEnergy, "ENERGY:", FONT_SMALL);
 
     entry_create(&eCurrentMin, &stats.current.min, NULL, NULL, FONT_SMALL, 4,
             UNIT_CURRENT, NULL);

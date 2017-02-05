@@ -38,10 +38,10 @@ void arb_Init(void) {
     arbitrary.points[0].value = 0;
 
     /* create GUI elements */
-    label_create(&lState, "State:", FONT_MEDIUM);
-    label_create(&lMode, "Mode:", FONT_MEDIUM);
-    label_create(&lParam, "Param:", FONT_MEDIUM);
-    label_create(&lLength, "Length:", FONT_MEDIUM);
+    label_createWithText(&lState, "State:", FONT_MEDIUM);
+    label_createWithText(&lMode, "Mode:", FONT_MEDIUM);
+    label_createWithText(&lParam, "Param:", FONT_MEDIUM);
+    label_createWithText(&lLength, "Length:", FONT_MEDIUM);
 
     dropdown_create(&dMode, modeItems, &arbitrary.mode, FONT_MEDIUM, 0, NULL);
     dropdown_create(&dParam, paramItems, &arbitrary.paramNum, FONT_MEDIUM, 0,

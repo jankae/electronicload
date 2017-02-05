@@ -5,54 +5,6 @@ void _exit(int a) {
     };
 }
 
-uint32_t testVar = 0;
-uint8_t baudrate = 2;
-void baudChange(void) {
-    uint32_t baudratebuffer = settings.baudrate;
-    switch (baudrate) {
-    case 0:
-        settings.baudrate = 1200;
-        break;
-    case 1:
-        settings.baudrate = 4800;
-        break;
-    case 2:
-        settings.baudrate = 9600;
-        break;
-    case 3:
-        settings.baudrate = 19200;
-        break;
-    case 4:
-        settings.baudrate = 38400;
-        break;
-    case 5:
-        settings.baudrate = 57600;
-        break;
-    case 6:
-        settings.baudrate = 115200;
-        break;
-    }
-    if (settings.baudrate != baudratebuffer) {
-        // baudrate has changed -> re-init UART
-        // wait for transmission to finish
-        while (uart.busyFlag)
-            ;
-        uart_Init(settings.baudrate);
-    }
-}
-
-void buttonCallback1(void) {
-    uart_writeString("Button clicked\n");
-}
-void buttonCallback2(void) {
-    testVar += 10;
-    uart_writeString("Button2 clicked\n");
-}
-void buttonCallback3(void) {
-    testVar += 100;
-    uart_writeString("Button3 clicked\n");
-}
-
 int main(int argc, char* argv[]) {
     /* TODO move this section into HAL */
     SystemInit();
@@ -95,6 +47,8 @@ int main(int argc, char* argv[]) {
     cal_Init();
 
     notebook_t n;
+
+    /* create main screen */
 
     notebook_create(&n, FONT_SMALL, 128, 64);
     const char waveform[] = "WAVEFORM";
