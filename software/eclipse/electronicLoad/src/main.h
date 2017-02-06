@@ -19,11 +19,6 @@
 #include "test.h"
 #include "errors.h"
 #include "arbitrary.h"
-#include "GUI/button.h"
-#include "GUI/container.h"
-#include "GUI/entry.h"
-#include "GUI/label.h"
-#include "GUI/dropdown.h"
-#include "GUI/notebook.h"
+#include "mainMenu.h"
 
 #endif

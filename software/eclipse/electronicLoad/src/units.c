@@ -1,11 +1,11 @@
 #include "units.h"
 
 const char unitNames[UNIT_NUM][3][4] = {
-    {"nA", "mA", "A"},
-    {"nV", "mV", "V"},
+    {"uA", "mA", "A"},
+    {"uV", "mV", "V"},
     {"mR", "R", "kR"},
-    {"nW", "mW", "W"},
+    {"uW", "mW", "W"},
     {"ms", "s", "\0"},
     {"mHz", "Hz", "kHz"},
-    {"nWh", "mWh", "Wh"}
+    {"uWh", "mWh", "Wh"}
 };

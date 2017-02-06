@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
     settings_Init();
     settings_readFromFlash();
 
+    mainMenu_Init();
     events_Init();
     waveform_Init();
     characteristic_Init();
@@ -48,21 +49,19 @@ int main(int argc, char* argv[]) {
 
     notebook_t n;
 
-    /* create main screen */
-    container_t c;
-//    entry_t
-
     notebook_create(&n, FONT_SMALL, 128, 64);
+    const char main[] = "MAIN";
+    notebook_addPage(&n, mainMenu_getWidget(), main);
     const char waveform[] = "WAVEFORM";
     notebook_addPage(&n, waveform_getWidget(), waveform);
-    const char characteristics[] = "U/I-CURVE";
-    notebook_addPage(&n, characteristic_getWidget(), characteristics);
     const char arbitrary[] = "ARBITRARY";
     notebook_addPage(&n, arb_getWidget(), arbitrary);
-    const char stats[] = "STATISTIC";
-    notebook_addPage(&n, stats_getWidget(), stats);
     const char settings[] = "SETTINGS";
     notebook_addPage(&n, settings_getWidget(), settings);
+    const char characteristics[] = "U/I-CURVE";
+    notebook_addPage(&n, characteristic_getWidget(), characteristics);
+    const char stats[] = "STATISTIC";
+    notebook_addPage(&n, stats_getWidget(), stats);
     const char calib[] = "CALIBRATION";
     notebook_addPage(&n, cal_getWidget(), calib);
 
@@ -70,14 +69,23 @@ int main(int argc, char* argv[]) {
     memset(&signal, 0, sizeof(signal));
     n.flags.focussed = 1;
     n.base.flags.selected = 1;
+    n.flags.editing = 1;
+    widget_selectFirst(n.base.firstChild);
     while (1) {
+        uint32_t timeout = timer_SetTimeout(200);
         do {
             signal.clicked = hal_getButton();
             signal.encoder = hal_getEncoderMovement();
-        } while (!signal.clicked && signal.encoder == 0);
+        } while (!signal.clicked && signal.encoder == 0
+                && !timer_TimeoutElapsed(timeout));
         while (hal_getButton())
             ;
+        signal = mainMenu_Input(signal);
         widget_input(&n, signal);
+        if (n.selectedPage == 0) {
+            /* we are on the main screen -> update widgets */
+            mainMenu_updateWidgets();
+        }
         widget_Redraw(&n);
     }
 

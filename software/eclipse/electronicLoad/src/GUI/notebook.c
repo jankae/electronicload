@@ -166,13 +166,15 @@ GUISignal_t notebook_input(widget_t *w, GUISignal_t signal) {
         signal.encoder = 0;
         if (signal.clicked & HAL_BUTTON_ESC) {
             /* leave editing mode */
-            n->flags.editing = 0;
-            /* notify parent of focus */
             if (n->base.parent) {
+                n->flags.editing = 0;
+                /* notify parent of focus */
                 widget_gotFocus(n->base.parent);
+                widget_deselectAll(n->base.firstChild);
+                signal.clicked &= ~HAL_BUTTON_ESC;
+            } else {
+                /* no parent -> can't leave highest level editing mode */
             }
-            widget_deselectAll(n->base.firstChild);
-            signal.clicked &= ~HAL_BUTTON_ESC;
         }
     } else {
         /* not in editing mode */
