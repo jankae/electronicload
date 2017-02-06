@@ -8,7 +8,8 @@ typedef enum {
     WAVE_SINE = 0,
     WAVE_SAW = 1,
     WAVE_SQUARE = 2,
-    WAVE_TRIANGLE = 3
+    WAVE_TRIANGLE = 3,
+    WAVE_REV_SAW = 4
 } Waveform_t;
 
 struct {

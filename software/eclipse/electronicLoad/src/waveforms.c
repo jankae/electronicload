@@ -103,9 +103,10 @@ static const uint16_t wave_SineLookup[1025] = { 0, 101, 201, 302, 402, 503, 603,
         65524, 65526, 65527, 65529, 65530, 65531, 65532, 65533, 65534, 65534,
         65535, 65535, 65535 };
 
-static const char waveform_Names[4][9] = { "SINE", "SAW", "SQUARE", "TRIANGLE" };
-static const char *waveformItems[5] = { waveform_Names[0], waveform_Names[1],
-        waveform_Names[2], waveform_Names[3], NULL };
+static const char waveform_Names[5][9] = { "SINE", "SAW", "SQUARE", "TRIANGLE",
+        "REV SAW" };
+static const char *waveformItems[6] = { waveform_Names[0], waveform_Names[1],
+        waveform_Names[2], waveform_Names[3], waveform_Names[4], NULL };
 
 static const char waveSetParamNames[4][11] = { "CURRENT", "VOLTAGE",
         "RESISTANCE", "POWER" };
@@ -264,6 +265,10 @@ int32_t waveform_GetValue(uint16_t wavetime) {
     case WAVE_SINE:
         value = ((int64_t) waveform_Sine(wavetime) * waveform.amplitude)
                 / 65536;
+        break;
+    case WAVE_REV_SAW:
+        value = waveform.amplitude
+                - ((int64_t) wavetime * waveform.amplitude * 2) / 65536;
         break;
     }
     value += waveform.offset;
