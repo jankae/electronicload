@@ -5,8 +5,9 @@ static dropdown_t dBaud;
 static entry_t eMaxCurrent, eMaxPower, eMinVoltage, eMaxVoltage, eMinResist,
         eMaxResist;
 static label_t lbaud, lMaxCurrent, lMaxPower, lMinVoltage, lMaxVoltage,
-        lMinResist, lMaxResist;
+        lMinResist, lMaxResist, lOnError;
 static button_t bDefLow, bDefHigh, bLoad, bSave;
+static checkbox_t bOnError;
 static char *entries[8];
 static const char availableBaudrates[7][7] = { "1200", "4800", "9600", "19200",
         "38400", "57600", "115200" };
@@ -25,6 +26,7 @@ void settings_Init(void) {
     label_createWithText(&lMaxVoltage, "Max. V:", FONT_MEDIUM);
     label_createWithText(&lMinResist, "Min. R:", FONT_MEDIUM);
     label_createWithText(&lMaxResist, "Max. R:", FONT_MEDIUM);
+    label_createWithText(&lOnError, "Turn off on error:", FONT_MEDIUM);
     /* create buttons */
     button_create(&bDefLow, "DEFAULT LOW", FONT_SMALL, 0,
             settings_setDefaultLow);
@@ -32,6 +34,7 @@ void settings_Init(void) {
             settings_setDefaultHigh);
     button_create(&bLoad, "Load", FONT_MEDIUM, 0, settings_LoadMenu);
     button_create(&bSave, "Save", FONT_MEDIUM, 0, settings_SaveMenu);
+    checkbox_create(&bOnError, &settings.turnOffOnError, NULL);
     /* create baud chooser */
     int8_t sel;
     for (sel = 0; sel < 7; sel++) {
@@ -74,8 +77,11 @@ void settings_Init(void) {
     container_attach(&c, &eMinResist, 60, 72);
     container_attach(&c, &eMaxResist, 60, 84);
 
-    container_attach(&c, &bLoad, 60, 97);
-    container_attach(&c, &bSave, 93, 97);
+    container_attach(&c, &lOnError, 0, 98);
+    container_attach(&c, &bOnError, 108, 96);
+
+    container_attach(&c, &bLoad, 60, 109);
+    container_attach(&c, &bSave, 93, 109);
 }
 
 widget_t* settings_getWidget(void) {

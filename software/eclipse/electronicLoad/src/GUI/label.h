@@ -5,7 +5,7 @@
 #include "screen.h"
 #include "font.h"
 
-#define LABEL_MAX_NAME      16
+#define LABEL_MAX_NAME      18
 
 typedef struct {
     widget_t base;
