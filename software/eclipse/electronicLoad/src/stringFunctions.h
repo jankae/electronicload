@@ -63,7 +63,7 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
  * \param *unit6    LSB*10^6 unit (e.g. "A" if LSB denotes uA)
  */
 void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
-        char *unit0, char *unit3, char *unit6);
+        const char *unit0, const char *unit3, const char *unit6);
 
 /**
  * \brief copies a string from the FLASH into a char array

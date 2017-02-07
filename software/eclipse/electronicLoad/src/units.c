@@ -7,5 +7,7 @@ const char unitNames[UNIT_NUM][3][4] = {
     {"uW", "mW", "W"},
     {"ms", "s", "\0"},
     {"mHz", "Hz", "kHz"},
-    {"uWh", "mWh", "Wh"}
+    {"uWh", "mWh", "Wh"},
+    {"m\xF8", "\xF8", "\0"},
+    {"\x23", "\0", "\0"}
 };

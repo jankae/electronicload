@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
     notebook_addPage(&n, settings_getWidget(), settings);
     const char characteristics[] = "U/I-CURVE";
     notebook_addPage(&n, characteristic_getWidget(), characteristics);
+    const char events[] = "EVENTS";
+    notebook_addPage(&n, events_getWidget(), events);
     const char stats[] = "STATISTIC";
     notebook_addPage(&n, stats_getWidget(), stats);
     const char calib[] = "CALIBRATION";

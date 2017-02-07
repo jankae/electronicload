@@ -22,10 +22,19 @@ void dropdown_create(dropdown_t *d, char **items, uint8_t *value, font_t font,
     /* calculate size */
     d->base.size.y = fontSize[font].height + 3;
     d->base.size.x = fontSize[font].width * (maxLength + 1) + 3;
+    if (d->base.size.x < minSize) {
+        d->base.size.x = minSize;
+    }
 }
 
 GUIResult_t dropdown_draw(widget_t *w, coords_t offset) {
     dropdown_t *d = (dropdown_t*) w;
+    /* update number of items */
+    for (d->numItems = 0; d->itemlist[d->numItems]; d->numItems++)
+        ;
+    if (*d->value >= d->numItems) {
+        *d->value = d->numItems - 1;
+    }
     /* calculate corners */
     coords_t upperLeft = offset;
     upperLeft.x += d->base.position.x;
@@ -126,6 +135,12 @@ GUIResult_t dropdown_draw(widget_t *w, coords_t offset) {
 
 GUISignal_t dropdown_input(widget_t *w, GUISignal_t signal) {
     dropdown_t *d = (dropdown_t*) w;
+    /* update number of items */
+    for (d->numItems = 0; d->itemlist[d->numItems]; d->numItems++)
+        ;
+    if (*d->value >= d->numItems) {
+        *d->value = d->numItems - 1;
+    }
     if (d->flags.editing) {
         if (signal.clicked & HAL_BUTTON_ESC) {
             /* abort editing, don't save value */

@@ -92,7 +92,7 @@ void string_fromUintUnit(uint32_t value, char *dest, uint8_t digits, int8_t dot,
 }
 
 void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
-        char *unit0, char *unit3, char *unit6) {
+        const char *unit0, const char *unit3, const char *unit6) {
     // find position of first digit
     uint32_t divider = 1000000000UL;
     int8_t firstDigit = 10;
