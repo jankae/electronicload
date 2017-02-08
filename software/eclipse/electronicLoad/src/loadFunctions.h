@@ -21,6 +21,8 @@
 #define LOAD_FANON_TEMP         35
 #define LOAD_FANOFF_TEMP        30
 
+extern const char loadModeNames[4][3];
+
 typedef enum {
     FUNCTION_CC = 0, FUNCTION_CV = 1, FUNCTION_CR = 2, FUNCTION_CP = 3
 } loadMode_t;

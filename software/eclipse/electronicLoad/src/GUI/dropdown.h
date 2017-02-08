@@ -8,7 +8,7 @@
 typedef struct {
     widget_t base;
     uint8_t *value;
-    char **itemlist;
+    const char * const * itemlist;
     font_t font;
     void (*changeCallback)(void);
     uint8_t numItems;
@@ -21,8 +21,8 @@ typedef struct {
     uint8_t editFirstView;
 } dropdown_t;
 
-void dropdown_create(dropdown_t *d, char **items, uint8_t *value, font_t font,
-        uint8_t minSize, void (*cb)(void));
+void dropdown_create(dropdown_t *d, const char * const * const items,
+        uint8_t *value, font_t font, uint8_t minSize, void (*cb)(void));
 GUIResult_t dropdown_draw(widget_t *w, coords_t offset);
 GUISignal_t dropdown_input(widget_t *w, GUISignal_t signal);
 

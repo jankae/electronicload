@@ -3,27 +3,30 @@
 static const char eventSrcNames[EV_NUM_SOURCETYPES][21] = { "TRIGGER RISE",
         "TRIGGER FALL", "PAR LOWER THAN", "PAR HIGHER THAN", "TIMER ZERO",
         "WAVEFORM PHASE" };
-static const char *sourceList[] = { eventSrcNames[0], eventSrcNames[1],
+static const char * const sourceList[] = { eventSrcNames[0], eventSrcNames[1],
         eventSrcNames[2], eventSrcNames[3], eventSrcNames[4], eventSrcNames[5],
         0 };
 
 static const char eventDestNames[EV_NUM_DESTTYPES][21] = { "TRIGGER HIGH",
         "TRIGGER LOW", "SET PARAMETER", "SET TIMER", "SET LOAD MODE",
         "INPUT ON", "INPUT OFF" };
+static const char * const destList[] = { eventDestNames[0], eventDestNames[1],
+        eventDestNames[2], eventDestNames[3], eventDestNames[4],
+        eventDestNames[5], eventDestNames[6], 0 };
 
-static const char eventSetParamNames[EV_NUM_SETPARAMS][21] = { "CURRENT",
-        "VOLTAGE", "RESISTANCE", "POWER" };
+static const char * const loadModeList[] = { loadModeNames[0], loadModeNames[1],
+        loadModeNames[2], loadModeNames[3], 0 };
 
-static const char eventSetParamUnits0[EV_NUM_SETPARAMS][6] = { "uA", "uV",
-        "mOhm", "uW" };
+static const char eventSetParamNames[EV_NUM_SETPARAMS][21] = { "SET CURRENT",
+        "SET VOLTAGE", "SET RESIST.", "SET POWER" };
+static const char* const setParamList[EV_NUM_SETPARAMS + 1] = {
+        eventSetParamNames[0], eventSetParamNames[1], eventSetParamNames[2],
+        eventSetParamNames[3], 0 };
 
-static const char eventSetParamUnits3[EV_NUM_SETPARAMS][6] = { "mA", "mV",
-        "Ohm", "mW" };
+static const unit_t eventSetParamUnits[EV_NUM_SETPARAMS] = { UNIT_CURRENT,
+        UNIT_VOLTAGE, UNIT_RESISTANCE, UNIT_POWER };
 
-static const char eventSetParamUnits6[EV_NUM_SETPARAMS][6] = { "A", "V", "kOhm",
-        "W" };
-
-static const uint32_t *eventSetParamPointers[EV_NUM_SETPARAMS] = {
+static uint32_t * const eventSetParamPointers[EV_NUM_SETPARAMS] = {
         &load.current, &load.voltage, &load.resistance, &load.power };
 
 static const char eventCompParamNames[EV_NUM_COMPPARAMS][21] = { "CURRENT",
@@ -38,7 +41,7 @@ static const unit_t eventCompParamUnits[EV_NUM_COMPPARAMS] = { UNIT_CURRENT,
         UNIT_VOLTAGE, UNIT_POWER, UNIT_CURRENT, UNIT_VOLTAGE, UNIT_RESISTANCE,
         UNIT_POWER };
 
-static uint32_t *eventCompParamPointers[EV_NUM_COMPPARAMS] = {
+static uint32_t * const eventCompParamPointers[EV_NUM_COMPPARAMS] = {
         &load.state.current, &load.state.voltage, &load.state.power,
         &load.current, &load.voltage, &load.resistance, &load.power };
 
@@ -47,26 +50,49 @@ static eventEffect_t effectList[EV_MAXEFFECTS];
 
 /* GUI elements */
 static container_t c;
+
+/* EVENT EDIT ELEMENTS */
+static label_t lEvents;
 /* Buttons to add/delete events */
 static button_t bAddEvent, bDeleteEvent;
 /* selected event */
 static dropdown_t dEvents;
 /* source of the selected event */
+static label_t lSource;
 static dropdown_t dSource;
 /* source parameter of the selected event (only visible if EV_SRC_PARAM_HIGHER or EV_SRC_PARAM_LOWER) */
 static dropdown_t dSrcParam;
-
-static label_t lEvents, lSource, lSrcSetting1, lSrcSetting2;
+/* generic source settings (will be used for different parameters depending on selected source) */
+static label_t lSrcSetting1, lSrcSetting2;
 static entry_t eSrcSetting1;
 static entry_t eSrcSetting2;
 /* pointers to the event descriptions */
-static char *eventDescriptions[EV_MAXEVENTS + 1];
+static const char *eventDescriptions[EV_MAXEVENTS + 1];
+static uint8_t selectedEventNum;
+static event_t *selectedEvent;
 
-static uint8_t selectedEvent;
+/* EFFECT EDIT ELEMENTS */
+static label_t lEffects;
+/* Buttons to add/delete events */
+static button_t bAddEffect, bDeleteEffect;
+/* selected event */
+static dropdown_t dEffects;
+/* destination of the selected effect */
+static label_t lDest;
+static dropdown_t dDest;
+/* generic destination settings (will be used for different parameters depending on selected effect) */
+static label_t lDestSetting1, lDestSetting2;
+static dropdown_t dDestSetting1;
+static entry_t eDestSetting1, eDestSetting2;
+
+static const char *effectDescriptions[EV_MAXEFFECTS + 1];
+static uint8_t selectedEffectNum;
+static eventEffect_t *selectedEffect;
 
 static uint32_t null = 0;
 static uint32_t maxTimers = EV_MAXTIMERS - 1;
 static uint32_t maxDegree = 359999;
+static uint32_t maxTimerValue = 9999000;
 
 void events_Init(void) {
     events.firstEvent = NULL;
@@ -78,17 +104,24 @@ void events_Init(void) {
         effectList[i].inUse = 0;
     }
 
-    events_UpdateDescriptions();
+    selectedEventNum = 0;
+    selectedEvent = NULL;
+    selectedEffectNum = 0;
+    selectedEffect = NULL;
+
+    events_UpdateDescrPointers();
 
     /* create GUI elements */
+    /* ELEMENTS TO ADD/DELETE EVENTS */
     /* these elements will always be displayed */
     label_createWithText(&lEvents, "Events:", FONT_MEDIUM);
     button_create(&bAddEvent, "Add", FONT_MEDIUM, 0, events_AddEvent);
     button_create(&bDeleteEvent, "Delete", FONT_MEDIUM, 0, events_DeleteEvent);
 
+    /* ELEMENTS TO EDIT THE SELECTED EVENT */
     /* these elements will only be displayed if there is an event */
-    dropdown_create(&dEvents, eventDescriptions, &selectedEvent, FONT_MEDIUM,
-            124, events_SetGUIToSelectedEvent);
+    dropdown_create(&dEvents, eventDescriptions, &selectedEventNum, FONT_MEDIUM,
+            124, events_SelectedEventChanged);
     label_createWithText(&lSource, "Src:", FONT_MEDIUM);
     dropdown_create(&dSource, sourceList, NULL, FONT_MEDIUM, 100,
             events_SourceChanged);
@@ -97,28 +130,67 @@ void events_Init(void) {
     label_createWithLength(&lSrcSetting1, 6, FONT_MEDIUM);
     label_createWithLength(&lSrcSetting2, 10, FONT_MEDIUM);
     dropdown_create(&dSrcParam, compParamList, NULL, FONT_MEDIUM, 88,
-            events_SetGUIToSelectedEvent);
+            events_SettingChanged);
     entry_create(&eSrcSetting1, NULL, NULL, NULL, FONT_MEDIUM, 4, UNIT_CURRENT,
-            events_UpdateDescriptions);
+            events_SettingChanged);
     entry_create(&eSrcSetting2, NULL, NULL, NULL, FONT_MEDIUM, 4, UNIT_CURRENT,
-            events_UpdateDescriptions);
+            events_SettingChanged);
+
+    /* ELEMENTS TO ADD/DELETE EFFECTS */
+    label_createWithText(&lEffects, "Effects:", FONT_MEDIUM);
+    button_create(&bAddEffect, "Add", FONT_MEDIUM, 0, events_AddEffect);
+    button_create(&bDeleteEffect, "Delete", FONT_MEDIUM, 0,
+            events_DeleteEffect);
+
+    /* ELEMENTS TO EDIT THE SELECTED EFFECT */
+    /* these elements will only be displayed if there is an effect */
+    dropdown_create(&dEffects, effectDescriptions, &selectedEffectNum,
+            FONT_MEDIUM, 124, events_SelectedEffectChanged);
+    label_createWithText(&lDest, "Dest:", FONT_MEDIUM);
+    dropdown_create(&dDest, destList, NULL, FONT_MEDIUM, 94,
+            events_EffectDestChanged);
+
+    label_createWithLength(&lDestSetting1, 6, FONT_MEDIUM);
+    label_createWithLength(&lDestSetting2, 10, FONT_MEDIUM);
+    dropdown_create(&dDestSetting1, setParamList, NULL, FONT_MEDIUM, 88,
+            events_EffectSettingChanged);
+    entry_create(&eDestSetting1, NULL, NULL, NULL, FONT_MEDIUM, 4, UNIT_CURRENT,
+            events_EffectSettingChanged);
+    entry_create(&eDestSetting2, NULL, NULL, NULL, FONT_MEDIUM, 4, UNIT_CURRENT,
+            events_EffectSettingChanged);
 
     events_SetGUIToSelectedEvent();
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lEvents, 0, 2);
-    container_attach(&c, &bAddEvent, 42, 0);
-    container_attach(&c, &bDeleteEvent, 70, 0);
-    container_attach(&c, &dEvents, 0, 13);
-    container_attach(&c, &lSource, 0, 27);
-    container_attach(&c, &dSource, 24, 25);
+    /* Attach effect edit widgets */
+    container_attach(&c, (widget_t*) &lEvents, 0, 2);
+    container_attach(&c, (widget_t*) &bAddEvent, 42, 0);
+    container_attach(&c, (widget_t*) &bDeleteEvent, 70, 0);
+    container_attach(&c, (widget_t*) &dEvents, 0, 13);
+    container_attach(&c, (widget_t*) &lSource, 0, 27);
+    container_attach(&c, (widget_t*) &dSource, 24, 25);
 
-    container_attach(&c, &lSrcSetting1, 0, 39);
-    container_attach(&c, &lSrcSetting2, 0, 51);
-    container_attach(&c, &dSrcParam, 36, 37);
-    container_attach(&c, &eSrcSetting1, 79, 37);
-    container_attach(&c, &eSrcSetting2, 79, 49);
+    container_attach(&c, (widget_t*) &lSrcSetting1, 0, 39);
+    container_attach(&c, (widget_t*) &lSrcSetting2, 0, 51);
+    container_attach(&c, (widget_t*) &dSrcParam, 36, 37);
+    container_attach(&c, (widget_t*) &eSrcSetting1, 79, 37);
+    container_attach(&c, (widget_t*) &eSrcSetting2, 79, 49);
+
+    /* Y coordinate of first effect edit widget */
+#define EFFECT_Y_START      61
+    container_attach(&c, (widget_t*) &lEffects, 0, EFFECT_Y_START + 2);
+    container_attach(&c, (widget_t*) &bAddEffect, 48, EFFECT_Y_START);
+    container_attach(&c, (widget_t*) &bDeleteEffect, 76, EFFECT_Y_START);
+    container_attach(&c, (widget_t*) &dEffects, 0, EFFECT_Y_START + 13);
+    container_attach(&c, (widget_t*) &lDest, 0, EFFECT_Y_START + 27);
+    container_attach(&c, (widget_t*) &dDest, 30, EFFECT_Y_START + 25);
+
+    container_attach(&c, (widget_t*) &lDestSetting1, 0, EFFECT_Y_START + 39);
+    container_attach(&c, (widget_t*) &lDestSetting2, 0, EFFECT_Y_START + 51);
+    container_attach(&c, (widget_t*) &dDestSetting1, 36, EFFECT_Y_START + 37);
+    container_attach(&c, (widget_t*) &eDestSetting1, 79, EFFECT_Y_START + 37);
+    container_attach(&c, (widget_t*) &eDestSetting2, 79, EFFECT_Y_START + 49);
 }
 
 widget_t* events_getWidget(void) {
@@ -131,23 +203,25 @@ void events_AddEvent(void) {
     if (!new) {
         /* failed to allocate event */
         message_Box("Already at\nmaximum number\nof events", 3, 14, FONT_MEDIUM,
-                MESSAGE_OK, &c);
+                MESSAGE_OK, (widget_t*) &c);
         return;
     }
     event_t *last = events.firstEvent;
-    selectedEvent = 0;
+    selectedEventNum = 0;
     if (!last) {
         /* this is the first event */
         events.firstEvent = new;
     } else {
-        selectedEvent++;
+        selectedEventNum++;
         /* find end of event list */
         for (; last->next != NULL; last = last->next)
-            selectedEvent++;
+            selectedEventNum++;
         /* add new event to end of list */
         last->next = new;
     }
-    events_SetGUIToSelectedEvent();
+    events_UpdateDescription(new);
+    events_UpdateDescrPointers();
+    events_SelectedEventChanged();
 }
 
 void events_DeleteEvent(void) {
@@ -155,16 +229,251 @@ void events_DeleteEvent(void) {
         /* nothing to delete */
         return;
     }
-    if (selectedEvent == 0) {
+    if (selectedEventNum == 0) {
         /* remove first item */
         event_t *nextBuffer = events.firstEvent->next;
-        event_freeEvent(events.firstEvent);
         events.firstEvent = nextBuffer;
     } else {
-        /* find selected event */
-        event_t *deletor = events.firstEvent;
-        uint8_t i = selectedEvent;
-        event_t *previous = NULL;
+        /* find previous event */
+        event_t *prev = events.firstEvent;
+        event_t *previous = events.firstEvent;
+        while (previous->next != selectedEvent) {
+            previous = previous->next;
+        }
+        if (!previous) {
+            /* couldn't find previous */
+            return;
+        }
+        /* remove deletor from event list */
+        previous->next = selectedEvent->next;
+        selectedEventNum--;
+    }
+    /* free effects of event */
+    eventEffect_t *ef = selectedEvent->firstEffect;
+    while (ef) {
+        eventEffect_t *next = ef->next;
+        event_freeEffect(ef);
+        ef = next;
+    }
+    /* free deleted event */
+    event_freeEvent(selectedEvent);
+    events_UpdateDescrPointers();
+    events_SelectedEventChanged();
+}
+
+void events_SelectedEventChanged(void) {
+    /* update the selected event pointer */
+    selectedEvent = events.firstEvent;
+    uint8_t i = selectedEventNum;
+    while (i && selectedEvent) {
+        selectedEvent = selectedEvent->next;
+        i--;
+    }
+    /* selected the first effect of new event */
+    selectedEffectNum = 0;
+    events_SelectedEffectChanged();
+    /* load effect descriptions for this event */
+    events_UpdateEffectDescrPointers();
+    events_SetGUIToSelectedEvent();
+}
+
+void events_SourceChanged(void) {
+    if (!selectedEvent) {
+        /* error */
+        return;
+    }
+    /* initialize values */
+    switch (selectedEvent->srcType) {
+    case EV_SRC_PARAM_HIGHER:
+    case EV_SRC_PARAM_LOWER:
+        selectedEvent->srcParamNum = 0;
+        selectedEvent->srcLimit = 0;
+        selectedEvent->srcParam =
+                eventCompParamPointers[selectedEvent->srcParamNum];
+        break;
+    case EV_SRC_TIM_ZERO:
+        selectedEvent->srcTimerNum = 0;
+        break;
+    case EV_SRC_WAVEFORM_PHASE:
+        selectedEvent->phase = 0;
+        break;
+    }
+    events_UpdateDescription(selectedEvent);
+    events_SetGUIToSelectedEvent();
+}
+
+void events_UpdateDescription(event_t *ev) {
+    /* update description for this event */
+    switch (ev->srcType) {
+    case EV_SRC_PARAM_LOWER:
+    case EV_SRC_PARAM_HIGHER:
+        strcpy(ev->descr, eventCompParamNames[ev->srcParamNum]);
+        char arrow = '<';
+        if (ev->srcType == EV_SRC_PARAM_HIGHER) {
+            arrow = '>';
+        }
+        uint8_t pos = strlen(ev->descr);
+        ev->descr[pos] = arrow;
+        string_fromUintUnits(ev->srcLimit, &ev->descr[pos + 1], 4,
+                unitNames[eventCompParamUnits[ev->srcParamNum]][0],
+                unitNames[eventCompParamUnits[ev->srcParamNum]][1],
+                unitNames[eventCompParamUnits[ev->srcParamNum]][2]);
+        break;
+    case EV_SRC_TIM_ZERO:
+        strcpy(ev->descr, "Timer  =0");
+        ev->descr[5] = (ev->srcTimerNum / 10) + '0';
+        ev->descr[6] = (ev->srcTimerNum % 10) + '0';
+        break;
+    case EV_SRC_TRIG_FALL:
+        strcpy(ev->descr, "Trigger Fall\x19");
+        break;
+    case EV_SRC_TRIG_RISE:
+        strcpy(ev->descr, "Trigger Rise\x18");
+        break;
+    case EV_SRC_WAVEFORM_PHASE:
+        strcpy(ev->descr, "WavePhase=");
+        string_fromUintUnits(ev->phase, &ev->descr[10], 4,
+                unitNames[UNIT_DEGREE][0], unitNames[UNIT_DEGREE][1],
+                unitNames[UNIT_DEGREE][2]);
+        break;
+    }
+}
+
+void events_UpdateDescrPointers(void) {
+    event_t *ev;
+    uint8_t i = 0;
+    for (ev = events.firstEvent; ev != NULL; ev = ev->next) {
+        eventDescriptions[i++] = ev->descr;
+    }
+    eventDescriptions[i] = 0;
+}
+
+void events_SetGUIToSelectedEvent(void) {
+    if (!selectedEvent) {
+        /* set elements invisible */
+        widget_SetInvisible((widget_t*) &dEvents);
+        widget_SetInvisible((widget_t*) &dSource);
+        widget_SetInvisible((widget_t*) &lSource);
+        widget_SetInvisible((widget_t*) &lSrcSetting1);
+        widget_SetInvisible((widget_t*) &eSrcSetting1);
+        widget_SetInvisible((widget_t*) &dSrcParam);
+        widget_SetInvisible((widget_t*) &lSrcSetting2);
+        widget_SetInvisible((widget_t*) &eSrcSetting2);
+
+        /* Effect elements */
+        widget_SetInvisible((widget_t*) &lEffects);
+        widget_SetInvisible((widget_t*) &bAddEffect);
+        widget_SetInvisible((widget_t*) &bDeleteEffect);
+    } else {
+        /* base elements visible */
+        widget_SetVisible((widget_t*) &dEvents);
+        widget_SetVisible((widget_t*) &dSource);
+        widget_SetVisible((widget_t*) &lSource);
+        widget_SetVisible((widget_t*) &lEffects);
+        widget_SetVisible((widget_t*) &bAddEffect);
+        widget_SetVisible((widget_t*) &bDeleteEffect);
+        dSource.value = &selectedEvent->srcType;
+        events_SetGUIToSelectedSource(selectedEvent);
+    }
+    events_SetGUIToSelectedEffect();
+}
+
+void events_SetGUIToSelectedSource(event_t *ev) {
+    widget_SetInvisible((widget_t*) &lSrcSetting1);
+    widget_SetInvisible((widget_t*) &eSrcSetting1);
+    widget_SetInvisible((widget_t*) &dSrcParam);
+    widget_SetInvisible((widget_t*) &lSrcSetting2);
+    widget_SetInvisible((widget_t*) &eSrcSetting2);
+    switch (ev->srcType) {
+    case EV_SRC_PARAM_HIGHER:
+    case EV_SRC_PARAM_LOWER:
+        widget_SetVisible((widget_t*) &lSrcSetting1);
+        label_SetText(&lSrcSetting1, "Param:");
+        widget_SetVisible((widget_t*) &dSrcParam);
+        dSrcParam.value = &ev->srcParamNum;
+        widget_SetVisible((widget_t*) &lSrcSetting2);
+        label_SetText(&lSrcSetting2, "Threshold:");
+        widget_SetVisible((widget_t*) &eSrcSetting2);
+        eSrcSetting2.value = &ev->srcLimit;
+        eSrcSetting2.unit = eventCompParamUnits[ev->srcParamNum];
+        break;
+    case EV_SRC_TRIG_FALL:
+    case EV_SRC_TRIG_RISE:
+        break;
+    case EV_SRC_TIM_ZERO:
+        widget_SetVisible((widget_t*) &lSrcSetting1);
+        label_SetText(&lSrcSetting1, "Timer:");
+        widget_SetVisible((widget_t*) &eSrcSetting1);
+        eSrcSetting1.value = &ev->srcTimerNum;
+        eSrcSetting1.unit = UNIT_ITERATOR;
+        eSrcSetting1.min = &null;
+        eSrcSetting1.max = &maxTimers;
+        break;
+    case EV_SRC_WAVEFORM_PHASE:
+        widget_SetVisible((widget_t*) &lSrcSetting1);
+        label_SetText(&lSrcSetting1, "Phase:");
+        widget_SetVisible((widget_t*) &eSrcSetting1);
+        eSrcSetting1.value = &ev->phase;
+        eSrcSetting1.unit = UNIT_DEGREE;
+        eSrcSetting1.min = &null;
+        eSrcSetting1.max = &maxDegree;
+        break;
+    }
+}
+
+void events_SettingChanged(void) {
+    if (selectedEvent->srcType == EV_SRC_PARAM_HIGHER
+            || selectedEvent->srcType == EV_SRC_PARAM_LOWER) {
+        /* update parameter pointer */
+        selectedEvent->srcParam =
+                eventCompParamPointers[selectedEvent->srcParamNum];
+    }
+    events_UpdateDescription(selectedEvent);
+    events_SetGUIToSelectedSource(selectedEvent);
+}
+
+void events_AddEffect(void) {
+    /* try to allocate new effect */
+    eventEffect_t *new = event_allocateEffect();
+    if (!new) {
+        /* failed to allocate effect */
+        message_Box("Already at\nmaximum number\nof effects", 3, 14,
+                FONT_MEDIUM, MESSAGE_OK, (widget_t*) &c);
+        return;
+    }
+    eventEffect_t *last = selectedEvent->firstEffect;
+    selectedEffectNum = 0;
+    if (!last) {
+        /* this is the first effect */
+        selectedEvent->firstEffect = new;
+    } else {
+        selectedEffectNum++;
+        /* find end of effect list */
+        for (; last->next != NULL; last = last->next)
+            selectedEffectNum++;
+        /* add new event to end of list */
+        last->next = new;
+    }
+    events_UpdateEffectDescription(new);
+    events_UpdateEffectDescrPointers();
+    events_SelectedEffectChanged();
+}
+
+void events_DeleteEffect(void) {
+    if (!selectedEvent->firstEffect) {
+        /* nothing to delete */
+        return;
+    }
+    if (selectedEffectNum == 0) {
+        /* remove first item */
+        eventEffect_t *nextBuffer = selectedEvent->firstEffect->next;
+        event_freeEffect(selectedEvent->firstEffect);
+        selectedEvent->firstEffect = nextBuffer;
+    } else {
+        /* find selected effect */
+        eventEffect_t *deletor = selectedEvent->firstEffect;
+        uint8_t i = selectedEffectNum;
+        eventEffect_t *previous = NULL;
         while (i && deletor) {
             if (i == 1)
                 previous = deletor;
@@ -175,158 +484,200 @@ void events_DeleteEvent(void) {
             /* couldn't find deletor */
             return;
         }
-        /* remove deletor from event list */
+        /* remove deletor from effect list */
         previous->next = deletor->next;
-        event_freeEvent(deletor);
-        selectedEvent--;
+        event_freeEffect(deletor);
+        selectedEffectNum--;
     }
-    events_SetGUIToSelectedEvent();
+    events_UpdateEffectDescrPointers();
+    events_SelectedEffectChanged();
 }
 
-void events_SourceChanged(void){
-    if (!events.firstEvent) {
+void events_SelectedEffectChanged(void) {
+    /* update selected event */
+    if (!selectedEvent) {
+        /* no event selected -> no effect available */
+        selectedEffect = NULL;
+    } else {
+        /* update the selected effect pointer */
+        selectedEffect = selectedEvent->firstEffect;
+        uint8_t i = selectedEffectNum;
+        while (i && selectedEffect) {
+            selectedEffect = selectedEffect->next;
+            i--;
+        }
+    }
+    events_SetGUIToSelectedEffect();
+}
+
+void events_EffectDestChanged(void) {
+    if (!selectedEffect) {
         /* error */
         return;
     }
-    /* find event */
-    event_t *ev = events.firstEvent;
-    uint8_t i = selectedEvent;
-    while (i && ev) {
-        ev = ev->next;
-        i--;
+    /* initialize values */
+    switch (selectedEffect->destType) {
+    case EV_DEST_LOAD_MODE:
+        selectedEffect->destMode = FUNCTION_CC;
+        break;
+    case EV_DEST_LOAD_OFF:
+    case EV_DEST_LOAD_ON:
+    case EV_DEST_TRIG_HIGH:
+    case EV_DEST_TRIG_LOW:
+        /* nothing to do */
+        break;
+    case EV_DEST_SET_PARAM:
+        selectedEffect->destParamNum = 0;
+        selectedEffect->destParam =
+                eventSetParamPointers[selectedEffect->destParamNum];
+        break;
+    case EV_DEST_SET_TIMER:
+        selectedEffect->destTimerNum = 0;
+        selectedEffect->destTimerValue = 0;
+        break;
     }
-    if (!ev) {
-        /* some sort of error, shouldn't happen */
+    events_UpdateEffectDescription(selectedEffect);
+    events_SetGUIToSelectedEffect();
+}
+
+void events_UpdateEffectDescription(eventEffect_t *ef) {
+    switch (ef->destType) {
+    case EV_DEST_LOAD_MODE:
+        strcpy(ef->descr, "Set mode to ");
+        strcpy(&ef->descr[12], loadModeNames[ef->destMode]);
+        break;
+    case EV_DEST_LOAD_OFF:
+        strcpy(ef->descr, "Turn load off");
+        break;
+    case EV_DEST_LOAD_ON:
+        strcpy(ef->descr, "Turn load on");
+        break;
+    case EV_DEST_SET_PARAM:
+        strncpy(ef->descr, eventSetParamNames[ef->destParamNum], 14);
+        uint8_t pos = strlen(ef->descr);
+        ef->descr[pos] = '=';
+        string_fromUintUnits(ef->destSetValue, &ef->descr[pos + 1], 4,
+                unitNames[eventSetParamUnits[ef->destParamNum]][0],
+                unitNames[eventSetParamUnits[ef->destParamNum]][1],
+                unitNames[eventSetParamUnits[ef->destParamNum]][2]);
+        break;
+    case EV_DEST_SET_TIMER:
+        strcpy(ef->descr, "Timer  ");
+        if (ef->destTimerNum > 9) {
+            ef->descr[6] = (ef->destTimerNum / 10) + '0';
+        }
+        ef->descr[7] = (ef->destTimerNum % 10) + '0';
+        ef->descr[8] = '=';
+        string_fromUintUnits(ef->destTimerValue, &ef->descr[9], 4,
+                unitNames[UNIT_TIME][0], unitNames[UNIT_TIME][1],
+                unitNames[UNIT_TIME][2]);
+        break;
+    case EV_DEST_TRIG_HIGH:
+        strcpy(ef->descr, "Trigger high");
+        break;
+    case EV_DEST_TRIG_LOW:
+        strcpy(ef->descr, "Trigger low");
+        break;
+    }
+}
+
+void events_UpdateEffectDescrPointers(void) {
+    if(!selectedEvent) {
+        /* no event available -> no effects available */
         return;
     }
-    /* initialize values */
-    switch(ev->srcType) {
-    case EV_SRC_PARAM_HIGHER:
-    case EV_SRC_PARAM_LOWER:
-        ev->srcParamNum = 0;
-        ev->srcLimit = 0;
-        ev->srcParam = eventCompParamPointers[ev->srcParamNum];
-        break;
-    case EV_SRC_TIM_ZERO:
-        ev->srcTimerNum = 0;
-        break;
-    case EV_SRC_WAVEFORM_PHASE:
-        ev->phase = 0;
-        break;
-    }
-    events_SetGUIToSelectedEvent();
-}
-
-void events_UpdateDescriptions(void) {
-    event_t *ev;
+    eventEffect_t *ef;
     uint8_t i = 0;
-    for (ev = events.firstEvent; ev != NULL; ev = ev->next) {
-        eventDescriptions[i++] = ev->descr;
-        /* update description for this event */
-        switch (ev->srcType) {
-        case EV_SRC_PARAM_LOWER:
-        case EV_SRC_PARAM_HIGHER:
-            strcpy(ev->descr, eventCompParamNames[ev->srcParamNum]);
-            char arrow = '<';
-            if (ev->srcType == EV_SRC_PARAM_HIGHER) {
-                ev->descr[11] = '>';
-            }
-            uint8_t pos = strlen(ev->descr);
-            ev->descr[pos] = arrow;
-            string_fromUintUnits(ev->srcLimit, &ev->descr[pos + 1], 4,
-                    unitNames[eventCompParamUnits[ev->srcParamNum]][0],
-                    unitNames[eventCompParamUnits[ev->srcParamNum]][1],
-                    unitNames[eventCompParamUnits[ev->srcParamNum]][2]);
-            break;
-        case EV_SRC_TIM_ZERO:
-            strcpy(ev->descr, "Timer  =0");
-            ev->descr[5] = (ev->srcTimerNum / 10) + '0';
-            ev->descr[6] = (ev->srcTimerNum % 10) + '0';
-            break;
-        case EV_SRC_TRIG_FALL:
-            strcpy(ev->descr, "Trigger Fall\x19");
-            break;
-        case EV_SRC_TRIG_RISE:
-            strcpy(ev->descr, "Trigger Rise\x18");
-            break;
-        case EV_SRC_WAVEFORM_PHASE:
-            strcpy(ev->descr, "WavePhase=");
-            string_fromUintUnits(ev->phase, &ev->descr[10], 4,
-                    unitNames[UNIT_DEGREE][0],
-                    unitNames[UNIT_DEGREE][1],
-                    unitNames[UNIT_DEGREE][2]);
-            break;
-        }
+    for (ef = selectedEvent->firstEffect; ef != NULL; ef = ef->next) {
+        effectDescriptions[i++] = ef->descr;
     }
-    eventDescriptions[i] = 0;
+    effectDescriptions[i] = 0;
 }
 
-void events_SetGUIToSelectedEvent(void) {
-    events_UpdateDescriptions();
-    /* set elements invisible */
-    dEvents.base.flags.visible = 0;
-    dSource.base.flags.visible = 0;
-    lSource.base.flags.visible = 0;
-    lSrcSetting1.base.flags.visible = 0;
-    eSrcSetting1.base.flags.visible = 0;
-    dSrcParam.base.flags.visible = 0;
-    lSrcSetting2.base.flags.visible = 0;
-    eSrcSetting2.base.flags.visible = 0;
-    /* check if there is an event */
-    if (events.firstEvent) {
+void events_SetGUIToSelectedEffect(void) {
+    if (!selectedEffect) {
+        /* set elements invisible */
+        widget_SetInvisible((widget_t*) &dEffects);
+        widget_SetInvisible((widget_t*) &lDest);
+        widget_SetInvisible((widget_t*) &dDest);
+        widget_SetInvisible((widget_t*) &lDestSetting1);
+        widget_SetInvisible((widget_t*) &dDestSetting1);
+        widget_SetInvisible((widget_t*) &eDestSetting1);
+        widget_SetInvisible((widget_t*) &lDestSetting2);
+        widget_SetInvisible((widget_t*) &eDestSetting2);
+    } else {
         /* base elements visible */
-        dEvents.base.flags.visible = 1;
-        dSource.base.flags.visible = 1;
-        lSource.base.flags.visible = 1;
-
-        /* find event */
-        event_t *ev = events.firstEvent;
-        uint8_t i = selectedEvent;
-        while (i && ev) {
-            ev = ev->next;
-            i--;
-        }
-        if (!ev) {
-            /* some sort of error, shouldn't happen */
-            return;
-        }
-        dSource.value = &ev->srcType;
-        switch (ev->srcType) {
-        case EV_SRC_PARAM_HIGHER:
-        case EV_SRC_PARAM_LOWER:
-            lSrcSetting1.base.flags.visible = 1;
-            label_SetText(&lSrcSetting1, "Param:");
-            dSrcParam.base.flags.visible = 1;
-            dSrcParam.value = &ev->srcParamNum;
-            lSrcSetting2.base.flags.visible = 1;
-            label_SetText(&lSrcSetting2, "Threshold:");
-            eSrcSetting2.base.flags.visible = 1;
-            eSrcSetting2.value = &ev->srcLimit;
-            eSrcSetting2.unit = eventCompParamUnits[ev->srcParamNum];
-            break;
-        case EV_SRC_TRIG_FALL:
-        case EV_SRC_TRIG_RISE:
-            break;
-        case EV_SRC_TIM_ZERO:
-            lSrcSetting1.base.flags.visible = 1;
-            label_SetText(&lSrcSetting1, "Timer:");
-            eSrcSetting1.base.flags.visible = 1;
-            eSrcSetting1.value = &ev->srcTimerNum;
-            eSrcSetting1.unit = UNIT_ITERATOR;
-            eSrcSetting1.min = &null;
-            eSrcSetting1.max = &maxTimers;
-            break;
-        case EV_SRC_WAVEFORM_PHASE:
-            lSrcSetting1.base.flags.visible = 1;
-            label_SetText(&lSrcSetting1, "Phase:");
-            eSrcSetting1.base.flags.visible = 1;
-            eSrcSetting1.value = &ev->phase;
-            eSrcSetting1.unit = UNIT_DEGREE;
-            eSrcSetting1.min = &null;
-            eSrcSetting1.max = &maxDegree;
-            break;
-        }
+        widget_SetVisible((widget_t*) &dEffects);
+        widget_SetVisible((widget_t*) &lDest);
+        widget_SetVisible((widget_t*) &dDest);
+        dDest.value = &selectedEffect->destType;
+        events_SetGUIToSelectedDest(selectedEffect);
     }
+}
+
+void events_SetGUIToSelectedDest(eventEffect_t *ef) {
+    widget_SetInvisible((widget_t*) &lDestSetting1);
+    widget_SetInvisible((widget_t*) &dDestSetting1);
+    widget_SetInvisible((widget_t*) &eDestSetting1);
+    widget_SetInvisible((widget_t*) &lDestSetting2);
+    widget_SetInvisible((widget_t*) &eDestSetting2);
+    switch (ef->destType) {
+    case EV_DEST_LOAD_MODE:
+        widget_SetVisible((widget_t*) &lDestSetting1);
+        label_SetText(&lDestSetting1, "Mode:");
+        widget_SetVisible((widget_t*) &dDestSetting1);
+        dDestSetting1.value = &ef->destMode;
+        dDestSetting1.itemlist = loadModeList;
+        break;
+    case EV_DEST_LOAD_OFF:
+    case EV_DEST_LOAD_ON:
+        /* nothing to do */
+        break;
+    case EV_DEST_SET_PARAM:
+        widget_SetVisible((widget_t*) &lDestSetting1);
+        label_SetText(&lDestSetting1, "Param:");
+        widget_SetVisible((widget_t*) &dDestSetting1);
+        dDestSetting1.value = &ef->destParamNum;
+        dDestSetting1.itemlist = setParamList;
+        widget_SetVisible((widget_t*) &lDestSetting2);
+        label_SetText(&lDestSetting2, "Value:");
+        widget_SetVisible((widget_t*) &eDestSetting2);
+        eDestSetting2.value = &ef->destSetValue;
+        eDestSetting2.unit = eventSetParamUnits[ef->destParamNum];
+        eDestSetting1.min = &null;
+        eDestSetting1.max = NULL;
+        break;
+    case EV_DEST_SET_TIMER:
+        widget_SetVisible((widget_t*) &lDestSetting1);
+        label_SetText(&lDestSetting1, "Timer:");
+        widget_SetVisible((widget_t*) &eDestSetting1);
+        eDestSetting1.value = &ef->destTimerNum;
+        eDestSetting1.unit = UNIT_ITERATOR;
+        eDestSetting1.min = &null;
+        eDestSetting1.max = &maxTimers;
+        widget_SetVisible((widget_t*) &lDestSetting2);
+        label_SetText(&lDestSetting2, "Value:");
+        widget_SetVisible((widget_t*) &eDestSetting2);
+        eDestSetting2.value = &ef->destTimerValue;
+        eDestSetting2.unit = UNIT_TIME;
+        eDestSetting2.min = &null;
+        eDestSetting2.max = &maxTimerValue;
+        break;
+    case EV_DEST_TRIG_HIGH:
+    case EV_DEST_TRIG_LOW:
+        /* nothing to do */
+        break;
+    }
+}
+
+void events_EffectSettingChanged(void) {
+    if (selectedEffect->destType == EV_DEST_SET_PARAM) {
+        /* update parameter pointer */
+        selectedEffect->destParam =
+                eventSetParamPointers[selectedEffect->destParamNum];
+    }
+    events_UpdateEffectDescription(selectedEffect);
+    events_SetGUIToSelectedDest(selectedEffect);
 }
 
 void events_HandleEvents(void) {
@@ -447,462 +798,10 @@ eventEffect_t* event_allocateEffect(void) {
     uint8_t i;
     for (i = 0; i < EV_MAXEFFECTS; i++) {
         if (!effectList[i].inUse) {
+            memset(&effectList[i], 0, sizeof(eventEffect_t));
             effectList[i].inUse = 1;
             return &effectList[i];
         }
     }
     return NULL;
 }
-
-//void events_getDescr(struct event ev, char* descr) {
-//// construct source description
-//    switch (ev.srcType) {
-//    case EV_SRC_PARAM_HIGHER:
-//        strcpy(descr, "Par>:      ");
-//        strncpy(&descr[5], eventCompParamNames[ev.srcParamNum], 14);
-//        break;
-//    case EV_SRC_PARAM_LOWER:
-//        strcpy(descr, "Par<:      ");
-//        string_copyn(&descr[5], eventCompParamNames[ev.srcParamNum], 14);
-//        break;
-//    case EV_SRC_TIM_ZERO:
-//        strcpy(descr, "Timer  =0");
-//        descr[5] = (ev.srcTimerNum / 10) + '0';
-//        descr[6] = (ev.srcTimerNum % 10) + '0';
-//        break;
-//    case EV_SRC_TRIG_FALL:
-//        strcpy(descr, "Trigger Fall\x19");
-//        break;
-//    case EV_SRC_TRIG_RISE:
-//        strcpy(descr, "Trigger Rise\x18");
-//        break;
-//    case EV_SRC_WAVEFORM_PHASE:
-//        strcpy(descr, "WavePhase");
-//        break;
-//    }
-//    descr[20] = 0;
-//}
-//
-//void events_getEffectDescr(struct effect ef, char *descr) {
-//    switch (ef.destType) {
-//    case EV_DEST_NOTHING:
-//        strcpy(descr, "No effect");
-//        break;
-//    case EV_DEST_LOAD_MODE:
-//        switch (ef.destMode) {
-//        case FUNCTION_CC:
-//            strcpy(descr, "Set mode to CC");
-//            break;
-//        case FUNCTION_CV:
-//            strcpy(descr, "Set mode to CV");
-//            break;
-//        case FUNCTION_CP:
-//            strcpy(descr, "Set mode to CP");
-//            break;
-//        case FUNCTION_CR:
-//            strcpy(descr, "Set mode to CR");
-//            break;
-//        default:
-//            strcpy(descr, "ERROR");
-//        }
-//        break;
-//    case EV_DEST_LOAD_OFF:
-//        strcpy(descr, "Turn load off");
-//        break;
-//    case EV_DEST_LOAD_ON:
-//        strcpy(descr, "Turn load on");
-//        break;
-//    case EV_DEST_SET_PARAM:
-//        strcpy(descr, "Par=:      ");
-//        strncpy(&descr[5], eventSetParamNames[ef.destParamNum], 14);
-//        break;
-//    case EV_DEST_SET_TIMER:
-//        strcpy(descr, "Set timer   ");
-//        descr[10] = (ef.destTimerNum / 10) + '0';
-//        descr[11] = (ef.destTimerNum % 10) + '0';
-//        break;
-//    case EV_DEST_TRIG_HIGH:
-//        strcpy(descr, "Trigger high");
-//        break;
-//    case EV_DEST_TRIG_LOW:
-//        strcpy(descr, "Trigger low");
-//        break;
-//    }
-//}
-//
-//void events_menu(void) {
-//    char eventDescr[EV_MAXEVENTS][21];
-//    char *descrList[EV_MAXEVENTS];
-//    uint8_t i;
-//    int8_t ev = 0;
-//    do {
-//        for (i = 0; i < EV_MAXEVENTS; i++) {
-//            events_getSrcDescr(events.evlist[i], eventDescr[i]);
-//            descrList[i] = eventDescr[i];
-//        }
-//        ev = menu_ItemChooseDialog(
-//                "\xCD\xCD\xCD\xCD\xCD" "EVENT LIST\xCD\xCD\xCD\xCD\xCD\xCD",
-//                descrList,
-//                EV_MAXEVENTS, ev);
-//        if (ev >= 0) {
-//            events_editEventMenu(&events.evlist[ev]);
-//        }
-//    } while (ev >= 0);
-//}
-//
-//void events_effectMenu(struct event *ev) {
-//    char effectDescr[EV_MAXEFFECTS][21];
-//    char *descrList[EV_MAXEFFECTS];
-//    uint8_t i;
-//    int8_t ef = 0;
-//    do {
-//        for (i = 0; i < EV_MAXEFFECTS; i++) {
-//            events_getEffectDescr(ev->effects[i], effectDescr[i]);
-//            descrList[i] = effectDescr[i];
-//        }
-//        ef = menu_ItemChooseDialog(
-//                "\xCD\xCD\xCD\xCD\xCD" "EFFECT LIST\xCD\xCD\xCD\xCD\xCD",
-//                descrList,
-//                EV_MAXEFFECTS, ef);
-//        if (ef >= 0) {
-//            events_editEffectMenu(&ev->effects[ef]);
-//        }
-//    } while (ef >= 0);
-//}
-//
-//void events_editEventMenu(struct event *ev) {
-//    volatile uint8_t selectedRow = 1;
-//    uint32_t button;
-//    int32_t encoder;
-//#define EV_ROW_SRC_SRC          1
-//#define EV_ROW_SRC_TIMER        2
-//#define EV_ROW_SRC_PARAM        3
-//#define EV_ROW_SRC_VALUE        4
-//#define EV_ROW_SRC_PHASE        5
-//#define EV_ROW_SRC_EFFECTS      6
-//    uint8_t rowContent[8];
-//    do {
-//        while (hal_getButton())
-//            ;
-//
-//        int8_t i;
-//        for (i = 0; i < 8; i++)
-//            rowContent[i] = 0;
-//        evSourceType_t src = ev->srcType;
-//        // create menu display
-//        screen_Clear();
-//        screen_FastString6x8(
-//                "\xCD\xCD\xCD\xCD\xCD" "EDIT EVENT\xCD\xCD\xCD\xCD\xCD\xCD", 0,
-//                0);
-//        // source display
-//        screen_FastString6x8("Src:", 6, 1);
-//        screen_FastString6x8(eventSrcNames[src], 30, 1);
-//        rowContent[1] = EV_ROW_SRC_SRC;
-//        char value[11];
-//        switch (src) {
-//        case EV_SRC_TIM_ZERO:
-//            screen_FastString6x8("Timer:", 6, 2);
-//            screen_FastChar6x8(ev->srcTimerNum + '0', 48, 2);
-//            rowContent[2] = EV_ROW_SRC_TIMER;
-//            break;
-//        case EV_SRC_PARAM_HIGHER:
-//        case EV_SRC_PARAM_LOWER:
-//            screen_FastString6x8("Param:", 6, 2);
-//            screen_FastString6x8(eventCompParamNames[ev->srcParamNum], 48, 2);
-//            rowContent[2] = EV_ROW_SRC_PARAM;
-//            screen_FastString6x8("Value:", 6, 3);
-//            string_fromUintUnits(ev->srcLimit, value, 5,
-//                    eventCompParamUnits0[ev->srcParamNum],
-//                    eventCompParamUnits3[ev->srcParamNum],
-//                    eventCompParamUnits6[ev->srcParamNum]);
-//            screen_FastString6x8(value, 48, 3);
-//            rowContent[3] = EV_ROW_SRC_VALUE;
-//            break;
-//        case EV_SRC_WAVEFORM_PHASE:
-//            screen_FastString6x8("Phase:", 6, 2);
-//            string_fromUintUnits(ev->srcLimit, value, 5, "m\xF8", "\xF8", NULL);
-//            screen_FastString6x8(value, 48, 2);
-//            rowContent[2] = EV_ROW_SRC_PHASE;
-//            break;
-//        }
-//        if (src != EV_SRC_DISABLED) {
-//            screen_FastString6x8("Event effects", 6, 7);
-//            rowContent[7] = EV_ROW_SRC_EFFECTS;
-//        }
-//        screen_FastChar6x8(0x1A, 0, selectedRow);
-//        // wait for user input
-//        do {
-//            button = hal_getButton();
-//            encoder = hal_getEncoderMovement();
-//        } while (!button && !encoder);
-//
-//        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
-//            // move one entry down (if possible)
-//            for (i = selectedRow + 1; i < 8; i++) {
-//                if (rowContent[i] > 0) {
-//                    selectedRow = i;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if ((button & HAL_BUTTON_UP) || encoder < 0) {
-//            // move one entry up
-//            for (i = selectedRow - 1; i > 0; i--) {
-//                if (rowContent[i] > 0) {
-//                    selectedRow = i;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
-//            switch (rowContent[selectedRow]) {
-//            case EV_ROW_SRC_SRC: {
-//                // change source settings
-//                char descr[EV_NUM_SOURCETYPES][21];
-//                char *itemList[EV_NUM_SOURCETYPES];
-//                uint8_t i;
-//                for (i = 0; i < EV_NUM_SOURCETYPES; i++) {
-//                    string_copy(descr[i], eventSrcNames[i]);
-//                    itemList[i] = descr[i];
-//                }
-//                int8_t sel = menu_ItemChooseDialog("Select event source:",
-//                        itemList,
-//                        EV_NUM_SOURCETYPES, ev->srcType);
-//                if (sel >= 0) {
-//                    ev->srcType = sel;
-//                }
-//            }
-//                break;
-//            case EV_ROW_SRC_PARAM: {
-//                // change compare parameter
-//                char descr[EV_NUM_COMPPARAMS][21];
-//                char *itemList[EV_NUM_COMPPARAMS];
-//                uint8_t i;
-//                for (i = 0; i < EV_NUM_COMPPARAMS; i++) {
-//                    string_copy(descr[i], eventCompParamNames[i]);
-//                    itemList[i] = descr[i];
-//                }
-//                int8_t sel = menu_ItemChooseDialog("Select parameter:",
-//                        itemList,
-//                        EV_NUM_COMPPARAMS, ev->srcParamNum);
-//                if (sel >= 0) {
-//                    ev->srcParamNum = sel;
-//                    ev->srcParam = eventCompParamPointers[sel];
-//                }
-//            }
-//                break;
-//            case EV_ROW_SRC_VALUE: {
-//                // change compare value
-//                uint32_t val;
-//                if (menu_getInputValue(&val, "param limit", 0, 200000000,
-//                        eventCompParamUnits0[ev->srcParamNum],
-//                        eventCompParamUnits3[ev->srcParamNum],
-//                        eventCompParamUnits6[ev->srcParamNum])) {
-//                    ev->srcLimit = val;
-//                }
-//            }
-//                break;
-//            case EV_ROW_SRC_TIMER: {
-//                // select timer
-//                uint32_t tim;
-//                if (menu_getInputValue(&tim, "timer number", 0,
-//                EV_MAXTIMERS - 1, "Timer", NULL, NULL)) {
-//                    ev->srcTimerNum = tim;
-//                }
-//            }
-//                break;
-//            case EV_ROW_SRC_PHASE: {
-//                // change phase value
-//                uint32_t val;
-//                if (menu_getInputValue(&val, "Phase:", 0, 360000, "mDeg",
-//                        "Degree", NULL)) {
-//                    ev->srcLimit = val;
-//                }
-//            }
-//                break;
-//            case EV_ROW_SRC_EFFECTS:
-//                events_effectMenu(ev);
-//                break;
-//            }
-//        }
-//    } while (!(button & HAL_BUTTON_ESC));
-//}
-//
-//void events_editEffectMenu(struct effect *ef) {
-//    uint8_t selectedRow = 1;
-//    uint32_t button;
-//    int32_t encoder;
-//#define EV_ROW_EFF_EFFECT       1
-//#define EV_ROW_EFF_TIMER        2
-//#define EV_ROW_EFF_TIMVAL       3
-//#define EV_ROW_EFF_PARAM        4
-//#define EV_ROW_EFF_PHASE        5
-//#define EV_ROW_EFF_VALUE        6
-//#define EV_ROW_EFF_MODE         7
-//    uint8_t rowContent[8];
-//    do {
-//        while (hal_getButton())
-//            ;
-//
-//        int8_t i;
-//        for (i = 0; i < 8; i++)
-//            rowContent[i] = 0;
-//        // create menu display
-//        screen_Clear();
-//        screen_FastString6x8(
-//                "\xCD\xCD\xCD\xCD\xCD" "EDIT EFFECT\xCD\xCD\xCD\xCD\xCD", 0, 0);
-//        // destination display
-//        screen_FastString6x8("Effect:", 6, 1);
-//        screen_FastString6x8(eventDestNames[ef->destType], 48, 1);
-//        rowContent[1] = EV_ROW_EFF_EFFECT;
-//        char value[11];
-//        switch (ef->destType) {
-//        case EV_DEST_SET_TIMER:
-//            screen_FastString6x8("Timer:", 6, 2);
-//            screen_FastChar6x8(ef->destTimerNum + '0', 48, 2);
-//            rowContent[2] = EV_ROW_EFF_TIMER;
-//            screen_FastString6x8("Value:", 6, 3);
-//            string_fromUintUnits(ef->destTimerValue, value, 5, "ms", "s", NULL);
-//            screen_FastString6x8(value, 48, 3);
-//            rowContent[3] = EV_ROW_EFF_TIMVAL;
-//            break;
-//        case EV_DEST_SET_PARAM:
-//            screen_FastString6x8("Param:", 6, 2);
-//            screen_FastString6x8(eventSetParamNames[ef->destParamNum], 48, 2);
-//            rowContent[2] = EV_ROW_EFF_PARAM;
-//            screen_FastString6x8("Value:", 6, 3);
-//            string_fromUintUnits(ef->destSetValue, value, 5,
-//                    eventCompParamUnits0[ef->destParamNum],
-//                    eventCompParamUnits3[ef->destParamNum],
-//                    eventCompParamUnits6[ef->destParamNum]);
-//            screen_FastString6x8(value, 48, 3);
-//            rowContent[3] = EV_ROW_EFF_VALUE;
-//            break;
-//        case EV_DEST_LOAD_MODE:
-//            screen_FastString6x8("Mode: C", 6, 2);
-//            switch (ef->destMode) {
-//            case FUNCTION_CC:
-//                screen_FastChar6x8('C', 48, 2);
-//                break;
-//            case FUNCTION_CV:
-//                screen_FastChar6x8('V', 48, 2);
-//                break;
-//            case FUNCTION_CR:
-//                screen_FastChar6x8('R', 48, 2);
-//                break;
-//            case FUNCTION_CP:
-//                screen_FastChar6x8('P', 48, 2);
-//                break;
-//            }
-//            rowContent[2] = EV_ROW_EFF_MODE;
-//            break;
-//        }
-//
-//        screen_FastChar6x8(0x1A, 0, selectedRow);
-//        // wait for user input
-//        do {
-//            button = hal_getButton();
-//            encoder = hal_getEncoderMovement();
-//        } while (!button && !encoder);
-//
-//        if ((button & HAL_BUTTON_DOWN) || encoder > 0) {
-//            // move one entry down (if possible)
-//            for (i = selectedRow + 1; i < 8; i++) {
-//                if (rowContent[i] > 0) {
-//                    selectedRow = i;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if ((button & HAL_BUTTON_UP) || encoder < 0) {
-//            // move one entry up
-//            for (i = selectedRow - 1; i > 0; i--) {
-//                if (rowContent[i] > 0) {
-//                    selectedRow = i;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if ((button & HAL_BUTTON_ENTER) || (button & HAL_BUTTON_ENCODER)) {
-//            switch (rowContent[selectedRow]) {
-//            case EV_ROW_EFF_EFFECT: {
-//                // change destination settings
-//                char descr[EV_NUM_DESTTYPES][21];
-//                char *itemList[EV_NUM_DESTTYPES];
-//                uint8_t i;
-//                for (i = 0; i < EV_NUM_DESTTYPES; i++) {
-//                    string_copy(descr[i], eventDestNames[i]);
-//                    itemList[i] = descr[i];
-//                }
-//                int8_t sel = menu_ItemChooseDialog("Select effect:", itemList,
-//                EV_NUM_DESTTYPES, ef->destType);
-//                if (sel >= 0) {
-//                    ef->destType = sel;
-//                }
-//            }
-//                break;
-//            case EV_ROW_EFF_PARAM: {
-//                // change set parameter
-//                char descr[EV_NUM_SETPARAMS][21];
-//                char *itemList[EV_NUM_SETPARAMS];
-//                uint8_t i;
-//                for (i = 0; i < EV_NUM_SETPARAMS; i++) {
-//                    string_copy(descr[i], eventSetParamNames[i]);
-//                    itemList[i] = descr[i];
-//                }
-//                int8_t sel = menu_ItemChooseDialog("Select parameter:",
-//                        itemList,
-//                        EV_NUM_SETPARAMS, ef->destParamNum);
-//                if (sel >= 0) {
-//                    ef->destParamNum = sel;
-//                    ef->destParam = eventSetParamPointers[sel];
-//                }
-//            }
-//                break;
-//            case EV_ROW_EFF_VALUE: {
-//                // change compare value
-//                uint32_t val;
-//                if (menu_getInputValue(&val, "param value", 0, 200000000,
-//                        eventSetParamUnits0[ef->destParamNum],
-//                        eventSetParamUnits3[ef->destParamNum],
-//                        eventSetParamUnits6[ef->destParamNum])) {
-//                    ef->destSetValue = val;
-//                }
-//            }
-//                break;
-//            case EV_ROW_EFF_TIMER: {
-//                // select timer
-//                uint32_t tim;
-//                if (menu_getInputValue(&tim, "timer number", 0,
-//                EV_MAXTIMERS - 1, "Timer", NULL, NULL)) {
-//                    ef->destTimerNum = tim;
-//                }
-//            }
-//                break;
-//            case EV_ROW_EFF_TIMVAL: {
-//                // change timer start value
-//                uint32_t time;
-//                if (menu_getInputValue(&time, "time", 0, 3600000, "ms", "s",
-//                NULL)) {
-//                    ef->destTimerValue = time;
-//                }
-//            }
-//                break;
-//            case EV_ROW_EFF_MODE: {
-//                // change load mode
-//                char *modeList[4] = { "CC", "CV", "CR", "CP" };
-//                int8_t sel = menu_ItemChooseDialog("Select load mode:",
-//                        modeList, 4, ef->destMode);
-//                if (sel >= 0) {
-//                    ef->destMode = sel;
-//                }
-//            }
-//                break;
-//            }
-//        }
-//    } while (!(button & HAL_BUTTON_ESC));
-//}

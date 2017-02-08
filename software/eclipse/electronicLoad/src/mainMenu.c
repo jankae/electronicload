@@ -24,17 +24,17 @@ void mainMenu_Init() {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lBig, 0, 1);
-    container_attach(&c, &lSmall1, 0, 21);
-    container_attach(&c, &lSmall2, 46, 21);
+    container_attach(&c, (widget_t *) &lBig, 0, 1);
+    container_attach(&c, (widget_t *) &lSmall1, 0, 21);
+    container_attach(&c, (widget_t *) &lSmall2, 46, 21);
 
-    container_attach(&c, &lOn, 92, 3);
-    container_attach(&c, &lOverride1, 92, 21);
-    container_attach(&c, &lOverride2, 92, 27);
+    container_attach(&c, (widget_t *) &lOn, 92, 3);
+    container_attach(&c, (widget_t *) &lOverride1, 92, 21);
+    container_attach(&c, (widget_t *) &lOverride2, 92, 27);
 
-    container_attach(&c, &lMode, 0, 45);
+    container_attach(&c, (widget_t *) &lMode, 0, 45);
 
-    container_attach(&c, &eSetting, 41, 43);
+    container_attach(&c, (widget_t *) &eSetting, 41, 43);
 }
 
 widget_t* mainMenu_getWidget(void) {

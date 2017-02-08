@@ -6,6 +6,8 @@
  */
 #include "loadFunctions.h"
 
+const char loadModeNames[4][3] = { "CC", "CV", "CR", "CP" };
+
 /**
  * \brief Initializes loadregulation
  *
@@ -227,9 +229,9 @@ void load_update(void) {
             break;
         }
         // update trigger out
-        if(events.triggerOutState==1){
+        if (events.triggerOutState == 1) {
             hal_setTriggerOut(1);
-        } else if(events.triggerOutState==-1){
+        } else if (events.triggerOutState == -1) {
             hal_setTriggerOut(0);
         }
         errors_Check();

@@ -168,24 +168,24 @@ void waveform_Init(void) {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lWave, 0, 2);
-    container_attach(&c, &lParam, 0, 14);
-    container_attach(&c, &lMin, 0, 26);
-    container_attach(&c, &lMax, 0, 38);
-    container_attach(&c, &lAmplitude, 0, 50);
-    container_attach(&c, &lOffset, 0, 62);
-    container_attach(&c, &lPeriod, 0, 74);
-    container_attach(&c, &lFreq, 0, 86);
+    container_attach(&c, (widget_t *) &lWave, 0, 2);
+    container_attach(&c, (widget_t *) &lParam, 0, 14);
+    container_attach(&c, (widget_t *) &lMin, 0, 26);
+    container_attach(&c, (widget_t *) &lMax, 0, 38);
+    container_attach(&c, (widget_t *) &lAmplitude, 0, 50);
+    container_attach(&c, (widget_t *) &lOffset, 0, 62);
+    container_attach(&c, (widget_t *) &lPeriod, 0, 74);
+    container_attach(&c, (widget_t *) &lFreq, 0, 86);
 
-    container_attach(&c, &bOn, 36, 0);
-    container_attach(&c, &dWave, 48, 0);
-    container_attach(&c, &dParam, 36, 12);
-    container_attach(&c, &eMin, 60, 24);
-    container_attach(&c, &eMax, 60, 36);
-    container_attach(&c, &eAmplitude, 60, 48);
-    container_attach(&c, &eOffset, 60, 60);
-    container_attach(&c, &ePeriod, 60, 72);
-    container_attach(&c, &eFreq, 60, 84);
+    container_attach(&c, (widget_t *) &bOn, 36, 0);
+    container_attach(&c, (widget_t *) &dWave, 48, 0);
+    container_attach(&c, (widget_t *) &dParam, 36, 12);
+    container_attach(&c, (widget_t *) &eMin, 60, 24);
+    container_attach(&c, (widget_t *) &eMax, 60, 36);
+    container_attach(&c, (widget_t *) &eAmplitude, 60, 48);
+    container_attach(&c, (widget_t *) &eOffset, 60, 60);
+    container_attach(&c, (widget_t *) &ePeriod, 60, 72);
+    container_attach(&c, (widget_t *) &eFreq, 60, 84);
 }
 
 widget_t* waveform_getWidget(void) {

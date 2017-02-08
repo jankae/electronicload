@@ -413,7 +413,7 @@ void screen_Text6x8(const char *src, uint8_t x, uint8_t ypage) {
     uint8_t xbuf = x;
     while (*src) {
         // try to display next word
-        char *c = src;
+        const char *c = src;
         uint8_t wordlength = 0;
         while (*c != ' ' && *c) {
             wordlength++;

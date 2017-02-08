@@ -8,7 +8,7 @@ static label_t lbaud, lMaxCurrent, lMaxPower, lMinVoltage, lMaxVoltage,
         lMinResist, lMaxResist, lOnError;
 static button_t bDefLow, bDefHigh, bLoad, bSave;
 static checkbox_t bOnError;
-static char *entries[8];
+static const char *entries[8];
 static const char availableBaudrates[7][7] = { "1200", "4800", "9600", "19200",
         "38400", "57600", "115200" };
 
@@ -59,29 +59,29 @@ void settings_Init(void) {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lbaud, 0, 2);
-    container_attach(&c, &dBaud, 60, 0);
-    container_attach(&c, &bDefLow, 0, 12);
-    container_attach(&c, &bDefHigh, 60, 12);
-    container_attach(&c, &lMaxCurrent, 0, 26);
-    container_attach(&c, &lMaxPower, 0, 38);
-    container_attach(&c, &lMinVoltage, 0, 50);
-    container_attach(&c, &lMaxVoltage, 0, 62);
-    container_attach(&c, &lMinResist, 0, 74);
-    container_attach(&c, &lMaxResist, 0, 86);
+    container_attach(&c, (widget_t *) &lbaud, 0, 2);
+    container_attach(&c, (widget_t *) &dBaud, 60, 0);
+    container_attach(&c, (widget_t *) &bDefLow, 0, 12);
+    container_attach(&c, (widget_t *) &bDefHigh, 60, 12);
+    container_attach(&c, (widget_t *) &lMaxCurrent, 0, 26);
+    container_attach(&c, (widget_t *) &lMaxPower, 0, 38);
+    container_attach(&c, (widget_t *) &lMinVoltage, 0, 50);
+    container_attach(&c, (widget_t *) &lMaxVoltage, 0, 62);
+    container_attach(&c, (widget_t *) &lMinResist, 0, 74);
+    container_attach(&c, (widget_t *) &lMaxResist, 0, 86);
 
-    container_attach(&c, &eMaxCurrent, 60, 24);
-    container_attach(&c, &eMaxPower, 60, 36);
-    container_attach(&c, &eMinVoltage, 60, 48);
-    container_attach(&c, &eMaxVoltage, 60, 60);
-    container_attach(&c, &eMinResist, 60, 72);
-    container_attach(&c, &eMaxResist, 60, 84);
+    container_attach(&c, (widget_t *) &eMaxCurrent, 60, 24);
+    container_attach(&c, (widget_t *) &eMaxPower, 60, 36);
+    container_attach(&c, (widget_t *) &eMinVoltage, 60, 48);
+    container_attach(&c, (widget_t *) &eMaxVoltage, 60, 60);
+    container_attach(&c, (widget_t *) &eMinResist, 60, 72);
+    container_attach(&c, (widget_t *) &eMaxResist, 60, 84);
 
-    container_attach(&c, &lOnError, 0, 98);
-    container_attach(&c, &bOnError, 108, 96);
+    container_attach(&c, (widget_t *) &lOnError, 0, 98);
+    container_attach(&c, (widget_t *) &bOnError, 108, 96);
 
-    container_attach(&c, &bLoad, 60, 109);
-    container_attach(&c, &bSave, 93, 109);
+    container_attach(&c, (widget_t *) &bLoad, 60, 109);
+    container_attach(&c, (widget_t *) &bSave, 93, 109);
 }
 
 widget_t* settings_getWidget(void) {
@@ -177,19 +177,19 @@ void settings_setDefaultHigh(void) {
 
 void settings_LoadMenu(void) {
     GUIMessageResult_t res = message_Box("Load values\nfrom FLASH?", 2, 12,
-            FONT_MEDIUM, MESSAGE_OK_ABORT, &bLoad);
+            FONT_MEDIUM, MESSAGE_OK_ABORT, (widget_t *) &bLoad);
     if (res == MESSAGE_RES_OK) {
         if (settings_readFromFlash()) {
             /* failed to read values */
             message_Box("No data in FLASH", 1, 16, FONT_MEDIUM, MESSAGE_OK,
-                    &bLoad);
+                    (widget_t *) &bLoad);
         }
     }
 }
 
 void settings_SaveMenu(void) {
     GUIMessageResult_t res = message_Box("Save current\nvalues into\nFLASH?", 3,
-            12, FONT_MEDIUM, MESSAGE_OK_ABORT, &bSave);
+            12, FONT_MEDIUM, MESSAGE_OK_ABORT, (widget_t *) &bSave);
 
     if (res == MESSAGE_RES_OK) {
         settings_writeToFlash();

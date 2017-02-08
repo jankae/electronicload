@@ -103,7 +103,7 @@ void string_fromUintUnits(uint32_t value, char *dest, uint8_t digits,
     }
     char prefix = 0;
     uint8_t dot = 0;
-    char *unit = unit0;
+    const char *unit = unit0;
     // calculate prefix
     if (firstDigit > 6 && unit6 && *unit6) {
         dot = 6;

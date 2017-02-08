@@ -49,4 +49,11 @@ void widget_lostFocus(widget_t *w);
 GUISignal_t widget_input(widget_t *w, GUISignal_t signal);
 GUIResult_t widget_Redraw(widget_t *w);
 
+inline void widget_SetVisible(widget_t *w) {
+    w->flags.visible = 1;
+}
+inline void widget_SetInvisible(widget_t *w) {
+    w->flags.visible = 0;
+}
+
 #endif

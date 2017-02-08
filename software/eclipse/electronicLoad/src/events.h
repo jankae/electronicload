@@ -9,8 +9,8 @@
 #include "GUI/gui.h"
 
 #define EV_MAXEVENTS        10
-#define EV_MAXEFFECTS       5
-#define EV_MAXTIMERS        5
+#define EV_MAXEFFECTS       30
+#define EV_MAXTIMERS        10
 
 #define EV_MAXDESCRLENGTH   19
 
@@ -55,7 +55,7 @@ struct eventEffect {
         };
         /* set timer settings */
         struct {
-            uint8_t destTimerNum;
+            uint32_t destTimerNum;
             uint32_t destTimerValue;
         };
         /* change load mode settings */
@@ -64,6 +64,7 @@ struct eventEffect {
     struct {
         uint8_t inUse :1;
     };
+    char descr[EV_MAXDESCRLENGTH];
 };
 
 struct event {
@@ -111,15 +112,45 @@ void events_Init(void);
 
 widget_t* events_getWidget(void);
 
+/* EVENT EDIT CALLBACKS */
+
 void events_AddEvent(void);
 
 void events_DeleteEvent(void);
 
+void events_SelectedEventChanged(void);
+
 void events_SourceChanged(void);
 
-void events_UpdateDescriptions(void);
+void events_UpdateDescription(event_t *ev);
+
+void events_UpdateDescrPointers(void);
 
 void events_SetGUIToSelectedEvent(void);
+
+void events_SetGUIToSelectedSource(event_t *ev);
+
+void events_SettingChanged(void);
+
+/* EFFECT EDIT CALLBACKS */
+
+void events_AddEffect(void);
+
+void events_DeleteEffect(void);
+
+void events_SelectedEffectChanged(void);
+
+void events_EffectDestChanged(void);
+
+void events_UpdateEffectDescription(eventEffect_t *ef);
+
+void events_UpdateEffectDescrPointers(void);
+
+void events_SetGUIToSelectedEffect(void);
+
+void events_SetGUIToSelectedDest(eventEffect_t *ef);
+
+void events_EffectSettingChanged(void);
 
 /**
  * \brief Executes the destination action for every triggered event
@@ -162,37 +193,5 @@ inline void event_freeEvent(event_t *ev){
 inline void event_freeEffect(eventEffect_t *ef){
     ef->inUse = 0;
 }
-
-/**
- * \brief Constructs a short description of an event
- *
- * \param ev        Event that will be described
- * \param *descr    Pointer to the char array (at least of size 21) that will contain the description
- */
-void events_getSrcDescr(struct event ev, char *descr);
-
-/**
- * \brief Constructs a short description of an effect
- *
- * \param ef        Effect that will be described
- * \param *descr    Pointer to the char array (at least of size 21) that will contain the description
- */
-void events_getEffectDescr(struct effect ef, char *descr);
-
-/**
- * \brief Display the 'event list' menu
- */
-void events_menu(void);
-
-/**
- * \brief Displays a menu which enables the user to edit an event entry
- *
- * \param ev    Event that will be edited
- */
-void events_editEventMenu(struct event *ev);
-
-void events_effectMenu(struct event *ev);
-
-void events_editEffectMenu(struct effect *ef);
 
 #endif

@@ -83,17 +83,17 @@ int main(int argc, char* argv[]) {
         while (hal_getButton())
             ;
         signal = mainMenu_Input(signal);
-        widget_input(&n, signal);
+        widget_input((widget_t *) &n, signal);
         if (n.selectedPage == 0) {
             /* we are on the main screen -> update widgets */
             mainMenu_updateWidgets();
         }
-        widget_Redraw(&n);
+        widget_Redraw((widget_t *) &n);
     }
 
 //    // setup main menu
 //    menu_AddMainMenuEntry("Waveforms", waveform_Menu);
-    menu_AddMainMenuEntry("Events", events_menu);
+//    menu_AddMainMenuEntry("Events", events_menu);
 //    menu_AddMainMenuEntry("Arbitrary Sequence", arb_Menu);
 //    menu_AddMainMenuEntry("U/I characteristic", characteristic_Menu);
 //    menu_AddMainMenuEntry("Statistics", stats_Display);

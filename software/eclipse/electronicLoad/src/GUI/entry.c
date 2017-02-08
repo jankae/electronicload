@@ -1,6 +1,6 @@
 #include "entry.h"
 
-void entry_create(entry_t *e, int32_t *value, int32_t *max, int32_t *min,
+void entry_create(entry_t *e, int32_t *value, const int32_t *max, const int32_t *min,
         font_t font, uint8_t digits, unit_t unit, void *cb) {
     widget_init((widget_t*) e);
     /* set widget functions */

@@ -51,26 +51,26 @@ void stats_Init() {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lMin, 0, 3);
-    container_attach(&c, &lAvg, 0, 13);
-    container_attach(&c, &lMax, 0, 23);
-    container_attach(&c, &lEnergy, 0, 38);
+    container_attach(&c, (widget_t *) &lMin, 0, 3);
+    container_attach(&c, (widget_t *) &lAvg, 0, 13);
+    container_attach(&c, (widget_t *) &lMax, 0, 23);
+    container_attach(&c, (widget_t *) &lEnergy, 0, 38);
 
-    container_attach(&c, &eCurrentMin, 16, 1);
-    container_attach(&c, &eCurrentAvg, 16, 11);
-    container_attach(&c, &eCurrentMax, 16, 21);
+    container_attach(&c, (widget_t *) &eCurrentMin, 16, 1);
+    container_attach(&c, (widget_t *) &eCurrentAvg, 16, 11);
+    container_attach(&c, (widget_t *) &eCurrentMax, 16, 21);
 
-    container_attach(&c, &eVoltageMin, 48, 1);
-    container_attach(&c, &eVoltageAvg, 48, 11);
-    container_attach(&c, &eVoltageMax, 48, 21);
+    container_attach(&c, (widget_t *) &eVoltageMin, 48, 1);
+    container_attach(&c, (widget_t *) &eVoltageAvg, 48, 11);
+    container_attach(&c, (widget_t *) &eVoltageMax, 48, 21);
 
-    container_attach(&c, &ePowerMin, 80, 1);
-    container_attach(&c, &ePowerAvg, 80, 11);
-    container_attach(&c, &ePowerMax, 80, 21);
+    container_attach(&c, (widget_t *) &ePowerMin, 80, 1);
+    container_attach(&c, (widget_t *) &ePowerAvg, 80, 11);
+    container_attach(&c, (widget_t *) &ePowerMax, 80, 21);
 
-    container_attach(&c, &eEnergy, 32, 36);
+    container_attach(&c, (widget_t *) &eEnergy, 32, 36);
 
-    container_attach(&c, &bReset, 94, 43);
+    container_attach(&c, (widget_t *) &bReset, 94, 43);
 }
 
 widget_t* stats_getWidget(void) {

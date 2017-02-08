@@ -36,19 +36,19 @@ void characteristic_Init(void) {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lStartI, 0, 2);
-    container_attach(&c, &lStopI, 0, 14);
-    container_attach(&c, &lAbortV, 0, 26);
-    container_attach(&c, &lDeltaT, 0, 38);
+    container_attach(&c, (widget_t *) &lStartI, 0, 2);
+    container_attach(&c, (widget_t *) &lStopI, 0, 14);
+    container_attach(&c, (widget_t *) &lAbortV, 0, 26);
+    container_attach(&c, (widget_t *) &lDeltaT, 0, 38);
 
-    container_attach(&c, &eStartI, 60, 0);
-    container_attach(&c, &eStopI, 60, 12);
-    container_attach(&c, &eAbortV, 60, 24);
-    container_attach(&c, &eDeltaT, 60, 36);
+    container_attach(&c, (widget_t *) &eStartI, 60, 0);
+    container_attach(&c, (widget_t *) &eStopI, 60, 12);
+    container_attach(&c, (widget_t *) &eAbortV, 60, 24);
+    container_attach(&c, (widget_t *) &eDeltaT, 60, 36);
 
-    container_attach(&c, &bStart, 0, 48);
-    container_attach(&c, &bView, 38, 48);
-    container_attach(&c, &bTransmit, 70, 48);
+    container_attach(&c, (widget_t *) &bStart, 0, 48);
+    container_attach(&c, (widget_t *) &bView, 38, 48);
+    container_attach(&c, (widget_t *) &bTransmit, 70, 48);
 }
 
 widget_t* characteristic_getWidget(void) {

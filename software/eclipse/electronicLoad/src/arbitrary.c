@@ -56,18 +56,18 @@ void arb_Init(void) {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &lState, 0, 2);
-    container_attach(&c, &lMode, 0, 14);
-    container_attach(&c, &lParam, 0, 26);
-    container_attach(&c, &lLength, 0, 38);
+    container_attach(&c, (widget_t *) &lState, 0, 2);
+    container_attach(&c, (widget_t *) &lMode, 0, 14);
+    container_attach(&c, (widget_t *) &lParam, 0, 26);
+    container_attach(&c, (widget_t *) &lLength, 0, 38);
 
-    container_attach(&c, &dState, 48, 0);
-    container_attach(&c, &dMode, 30, 12);
-    container_attach(&c, &dParam, 36, 24);
+    container_attach(&c, (widget_t *) &dState, 48, 0);
+    container_attach(&c, (widget_t *) &dMode, 30, 12);
+    container_attach(&c, (widget_t *) &dParam, 36, 24);
 
-    container_attach(&c, &eLength, 60, 36);
+    container_attach(&c, (widget_t *) &eLength, 60, 36);
 
-    container_attach(&c, &bEdit, 0, 48);
+    container_attach(&c, (widget_t *) &bEdit, 0, 48);
 }
 
 widget_t* arb_getWidget(void) {

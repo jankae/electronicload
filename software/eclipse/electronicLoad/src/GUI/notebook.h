@@ -11,7 +11,7 @@ typedef struct {
     widget_t base;
     uint8_t selectedPage;
     uint32_t pageStartOffset;
-    char *pageNames[NOTEBOOK_MAX_PAGES];
+    const char *pageNames[NOTEBOOK_MAX_PAGES];
     font_t font;
     uint8_t numItems;
     struct {

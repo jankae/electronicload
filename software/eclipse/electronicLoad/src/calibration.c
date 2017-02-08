@@ -41,12 +41,12 @@ void cal_Init(void) {
 
     container_create(&c, 128, 55);
 
-    container_attach(&c, &bHardware, 0, 1);
-    container_attach(&c, &bCurrent, 0, 14);
-    container_attach(&c, &bShunt, 0, 27);
-    container_attach(&c, &bVoltage, 0, 40);
-    container_attach(&c, &bMultInfo, 63, 27);
-    container_attach(&c, &bSave, 99, 40);
+    container_attach(&c, (widget_t *) &bHardware, 0, 1);
+    container_attach(&c, (widget_t *) &bCurrent, 0, 14);
+    container_attach(&c, (widget_t *) &bShunt, 0, 27);
+    container_attach(&c, (widget_t *) &bVoltage, 0, 40);
+    container_attach(&c, (widget_t *) &bMultInfo, 63, 27);
+    container_attach(&c, (widget_t *) &bSave, 99, 40);
 }
 
 widget_t* cal_getWidget(void) {
@@ -86,8 +86,8 @@ uint8_t cal_readFromFlash(void) {
  * Use sparsely to preserve FLASH
  */
 void cal_writeToFlash(void) {
-    GUIMessageResult_t res = message_Box("Save calibration\nin FLASH?", 2,
-            16, FONT_MEDIUM, MESSAGE_OK_ABORT, &bSave);
+    GUIMessageResult_t res = message_Box("Save calibration\nin FLASH?", 2, 16,
+            FONT_MEDIUM, MESSAGE_OK_ABORT, (widget_t *) &bSave);
 
     if (res == MESSAGE_RES_OK) {
         FLASH_Unlock();
@@ -113,7 +113,7 @@ void cal_writeToFlash(void) {
         }
         // set valid data indicator
         FLASH_ProgramWord((uint32_t) FLASH_VALID_CALIB_INDICATOR,
-                CAL_INDICATOR);
+        CAL_INDICATOR);
         FLASH_Lock();
         cal.unsavedData = 0;
     }
